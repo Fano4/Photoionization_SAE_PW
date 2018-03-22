@@ -1,3 +1,4 @@
+#include "files_reader.hpp"
 
 int n_states_reader(int *n_states_neut,int *n_states_cat,int *n_elec_neut,std::string file_address)
 {
@@ -265,7 +266,7 @@ int overlap_MO(double matrix[],int* n_occ,int* basis_size,std::string molpro_out
              molpro_file>>floating;
              overlap[i**basis_size+j]=floating;
           }
-                     //cout<<overlap[i**basis_size+total]<<endl;//DEBOGAGE
+                    // cout<<overlap[i**basis_size+total]<<endl;//DEBOGAGE
        }
        position=molpro_file.tellg();
        molpro_file.close();
@@ -505,7 +506,7 @@ int num_of_ci_reader(int *n_states_neut,int *n_states_cat,int *n_ci_neut,int *n_
     {
        n_symocc+=bool(n_occ[i]);
     }
-       std::cout<<"n_symocc= "<<n_symocc<<std::endl;
+   //    std::cout<<"n_symocc= "<<n_symocc<<std::endl;
 
        int neut_states_sym=0;
        for(int i=0;i!=n_sym;i++)
@@ -514,36 +515,38 @@ int num_of_ci_reader(int *n_states_neut,int *n_states_cat,int *n_ci_neut,int *n_
        }
     for(int i=0;i!=n_sym;i++)
     {
+       n_ci_neut[i]=0;
        if(n_states_neut[i]!=0)
        {
-       counter=0;
-       if(neut_states_sym!=1)
-       {
-       molpro_output>>tmp_str;
-       molpro_output>>tmp_str;
-       molpro_output>>tmp_str;
-       molpro_output>>tmp_str;
-       }
-       molpro_output>>tmp_str;
+          counter=0;
+          if(neut_states_sym!=1)
+          {
+             molpro_output>>tmp_str;
+             molpro_output>>tmp_str;
+             molpro_output>>tmp_str;
+             molpro_output>>tmp_str;
+          }
+          molpro_output>>tmp_str;
     
-       //std::cout<<"before neutral "<<tmp_str<<std::endl;//DEBOGAGE
-       while(tmp_str!="TOTAL")
-       {
-           molpro_output>>tmp_str;
-           counter++;
-       }
-        molpro_output>>tmp_str;
-        for(int j=0;j!=n_states_neut[i];j++)
-        {
-           molpro_output>>tmp_str;
-        }
-        molpro_output>>tmp_str;
-        molpro_output>>tmp_str;
-        //std::cout<<"after neutral "<<tmp_str<<std::endl;//DEBOGAGE
+          //std::cout<<"before neutral "<<tmp_str<<std::endl;//DEBOGAGE
+          while(tmp_str!="TOTAL")
+          {
+              molpro_output>>tmp_str;
+              counter++;
+          }
+          molpro_output>>tmp_str;
+          for(int j=0;j!=n_states_neut[i];j++)
+          {
+             molpro_output>>tmp_str;
+          }
+          molpro_output>>tmp_str;
+          molpro_output>>tmp_str;
+          //std::cout<<"after neutral "<<tmp_str<<std::endl;//DEBOGAGE
     
-       n_ci_neut[i]=(counter-1)/(n_states_neut[i]+n_symocc);
+          n_ci_neut[i]=(counter-1)/(n_states_neut[i]+n_symocc);
        }
     }
+  //  std::cout<<"PROBE 2 GETTING CI VECTOR SIZE FROM MOLPRO OUTPUT"<<std::endl;//DEBOGAGE
     
     position=molpro_output.tellg();
     molpro_output.close();
@@ -564,42 +567,46 @@ int num_of_ci_reader(int *n_states_neut,int *n_states_cat,int *n_ci_neut,int *n_
     }
     for(int i=0;i!=n_sym;i++)
     {
+       n_ci_cat[i]=0;
        if(n_states_cat[i]!=0)
        {
-       counter=0;
+          counter=0;
 
-       if(cat_states_sym!=1)
-       {
-       molpro_output>>tmp_str;
-       molpro_output>>tmp_str;
-       molpro_output>>tmp_str;
-       molpro_output>>tmp_str;
-       }
-       molpro_output>>tmp_str;
+          if(cat_states_sym!=1)
+          {
+             molpro_output>>tmp_str;
+             molpro_output>>tmp_str;
+             molpro_output>>tmp_str;
+             molpro_output>>tmp_str;
+          }
+          molpro_output>>tmp_str;
+         
+          //std::cout<<"PROBE LOOP CI VECTOR"<<std::endl;//DEBOGAGE
 
-       //std::cout<<"before cation "<<tmp_str<<std::endl;//DEBOGAGE
-        while(tmp_str!="TOTAL")
-        {
+          //std::cout<<"before cation "<<tmp_str<<std::endl;//DEBOGAGE
+          while(tmp_str!="TOTAL")
+          {
             molpro_output>>tmp_str;
             counter++;
-        }
-        molpro_output>>tmp_str;
-        //std::cout<<tmp_str<<std::endl;//DEBOGAGE
-        for(int j=0;j!=n_states_cat[i];j++)
-        {
-           molpro_output>>tmp_str;
-           //std::cout<<tmp_str<<std::endl;//DEBOGAGE
-        }
-        molpro_output>>tmp_str;
-       // std::cout<<tmp_str<<std::endl;//DEBOGAGE
-        molpro_output>>tmp_str;
-       // std::cout<<tmp_str<<std::endl;//DEBOGAGE
-           //std::cout<<"after cation "<<tmp_str<<std::endl;//DEBOGAGE
+          }
+          molpro_output>>tmp_str;
+          //std::cout<<tmp_str<<std::endl;//DEBOGAGE
+          for(int j=0;j!=n_states_cat[i];j++)
+          {
+             molpro_output>>tmp_str;
+             //std::cout<<tmp_str<<std::endl;//DEBOGAGE
+          }
+          molpro_output>>tmp_str;
+          // std::cout<<tmp_str<<std::endl;//DEBOGAGE
+          molpro_output>>tmp_str;
+          // std::cout<<tmp_str<<std::endl;//DEBOGAGE
+          //std::cout<<"after cation "<<tmp_str<<std::endl;//DEBOGAGE
     
-        n_ci_cat[i]=(counter-1)/(n_states_cat[i]+n_symocc);
+          //std::cout<<"counter is "<<counter<<" n_ci_cat is "<<(counter-1)/(n_states_cat[i]+n_symocc)<<std::endl;
+          n_ci_cat[i]=(counter-1)/(n_states_cat[i]+n_symocc);
 
        }
-       }
+    }
     }
     molpro_output.close();
     
@@ -776,106 +783,104 @@ int ci_vec_reader(int *n_states_neut_s,int *n_states_cat_s,int *n_occ,int *n_clo
     else
     {
 
-    n_symocc=0;
-    for(int i=0;i!=n_sym;i++)
-    {
-       n_symocc+=bool(n_occ[i]);
-    }
-    if(!search(&position, file_address,position, "CI", 0, "vector"))
-    {
-        std::cout<<"CI VECTORS NOT FOUND IN MOLPRO OUPTUT FILE"<<std::endl;
-        return 1;
-    }
+       n_symocc=0;
+       for(int i=0;i!=n_sym;i++)
+       {
+          n_symocc+=bool(n_occ[i]);
+       }
+       if(!search(&position, file_address,position, "CI", 0, "vector"))
+       {
+           std::cout<<"CI VECTORS NOT FOUND IN MOLPRO OUPTUT FILE"<<std::endl;
+           return 1;
+       }
         
-    molpro_output.open(file_address.c_str());
+       molpro_output.open(file_address.c_str());
     
-    molpro_output.seekg(position);
+       molpro_output.seekg(position);
     
-
        int neut_states_sym=0;
        for(int i=0;i!=n_sym;i++)
        {
           neut_states_sym+=bool(n_states_neut_s[i]);
        }
     
-    for(int s=0;s!=n_sym;s++)
-    {
-      if(n_states_neut_s[s]!=0)
-      {
-       if(neut_states_sym!=1)
+       for(int s=0;s!=n_sym;s++)
        {
-        molpro_output>>tmp_str;
-        molpro_output>>tmp_str;
-        molpro_output>>tmp_str;
-        molpro_output>>tmp_str;
-       }
-        molpro_output>>tmp_str;
+         if(n_states_neut_s[s]!=0)
+         {
+            if(neut_states_sym!=1)
+            {
+             molpro_output>>tmp_str;
+             molpro_output>>tmp_str;
+             molpro_output>>tmp_str;
+             molpro_output>>tmp_str;
+            }
+            molpro_output>>tmp_str;
 
-        for (int i=0; i!=ci_size_neut[s]; i++)
-        {
-           mo_index=0;
-           for(int l=0;l!=n_symocc;l++)
-           {
-              molpro_output>>tmp_str;
-               if(n_closed[l]!=0)
+            for (int i=0; i!=ci_size_neut[s]; i++)
+            {
+               mo_index=0;
+               for(int l=0;l!=n_symocc;l++)
                {
-                   for(int j=0;j!=n_closed[l];j++)
-                   {
-                      ci_vector_neut[0][(n_elec_neut+n_states_neut)*ci_index+elec_index]=mo_index;
-                      ci_vector_neut[1][(n_elec_neut)*ci_index+elec_index]=0;
-                      elec_index++;
-                      ci_vector_neut[0][(n_elec_neut+n_states_neut)*ci_index+elec_index]=mo_index;
-                      ci_vector_neut[1][(n_elec_neut)*ci_index+elec_index]=1;
-                      elec_index++;
-                      mo_index++;
-                   }
-               }
-               for(int j=0;j!=n_occ[l]-n_closed[l];j++)
-               {
-                  if(tmp_str.at(j)=='0')
+                  molpro_output>>tmp_str;
+                  if(n_closed[l]!=0)
                   {
-                      mo_index++;
-                      continue;
-                  }
+                     for(int j=0;j!=n_closed[l];j++)
+                     {
+                        ci_vector_neut[0][(n_elec_neut+n_states_neut)*ci_index+elec_index]=mo_index;
+                        ci_vector_neut[1][(n_elec_neut)*ci_index+elec_index]=0;
+                        elec_index++;
+                        ci_vector_neut[0][(n_elec_neut+n_states_neut)*ci_index+elec_index]=mo_index;
+                        ci_vector_neut[1][(n_elec_neut)*ci_index+elec_index]=1;
+                        elec_index++;
+                        mo_index++;
+                     }
+                 }
+                 for(int j=0;j!=n_occ[l]-n_closed[l];j++)
+                 {
+                    if(tmp_str.at(j)=='0')
+                    {
+                       mo_index++;
+                       continue;
+                    }
             
-                  else if(tmp_str.at(j)=='2')
-                  {
-                      ci_vector_neut[0][(n_elec_neut+n_states_neut)*ci_index+elec_index]=mo_index;
-                      ci_vector_neut[1][(n_elec_neut)*ci_index+elec_index]=0;
-                      elec_index++;
-                      ci_vector_neut[0][(n_elec_neut+n_states_neut)*ci_index+elec_index]=mo_index;
-                      ci_vector_neut[1][(n_elec_neut)*ci_index+elec_index]=1;
-                      elec_index++;
-                      mo_index++;
-                      continue;
-                   }
+                    else if(tmp_str.at(j)=='2')
+                    {
+                       ci_vector_neut[0][(n_elec_neut+n_states_neut)*ci_index+elec_index]=mo_index;
+                       ci_vector_neut[1][(n_elec_neut)*ci_index+elec_index]=0;
+                       elec_index++;
+                       ci_vector_neut[0][(n_elec_neut+n_states_neut)*ci_index+elec_index]=mo_index;
+                       ci_vector_neut[1][(n_elec_neut)*ci_index+elec_index]=1;
+                       elec_index++;
+                       mo_index++;
+                       continue;
+                    }
             
-                  else if(tmp_str.at(j)=='a')
-                  {
-                      ci_vector_neut[0][(n_elec_neut+n_states_neut)*ci_index+elec_index]=mo_index;
-                      ci_vector_neut[1][(n_elec_neut)*ci_index+elec_index]=0;
-                      elec_index++;
-                      mo_index++;
-                      continue;
-                   }
-            
-                  else if(tmp_str.at(j)=='b')
-                  {
-                      ci_vector_neut[0][(n_elec_neut+n_states_neut)*ci_index+elec_index]=mo_index;
-                      ci_vector_neut[1][(n_elec_neut)*ci_index+elec_index]=1;
-                      elec_index++;
-                      mo_index++;
-                      continue;
-                  }
-
-               }
-           }
-           elec_index=0;
-           state_index=0;
-           for(int w=0;w!=s;w++)
-           {
-              state_index+=n_states_neut_s[w];
-           }
+                    else if(tmp_str.at(j)=='a' || tmp_str.at(j)=='/')
+                    {
+                       ci_vector_neut[0][(n_elec_neut+n_states_neut)*ci_index+elec_index]=mo_index;
+                       ci_vector_neut[1][(n_elec_neut)*ci_index+elec_index]=0;
+                       elec_index++;
+                       mo_index++;
+                       continue;
+                    }
+             
+                    else if( tmp_str.at(j) == 'b' || tmp_str.at(j) == '\\')
+                    {
+                       ci_vector_neut[0][(n_elec_neut+n_states_neut)*ci_index+elec_index]=mo_index;
+                       ci_vector_neut[1][(n_elec_neut)*ci_index+elec_index]=1;
+                       elec_index++;
+                       mo_index++;
+                       continue;
+                    }
+                }
+            }
+            elec_index=0;
+            state_index=0;
+            for(int w=0;w!=s;w++)
+            {
+               state_index+=n_states_neut_s[w];
+            }
         
             for (int j=state_index; j!=n_states_neut_s[s]+state_index; j++)
             {
@@ -883,7 +888,7 @@ int ci_vec_reader(int *n_states_neut_s,int *n_states_cat_s,int *n_occ,int *n_clo
                 ci_vector_neut[0][(n_elec_neut+n_states_neut)*ci_index+n_elec_neut+j]=floating;
             
             }
-           ci_index++;
+            ci_index++;
         }
       
         molpro_output>>tmp_str;
@@ -900,7 +905,11 @@ int ci_vec_reader(int *n_states_neut_s,int *n_states_cat_s,int *n_occ,int *n_clo
     molpro_output.close();
     
    ci_index=0;
+   elec_index=0;
+   state_index=0;
     
+   std::cout<<"Neutral part of CI vector read. Now reading cation CI vector"<<std::endl;
+
     if(!search(&position, file_address,position, "CI", 0, "vector"))
     {
         std::cout<<"CI VECTORS NOT FOUND IN MOLPRO OUPTUT FILE"<<std::endl;
@@ -916,12 +925,15 @@ int ci_vec_reader(int *n_states_neut_s,int *n_states_cat_s,int *n_occ,int *n_clo
     {
        cat_states_sym+=bool(n_states_cat_s[i]);
     }
+    std::cout<<cat_states_sym<<" cation states"<<std::endl;//DEBOGAGE
     
     for(int s=0;s!=n_sym;s++)
     {
+       //std::cout<<"probe sym "<<s<<std::endl;//DEBOGAGE
       if(n_states_cat_s[s]!=0)
       {
-       if(cat_states_sym!=1)
+        //std::cout<<"probe loop sym"<<std::endl;//DEBOGAGE
+       if(cat_states_sym!=1) //!!!!!!! THIS SHOULD BE ONLY COMMENTED IF WE WANT A SINGLE STATE OF THE CAITON BUT THE MOLPRO COMPUTATION WAS DONE ON SEVERAL STATES
        {
         molpro_output>>tmp_str;
         molpro_output>>tmp_str;
@@ -969,7 +981,7 @@ int ci_vec_reader(int *n_states_neut_s,int *n_states_cat_s,int *n_occ,int *n_clo
                       continue;
                   }
             
-                  else if(tmp_str.at(j)=='a')
+                  else if(tmp_str.at(j)=='a' || tmp_str.at(j)=='/')
                   {
                       ci_vector_cat[0][(n_elec_neut-1+n_states_cat)*ci_index+elec_index]=mo_index;
                       ci_vector_cat[1][(n_elec_neut-1)*ci_index+elec_index]=0;
@@ -978,7 +990,7 @@ int ci_vec_reader(int *n_states_neut_s,int *n_states_cat_s,int *n_occ,int *n_clo
                       continue;
                   }
             
-                  else if(tmp_str.at(j)=='b')
+                  else if( tmp_str.at(j) == 'b' || tmp_str.at(j) == '\\')
                   {
                       ci_vector_cat[0][(n_elec_neut-1+n_states_cat)*ci_index+elec_index]=mo_index;
                       ci_vector_cat[1][(n_elec_neut-1)*ci_index+elec_index]=1;
@@ -989,6 +1001,8 @@ int ci_vec_reader(int *n_states_neut_s,int *n_states_cat_s,int *n_occ,int *n_clo
 
                }
          }
+           //std::cout<<"probe 2"<<std::endl;//DEBOGAGE
+
            elec_index=0;
            state_index=0;
          for(int w=0;w!=s;w++)
@@ -1010,9 +1024,11 @@ int ci_vec_reader(int *n_states_neut_s,int *n_states_cat_s,int *n_occ,int *n_clo
         }
         molpro_output>>tmp_str;
         molpro_output>>tmp_str;
+        std::cout<<"probe loop sym"<<std::endl;//DEBOGAGE
    }
     }
 }
+           std::cout<<"probe end"<<std::endl;//DEBOGAGE
     
     molpro_output.close();
     return 0;
@@ -1353,250 +1369,5 @@ bool efield_param_reader(std::string file_address,int *n_pulses,double **energy,
      }
 
     }
-   return 1;
-}
-int photoion_input_reader(std::string input_loc, elec_struct *elec_target,cube_struct *cube_target, continuum_struct *continuum_target)
-{
-   using namespace std;
-   ifstream input;
-   input.open(input_loc.c_str());
-
-   //electronic structure variables 
-   bool molpro_input_loc_checked(0);
-   bool mo_cube_loc_set(0);
-   string mo_cube_loc;
-
-   //cube_struct_variables
-   bool cube_dim_set(0);
-   bool nx_set(0);
-   bool ny_set(0);
-   bool nz_set(0);
-   bool xmin_set(0);
-   bool xmax_set(0);
-   bool ymin_set(0);
-   bool ymax_set(0);
-   bool zmin_set(0);
-   bool zmax_set(0);
-   bool cube_titles_set(0);
-   bool cube_geom_set(0);
-   bool num_nucl_set(0);
-   int nx,ny,nz(0);
-   double xmin,ymin,zmin(0);
-   double xmax,ymax,zmax(0);
-   int num_nucl(0);
-   int *nucl_Z(NULL);
-   double **nucl_pos(NULL);
-
-   //continuum struct variables
-   bool k_range_set(0);
-   bool grid_set(0);
-   bool kmin_set(0);
-   bool kmax_set(0);
-   bool nk_set(0);
-   bool ntheta_set(0);
-   bool nphi_set(0);
-   bool random_grid(0);
-   bool random_grid_set(0);
-
-   double kmin,kmax(0);
-   int nk,ntheta,nphi(0);
-   int n_points_sphere(0);
-
-   //utility variables
-   char c_comment;
-   string l_comment;
-   int position(0);
-   string parameter_label;
-   int parameter_int;
-   double parameter_double;
-   string parameter_string;
-   int num_of_atom(0);
-
-   if(!input.is_open())
-   {
-      cout<<"INPUT FILE DOES NOT EXIST"<<endl<<input_loc.c_str()<<endl;
-      return 0;
-   }
-   else
-   { 
-      do
-      {
-         c_comment=input.get();
-         if(c_comment=='!')
-         {
-            //ignore comment lines
-            getline(input,l_comment);
-            continue;
-         }
-         else if(c_comment==' ')
-         {
-            //ignore void characters at the beginning of a line
-            continue;
-         }
-         else
-         {
-            //take one step back
-            position=input.tellg();
-            input.seekg(position-1);
-            //read the parameter label. The label is identified using a switch condition
-            input>>parameter_label; 
-                  //electronic structure input section
-                  if(parameter_label == "molpro_file")
-                  {
-                     input>>input_loc;
-                  }
-                  else if(parameter_label == "MO_cubes_loc")
-                  {
-                     input>>parameter_string;
-                     elec_target->set_mo_cube(parameter_string); 
-                  }
-                  //cube structure section
-                  else if(parameter_label == "grid_size_x")
-                  {
-                     input>>nx; 
-                     if(nx<=0)
-                     {
-                        cout<<"ERROR: NEGATIVE OR ZERO GRID SIZE MAKES NO SENSE. PLEASE CHECK INPUT"<<endl;
-                        return 8;
-                     }
-                     nx_set=1;
-                  }
-                  else if(parameter_label == "grid_size_y")
-                  {
-                     input>>ny;
-                     if(ny<=0)
-                     {
-                        cout<<"ERROR: NEGATIVE OR ZERO GRID SIZE MAKES NO SENSE. PLEASE CHECK INPUT"<<endl;
-                        return 8;
-                     }
-                     ny_set=1;
-                  }
-                  else if(parameter_label == "grid_size_z")
-                  {
-                     input>>nz;
-                     nz_set=1;
-                     if(nz<=0)
-                     {
-                        cout<<"ERROR: NEGATIVE OR ZERO GRID SIZE MAKES NO SENSE. PLEASE CHECK INPUT"<<endl;
-                        return 8;
-                     }
-                  }
-                  else if(parameter_label == "min_x")
-                  {
-                     input>>xmin;
-                     xmin_set=1;
-                  }
-                  else if(parameter_label == "min_y")
-                  {
-                     input>>ymin;
-                     ymin_set=1;
-                  }
-                  else if(parameter_label == "min_z")
-                  {
-                     input>>zmin;
-                     zmin_set=1;
-                  }
-                  else if(parameter_label == "max_x")
-                  {
-                     input>>xmax;
-                     xmax_set=1;
-                  }
-                  else if(parameter_label == "max_y")
-                  {
-                     input>>ymax;
-                     ymax_set=1;
-                  }
-                  else if(parameter_label == "max_z")
-                  {
-                     input>>zmax;
-                     zmax_set=1;
-                  }
-                  //molecular Geometry section
-                  else if(parameter_label == "num_of_nucl")
-                  {
-                     input>>num_nucl;
-                     nucl_Z=new int[num_nucl];
-                     nucl_pos=new double*[num_nucl];
-                     for(int i=0;i!=num_nucl;i++)
-                     {
-                        nucl_pos[i]=new double[3];
-                     }
-                     num_nucl_set=1;
-                  }
-                  else if(parameter_label == "atom")
-                  {
-                     if(!num_nucl_set)
-                     {
-                        cout<<"ERROR: NUMBER OF NUCLEI NOT SET BEFORE GEOMETRY SPECIFICATION"<<endl;
-                        return 8;
-                     }
-                     if(num_of_atom+1>num_nucl)
-                     {
-                        cout<<"ERROR: TOO MANY ATOMS IN GEOMETRY INPUT. EXPECTED "<<num_nucl<<", DETECTED "<<num_of_atom+1<<". PLEASE CHECK INPUT"<<endl;
-                        return 8;
-                     }
-                     input>>nucl_Z[num_of_atom];
-                     input>>nucl_pos[num_of_atom][0];
-                     input>>nucl_pos[num_of_atom][1];
-                     input>>nucl_pos[num_of_atom][2];
-                     num_of_atom++;
-                  }
-                  //Continuum subspace section
-                  else if(parameter_label == "kmin")
-                  {
-                     input>>kmin;
-                     kmin_set=1;
-                  }
-                  else if(parameter_label == "kmax")
-                  {
-                     input>>kmax;
-                     kmax_set=1;
-                  }
-                  else if(parameter_label == "grid_size_k")
-                  {
-                     input>>nk;
-                     nk_set=1;
-                  }
-                  else if(parameter_label == "random_grid")
-                  {
-                     input>>random_grid;
-                  }
-                  else if(parameter_label == "n_points_sphere")
-                  {
-                     input>>n_points_sphere;
-                     random_grid_set=1;
-                  }
-                  else if(parameter_label == "grid_size_polar")
-                  {
-                     input>>ntheta;
-                     ntheta_set=1;
-                  }
-                  else if(parameter_label == "grid_size_azim")
-                  {
-                     input>>nphi;
-                     nphi_set=1;
-                  }
-                  else
-                  {
-                     std::cout<<"PARAMETER NOT RECOGNIZED IN INPUT FILE :"<<parameter_label.c_str()<<std::endl;
-                     return 9;
-                  }
-            //Check parameters setting
-            if(nx_set && ny_set && nz_set && xmin_set && xmax_set && ymin_set && ymax_set && zmin_set && zmax_set)
-               cube_dim_set=1;
-            if(num_of_atom==num_nucl)
-               cube_geom_set=1;
-            if(kmin_set && kmax_set)
-               k_range_set=1;
-            if(nk_set && ((random_grid && random_grid_set) || (ntheta_set && nphi_set)))
-               grid_set=1;
-
-         }
-      }while(!input.eof());
-      input.close();
-//Set up the target objects
-      if(cube_dim_set)
-         cube_target->set_cube_dim(nx,xmin,xmax,ny,ymin,ymax,nz,zmin,zmax);
-   }
    return 1;
 }

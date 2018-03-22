@@ -1,17 +1,31 @@
-//standard libraries
+#ifndef FRONUC_DYN_M_H
+#define FRONUC_DYN_M_H
+
+
+//Include standards libraries
 #include <iostream>
 #include <cstdlib>
-#include <cstring>
-#include <fstream>
-#include <sstream>
+#include <iomanip>
+#include <cmath>
+#include <vector>
 #include "mkl.h"
 #include "omp.h"
 
-//internal program files
-#include "objects.hpp"
+//include program headers files
+#include "global_vars.hpp"
 #include "files_reader.hpp"
-#include "objects.cpp"
-#include "files_reader.cpp"
+#include "continuum.hpp"
+#include "dyson_cube_writer.hpp"
+#include "algebra.hpp"
+#include "Computation.hpp"
 
-//functions_declaration
-int photoion_comp(int argc,char* argv[]);
+#include "global_vars.cpp"
+#include "files_reader.cpp"
+#include "continuum.cpp"
+#include "dyson_cube_writer.cpp"
+#include "algebra.cpp"
+#include "Computation.cpp"
+#include "mkl_dfti.h"
+bool center_wave(double *x,MKL_LONG *grid_size,int num_of_dim);
+
+#endif
