@@ -3,7 +3,7 @@
 int main(int argc,char* argv[])
 {
    int photoion_comp(int argc, char* argv[]);
-   omp_set_num_threads(16); 
+   omp_set_num_threads(8); 
 
    photoion_comp(argc,argv);
 
@@ -17,7 +17,7 @@ int photoion_comp(int argc, char* argv[])
     double temp_norm(0);
     const int n_sym(4);
     int n_states_neut(0);
-    int n_states_neutral_sym[n_sym]={8,3,3,1};
+    int n_states_neutral_sym[n_sym]={8,3,3,1};//{8,3,3,1};
     int n_states_cat(0);
     int n_states_cat_sym[n_sym]={2,1,1,0};//{2,1,1,0}
     int n_occ(0);
@@ -55,15 +55,18 @@ int photoion_comp(int argc, char* argv[])
     int nk(150);
     int ntheta(90);
     int nphi(120);
-    int nx(126);//125);
-    int ny(126);//125);
-    int nz(126);//125);
-    double xmin(-63.0);//-27.401029);
-    double xmax(-63.0+nx*1.0);//27.842971);
-    double ymin(-63.0);//-27.401029);
-    double ymax(-63.0+ny*1.0);//27.842971);
-    double zmin(-63.0);//-27.010679);
-    double zmax(-63.0+nz*1.0);//28.233321);
+    int nx(64);//125);
+    int ny(64);//125);
+    int nz(64);//125);
+    int nkx(64);
+    int nky(64);
+    int nkz(64);
+    double xmin(-64.0);//-27.401029);
+    double xmax(-64.0+nx*2);//27.842971);
+    double ymin(-64.0);//-27.401029);
+    double ymax(-64.0+ny*2);//27.842971);
+    double zmin(-64.0);//-27.010679);
+    double zmax(-64.0+nz*2);//28.233321);
     double x;
     double y;
     double z;
@@ -292,6 +295,18 @@ DFTI_DESCRIPTOR_HANDLE cube_ft_desc;
     dyson_mo_coeff_comp( n_states_neut,n_states_cat, n_occ,ci_size_neut, ci_size_cat, n_elec_neut, ci_vec_neut, ci_vec_cat,overlap, dyson_mo_basis_coeff);
     std::cout<<"DYSON COEFF ROUTINE ENDED WITHOUT ISSUE"<<std::endl;
 
+    double dtemp(0);
+    for(int a=0;a!=n_states_neut;a++)
+    {
+       dtemp=0;
+       for(int k=0;k!=n_occ;k++)
+       {
+          dtemp+=dyson_mo_basis_coeff[a*n_states_cat*n_occ+0*n_occ+k]*dyson_mo_basis_coeff[a*n_states_cat*n_occ+0*n_occ+k];
+       }
+       std::cout<<"Norm of Dyson orbital "<<a<<"_"<<0<<" = "<<dtemp<<std::endl;
+//cube_header(dyson_mo_basis_coeff,n_occ,n_states_neut,n_states_cat,neut_mo_cube_array,dyson_cube_loc.c_str(),a,0,2,nx,ny,nz,xmin,xmax,ymin,ymax,zmin,zmax,mo_cube_array);
+    }
+
     //BUILD THE CUBE OF THE DYSON ORBITALS
     //
 std::cout<<"BEGINNING COMPUTATION OF PICE"<<std::endl;
@@ -316,9 +331,9 @@ for(int k=0;k!=n_occ;k++)
 {
    for(int kp=0;kp!=n_occ;kp++)
    {
-      transition_dipole[0][k*n_occ+kp]=0;//cblas_ddot(nx*ny*nz,neut_mo_cube_array[k],1,moment_orbital[0][kp],1);
-      transition_dipole[1][k*n_occ+kp]=0;//cblas_ddot(nx*ny*nz,neut_mo_cube_array[k],1,moment_orbital[1][kp],1);
-      transition_dipole[2][k*n_occ+kp]=0;//cblas_ddot(nx*ny*nz,neut_mo_cube_array[k],1,moment_orbital[2][kp],1);
+      transition_dipole[0][k*n_occ+kp]=cblas_ddot(nx*ny*nz,neut_mo_cube_array[k],1,moment_orbital[0][kp],1);
+      transition_dipole[1][k*n_occ+kp]=cblas_ddot(nx*ny*nz,neut_mo_cube_array[k],1,moment_orbital[1][kp],1);
+      transition_dipole[2][k*n_occ+kp]=cblas_ddot(nx*ny*nz,neut_mo_cube_array[k],1,moment_orbital[2][kp],1);
       //std::cout<<transition_dipole[2][k*n_occ+kp]<<"    ";
    }//std::cout<<std::endl;
 }
@@ -348,17 +363,20 @@ for(int k=0;k!=n_occ;k++)
 //STEP 2: COMPUTE THE GRADIENT OF THE MO'S IN THE RECIPROCAL SPACE
    center_wave(moment_orbital[0][k],ft_dim,3);
    cblas_dscal (nx*ny*nz, 0, xim_in, 1);
-   std::cout<<" FT gradient along x of MO "<<k<<": "<<DftiComputeForward(cube_ft_desc,moment_orbital[0][k],xim_in,gradx_re_ft_mo_array[k],gradx_im_ft_mo_array[k])<<std::endl;
+   std::cout<<" FT gradient along x of MO "<<k<<": "<<DftiComputeForward(cube_ft_desc,moment_orbital[0][k],xim_in,gradx_im_ft_mo_array[k],gradx_re_ft_mo_array[k])<<std::endl;
+   cblas_dscal (nx*ny*nz, -1, gradx_im_ft_mo_array[k], 1);
    center_wave(gradx_re_ft_mo_array[k],ft_dim,3);
    center_wave(gradx_im_ft_mo_array[k],ft_dim,3);
    center_wave(moment_orbital[1][k],ft_dim,3);
    cblas_dscal (nx*ny*nz, 0, xim_in, 1);
-   std::cout<<" FT gradient along y of MO "<<k<<": "<<DftiComputeForward(cube_ft_desc,moment_orbital[1][k],xim_in,grady_re_ft_mo_array[k],grady_im_ft_mo_array[k])<<std::endl;
+   std::cout<<" FT gradient along y of MO "<<k<<": "<<DftiComputeForward(cube_ft_desc,moment_orbital[1][k],xim_in,grady_im_ft_mo_array[k],grady_re_ft_mo_array[k])<<std::endl;
+   cblas_dscal (nx*ny*nz, -1, grady_im_ft_mo_array[k], 1);
    center_wave(grady_re_ft_mo_array[k],ft_dim,3);
    center_wave(grady_im_ft_mo_array[k],ft_dim,3);
    center_wave(moment_orbital[2][k],ft_dim,3);
    cblas_dscal (nx*ny*nz, 0, xim_in, 1);
-   std::cout<<" FT gradient along z of MO "<<k<<": "<<DftiComputeForward(cube_ft_desc,moment_orbital[2][k],xim_in,gradz_re_ft_mo_array[k],gradz_im_ft_mo_array[k])<<std::endl;
+   std::cout<<" FT gradient along z of MO "<<k<<": "<<DftiComputeForward(cube_ft_desc,moment_orbital[2][k],xim_in,gradz_im_ft_mo_array[k],gradz_re_ft_mo_array[k])<<std::endl;
+   cblas_dscal (nx*ny*nz, -1, gradz_im_ft_mo_array[k], 1);
    center_wave(gradz_re_ft_mo_array[k],ft_dim,3);
    center_wave(gradz_im_ft_mo_array[k],ft_dim,3);
 }
@@ -392,19 +410,19 @@ for(int m=0;m!=n_states_neut;m++)
        s_PICE=ss_PICE.str();
        PICE.open(s_PICE.c_str());
        PICE<<"Photoionization coupling elements cube file"<<std::endl<<"Coupling between neutral state "<<m<<" and cation state "<<n<<"(Real part, X component ) \n";
-       PICE<<1<<"  "<<-acos(-1)*nx/(xmax-xmin)<<"  "<<-acos(-1)*ny/(ymax-ymin)<<"  "<<-acos(-1)*nz/(zmax-zmin)<<" \n";
-       PICE<<nx<<"   "<<2*acos(-1)/(xmax-xmin)<<"    0.000000    0.000000 \n";
-       PICE<<ny<<"   0.000000    "<<2*acos(-1)/(ymax-ymin)<<"    0.000000 \n";
-       PICE<<nz<<"   0.000000    0.000000   "<<2*acos(-1)/(zmax-zmin)<<" \n";
+       PICE<<1<<"  "<<-(acos(-1)*nkx/(xmax-xmin))<<"  "<<-(acos(-1)*nky/(ymax-ymin))<<"  "<<-(acos(-1)*nkz/(zmax-zmin))<<" \n";
+       PICE<<nkx<<"   "<<2*acos(-1)/(xmax-xmin)<<"    0.000000    0.000000 \n";
+       PICE<<nky<<"   0.000000    "<<2*acos(-1)/(ymax-ymin)<<"    0.000000 \n";
+       PICE<<nkz<<"   0.000000    0.000000   "<<2*acos(-1)/(zmax-zmin)<<" \n";
        PICE<<"    1    1.000000    0.0000000000        0.0000000000      0.000000000 \n";
        PICE<<"1 111 \n";
        index=0;
        index2=0;
-        for(int i=0;i!=nx;i++)
+        for(int i=nx/2-nkx/2;i!=nx/2+nkx/2;i++)
         {
-           for(int j=0;j!=ny;j++)
+           for(int j=ny/2-nky/2;j!=ny/2+nky/2;j++)
            {
-              for(int k=0;k!=nz;k++)
+              for(int k=nz/2-nkz/2;k!=nz/2+nkz/2;k++)
               {
                 PICE<<scientific<<setw(16)<<rectemp[i*ny*nz+j*nz+k];
                 index++;
@@ -423,19 +441,19 @@ for(int m=0;m!=n_states_neut;m++)
        s_PICE=ss_PICE.str();
        PICE.open(s_PICE.c_str());
        PICE<<"Photoionization coupling elements cube file"<<std::endl<<"Coupling between neutral state "<<m<<" and cation state "<<n<<"(Imaginary part, X component ) \n";
-       PICE<<1<<"  "<<-acos(-1)*nx/(xmax-xmin)<<"  "<<-acos(-1)*ny/(ymax-ymin)<<"  "<<-acos(-1)*nz/(zmax-zmin)<<" \n";
-       PICE<<nx<<"   "<<2*acos(-1)/(xmax-xmin)<<"    0.000000    0.000000 \n";
-       PICE<<ny<<"   0.000000    "<<2*acos(-1)/(ymax-ymin)<<"    0.000000 \n";
-       PICE<<nz<<"   0.000000    0.000000   "<<2*acos(-1)/(zmax-zmin)<<" \n";
+       PICE<<1<<"  "<<-(acos(-1)*nkx/(xmax-xmin))<<"  "<<-(acos(-1)*nky/(ymax-ymin))<<"  "<<-(acos(-1)*nkz/(zmax-zmin))<<" \n";
+       PICE<<nkx<<"   "<<2*acos(-1)/(xmax-xmin)<<"    0.000000    0.000000 \n";
+       PICE<<nky<<"   0.000000    "<<2*acos(-1)/(ymax-ymin)<<"    0.000000 \n";
+       PICE<<nkz<<"   0.000000    0.000000   "<<2*acos(-1)/(zmax-zmin)<<" \n";
        PICE<<"    1    1.000000    0.0000000000        0.0000000000      0.000000000 \n";
        PICE<<"1 111 \n";
        index=0;
        index2=0;
-        for(int i=0;i!=nx;i++)
+        for(int i=nx/2-nkx/2;i!=nx/2+nkx/2;i++)
         {
-           for(int j=0;j!=ny;j++)
+           for(int j=ny/2-nky/2;j!=ny/2+nky/2;j++)
            {
-              for(int k=0;k!=nz;k++)
+              for(int k=nz/2-nkz/2;k!=nz/2+nkz/2;k++)
               {
                 PICE<<scientific<<setw(16)<<imctemp[i*ny*nz+j*nz+k];
                 index++;
@@ -469,7 +487,7 @@ for(int m=0;m!=n_states_neut;m++)
        s_PICE=ss_PICE.str();
        PICE.open(s_PICE.c_str());
        PICE<<"Photoionization coupling elements cube file"<<std::endl<<"Coupling between neutral state "<<m<<" and cation state "<<n<<"(Real part, Y component ) \n";
-       PICE<<1<<"  "<<-acos(-1)*nx/(xmax-xmin)<<"  "<<-acos(-1)*ny/(ymax-ymin)<<"  "<<-acos(-1)*nz/(zmax-zmin)<<" \n";
+       PICE<<1<<"  "<<-(acos(-1)*nkx/(xmax-xmin))<<"  "<<-(acos(-1)*nky/(ymax-ymin))<<"  "<<-(acos(-1)*nkz/(zmax-zmin))<<" \n";
        PICE<<nx<<"   "<<2*acos(-1)/(xmax-xmin)<<"    0.000000    0.000000 \n";
        PICE<<ny<<"   0.000000    "<<2*acos(-1)/(ymax-ymin)<<"    0.000000 \n";
        PICE<<nz<<"   0.000000    0.000000   "<<2*acos(-1)/(zmax-zmin)<<" \n";
@@ -477,11 +495,11 @@ for(int m=0;m!=n_states_neut;m++)
        PICE<<"1 111 \n";
        index=0;
        index2=0;
-        for(int i=0;i!=nx;i++)
+        for(int i=nx/2-nkx/2;i!=nx/2+nkx/2;i++)
         {
-           for(int j=0;j!=ny;j++)
+           for(int j=ny/2-nky/2;j!=ny/2+nky/2;j++)
            {
-              for(int k=0;k!=nz;k++)
+              for(int k=nz/2-nkz/2;k!=nz/2+nkz/2;k++)
               {
                 PICE<<scientific<<setw(16)<<rectemp[i*ny*nz+j*nz+k];
                 index++;
@@ -500,19 +518,19 @@ for(int m=0;m!=n_states_neut;m++)
        s_PICE=ss_PICE.str();
        PICE.open(s_PICE.c_str());
        PICE<<"Photoionization coupling elements cube file"<<std::endl<<"Coupling between neutral state "<<m<<" and cation state "<<n<<"(Imaginary part, Y component ) \n";
-       PICE<<1<<"  "<<-acos(-1)*nx/(xmax-xmin)<<"  "<<-acos(-1)*ny/(ymax-ymin)<<"  "<<-acos(-1)*nz/(zmax-zmin)<<" \n";
-       PICE<<nx<<"   "<<2*acos(-1)/(xmax-xmin)<<"    0.000000    0.000000 \n";
-       PICE<<ny<<"   0.000000    "<<2*acos(-1)/(ymax-ymin)<<"    0.000000 \n";
-       PICE<<nz<<"   0.000000    0.000000   "<<2*acos(-1)/(zmax-zmin)<<" \n";
+       PICE<<1<<"  "<<-(acos(-1)*nkx/(xmax-xmin))<<"  "<<-(acos(-1)*nky/(ymax-ymin))<<"  "<<-(acos(-1)*nkz/(zmax-zmin))<<" \n";
+       PICE<<nkx<<"   "<<2*acos(-1)/(xmax-xmin)<<"    0.000000    0.000000 \n";
+       PICE<<nky<<"   0.000000    "<<2*acos(-1)/(ymax-ymin)<<"    0.000000 \n";
+       PICE<<nkz<<"   0.000000    0.000000   "<<2*acos(-1)/(zmax-zmin)<<" \n";
        PICE<<"    1    1.000000    0.0000000000        0.0000000000      0.000000000 \n";
        PICE<<"1 111 \n";
        index=0;
        index2=0;
-        for(int i=0;i!=nx;i++)
+        for(int i=nx/2-nkx/2;i!=nx/2+nkx/2;i++)
         {
-           for(int j=0;j!=ny;j++)
+           for(int j=ny/2-nky/2;j!=ny/2+nky/2;j++)
            {
-              for(int k=0;k!=nz;k++)
+              for(int k=nz/2-nkz/2;k!=nz/2+nkz/2;k++)
               {
                 PICE<<scientific<<setw(16)<<imctemp[i*ny*nz+j*nz+k];
                 index++;
@@ -546,20 +564,20 @@ for(int m=0;m!=n_states_neut;m++)
        s_PICE=ss_PICE.str();
        PICE.open(s_PICE.c_str());
        PICE<<"Photoionization coupling elements cube file"<<std::endl<<"Coupling between neutral state "<<m<<" and cation state "<<n<<"(Real part, Z component ) \n";
-       PICE<<1<<"  "<<-acos(-1)*nx/(xmax-xmin)<<"  "<<-acos(-1)*ny/(ymax-ymin)<<"  "<<-acos(-1)*nz/(zmax-zmin)<<" \n";
-       PICE<<nx<<"   "<<2*acos(-1)/(xmax-xmin)<<"    0.000000    0.000000 \n";
-       PICE<<ny<<"   0.000000    "<<2*acos(-1)/(ymax-ymin)<<"    0.000000 \n";
-       PICE<<nz<<"   0.000000    0.000000   "<<2*acos(-1)/(zmax-zmin)<<" \n";
+       PICE<<1<<"  "<<-(acos(-1)*nkx/(xmax-xmin))<<"  "<<-(acos(-1)*nky/(ymax-ymin))<<"  "<<-(acos(-1)*nkz/(zmax-zmin))<<" \n";
+       PICE<<nkx<<"   "<<2*acos(-1)/(xmax-xmin)<<"    0.000000    0.000000 \n";
+       PICE<<nky<<"   0.000000    "<<2*acos(-1)/(ymax-ymin)<<"    0.000000 \n";
+       PICE<<nkz<<"   0.000000    0.000000   "<<2*acos(-1)/(zmax-zmin)<<" \n";
        PICE<<"    1    1.000000    0.0000000000        0.0000000000      0.000000000 \n";
        PICE<<"1 111 \n";
        index=0;
        index2=0;
        //integrated_cs=0;
-        for(int i=0;i!=nx;i++)
+        for(int i=nx/2-nkx/2;i!=nx/2+nkx/2;i++)
         {
-           for(int j=0;j!=ny;j++)
+           for(int j=ny/2-nky/2;j!=ny/2+nky/2;j++)
            {
-              for(int k=0;k!=nz;k++)
+              for(int k=nz/2-nkz/2;k!=nz/2+nkz/2;k++)
               {
                 PICE<<scientific<<setw(16)<<rectemp[i*ny*nz+j*nz+k];
                 index++;
@@ -579,19 +597,19 @@ for(int m=0;m!=n_states_neut;m++)
        s_PICE=ss_PICE.str();
        PICE.open(s_PICE.c_str());
        PICE<<"Photoionization coupling elements cube file"<<std::endl<<"Coupling between neutral state "<<m<<" and cation state "<<n<<"(Imaginary part, Z component ) \n";
-       PICE<<1<<"  "<<-acos(-1)*nx/(xmax-xmin)<<"  "<<-acos(-1)*ny/(ymax-ymin)<<"  "<<-acos(-1)*nz/(zmax-zmin)<<" \n";
-       PICE<<nx<<"   "<<2*acos(-1)/(xmax-xmin)<<"    0.000000    0.000000 \n";
-       PICE<<ny<<"   0.000000    "<<2*acos(-1)/(ymax-ymin)<<"    0.000000 \n";
-       PICE<<nz<<"   0.000000    0.000000   "<<2*acos(-1)/(zmax-zmin)<<" \n";
+       PICE<<1<<"  "<<-(acos(-1)*nkx/(xmax-xmin))<<"  "<<-(acos(-1)*nky/(ymax-ymin))<<"  "<<-(acos(-1)*nkz/(zmax-zmin))<<" \n";
+       PICE<<nkx<<"   "<<2*acos(-1)/(xmax-xmin)<<"    0.000000    0.000000 \n";
+       PICE<<nky<<"   0.000000    "<<2*acos(-1)/(ymax-ymin)<<"    0.000000 \n";
+       PICE<<nkz<<"   0.000000    0.000000   "<<2*acos(-1)/(zmax-zmin)<<" \n";
        PICE<<"    1    1.000000    0.0000000000        0.0000000000      0.000000000 \n";
        PICE<<"1 111 \n";
        index=0;
        index2=0;
-        for(int i=0;i!=nx;i++)
+        for(int i=nx/2-nkx/2;i!=nx/2+nkx/2;i++)
         {
-           for(int j=0;j!=ny;j++)
+           for(int j=ny/2-nky/2;j!=ny/2+nky/2;j++)
            {
-              for(int k=0;k!=nz;k++)
+              for(int k=nz/2-nkz/2;k!=nz/2+nkz/2;k++)
               {
                 PICE<<scientific<<setw(16)<<imctemp[i*ny*nz+j*nz+k];
                 index++;
