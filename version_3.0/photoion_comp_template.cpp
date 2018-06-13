@@ -40,18 +40,22 @@ int photoion_comp(int argc, char* argv[])
     int num_of_nucl(2);
     int basis_size(0);
     int* basis_size_sym=new int[n_sym];
-    int **contraction_number;
     int ci_size_neut(0);
     int ci_size_cat(0);
     int ci_size_neut_sym[n_sym];
     int ci_size_cat_sym[n_sym];
     int n_elec_neut(4);//!!!! ecrire une routine qui cherche le nombre d'electrons dans l'output molpro!!!
    double Pi=acos(-1);
-    double ***contraction_coeff;
-    double ***contraction_zeta;
-    int **contraction_number;
-    int **nucl_basis_func;
-    std::string** basis_func_type;
+    double ***contraction_coeff_sym;
+    double ***contraction_zeta_sym;
+    int **contraction_number_sym;
+    int **nucl_basis_func_sym;
+    std::string** basis_func_type_sym;
+    double **contraction_coeff;
+    double **contraction_zeta;
+    int *contraction_number;
+    int *nucl_basis_func;
+    std::string* basis_func_type;
 
 
     //TEMPORARY VARIABLES
@@ -67,6 +71,10 @@ int photoion_comp(int argc, char* argv[])
 
     string MO_cube_loc("MO_CUBE_LOC");
     string dyson_cube_loc("DYSON_CUBE_LOC");
+    string out_dyson_mo_coeff_loc("OUT_DYSON_MO_COEFF_LOC");
+    string out_mo_dipole("OUT_MO_DIPOLE");
+    string out_contraction_zeta("OUT_CONTRACTION_ZETA");
+    string out_contraction_coeff("OUT_CONTRACTION_COEFF");
 
 //*****************************GET DATA FOR COMPUTING DYSON ORBITALS FROM MOLPRO OUTPUT FILE*****************************
         //GET THE NUMBER OF ELECTRONIC STATES AND THE SIZE OF THE ACTIVE SPACE
@@ -131,21 +139,23 @@ int photoion_comp(int argc, char* argv[])
 //*****************************COMPUTE DYSON ORBITALS*****************************
     //COMPUTE THE OVERLAP MATRIX BETWEEN THE MO OF THE NEUTRAL AND THE MO OF THE CATION FROM THE AO OVERLAP MATRIX
     if(symmetry)
-    overlap_MO(overlap,n_occs,&basis_size,basis_size_sym,molpro_output_path,n_sym);
+       overlap_MO(overlap,n_occs,&basis_size,basis_size_sym,molpro_output_path,n_sym);
     else
-    overlap_MO(overlap,&n_occ,&basis_size,basis_size_sym,molpro_output_path,n_sym);
+       overlap_MO(overlap,&n_occ,&basis_size,basis_size_sym,molpro_output_path,n_sym);
     //COMPUTE THE MOLECULAR ORBITALS TRANSITION DIPOLE MOMENT MATRIX
     if(symmetry)
-    dipole_MO(mo_dipole,n_occs,&basis_size,basis_size_sym,molpro_output_path,n_sym);
+       dipole_MO(mo_dipole,n_occs,&basis_size,basis_size_sym,molpro_output_path,n_sym);
     else
-    dipole_MO(mo_dipole,&n_occ,&basis_size,basis_size_sym,molpro_output_path,n_sym);
+       dipole_MO(mo_dipole,&n_occ,&basis_size,basis_size_sym,molpro_output_path,n_sym);
 
     //GET THE INFORMATION ABOUT THE BASIS SET
-    contraction_coeff=new double**[n_sym];
-    contraction_zeta=new double**[n_sym];
-    contraction_number=new int*[n_sym];
-    nucl_basis_func=new int*[n_sym];
-    basis_func_type=new std::string*[n_sym];
+    contraction_coeff_sym=new double**[n_sym];
+    contraction_zeta_sym=new double**[n_sym];
+    contraction_number_sym=new int*[n_sym];
+    nucl_basis_func_sym=new int*[n_sym];
+    basis_func_type_sym=new std::string*[n_sym];
+
+    int total_size(0);
 
     for(int s=0;s!=n_sym;s++)
     {
@@ -153,23 +163,34 @@ int photoion_comp(int argc, char* argv[])
        contraction_coeff[s]=new double*[basis_size_sym[s]];
        contraction_zeta[s]=new double*[basis_size_sym[s]];
        nucl_basis_func[s]=new int[basis_size_sym[s]];
-       basis_func_type[s]=new std::string[basis_size_sym[s]]
+       basis_func_type[s]=new std::string[basis_size_sym[s]];
+       total+=basis_size_sym[s];
 
     }
+    contraction_coeff=new double*[total];
+    contraction_zeta=new double*[total];
+    contraction_number=new int[total];
+    nucl_basis_func=new int[total];
+    basis_func_type=new std::string[total];
+
     basis_size_data_reader(n_sym, basis_size_sym,contraction_number,molpro_output_path);
+    total=0;
     for(int s=0;s!=n_sym;s++)
     {
        for(int t=0;t!=basis_size_sym[s];t++)
        {
-          contraction_coeff[s][t]=new double [contraction_number[s][t]];
-          contraction_zeta[s][t]=new double [contraction_number[s][t]];
+          contraction_coeff[total]=new double[contraction_number_sym[s][t]];
+          contraction_zeta[total]=new double[contraction_number_sym[s][t]];
+          contraction_coeff_sym[s][t]=new double [contraction_number_sym[s][t]];
+          contraction_zeta_sym[s][t]=new double [contraction_number_sym[s][t]];
+          total++;
        }
     }
-    basis_data_reader(n_sym,basis_size_sym,contraction_number,contraction_coeff,contraction_zeta,nucl_basis_func,basis_func_type,molpro_output_path);
+    basis_data_reader(n_sym,basis_size_sym,contraction_number_sym,contraction_coeff_sym,contraction_zeta_sym,nucl_basis_func_sym,basis_func_type_sym,molpro_output_path);
 
     //COMPUTE THE DYSON MO COEFFICIENTS IN THE BASIS OF THE MO OF THE NEUTRAL
     dyson_mo_coeff_comp( n_states_neut,n_states_cat, n_occ,ci_size_neut, ci_size_cat, n_elec_neut, ci_vec_neut, ci_vec_cat,overlap, dyson_mo_basis_coeff);
-    std::cout<<"DYSON COEFF ROUTINE ENDED WITHOUT ISSUE"<<std::endl;
+/*    std::cout<<"DYSON COEFF ROUTINE ENDED WITHOUT ISSUE"<<std::endl;
 
     double dtemp(0);
     for(int a=0;a!=n_states_neut;a++)
@@ -180,9 +201,10 @@ int photoion_comp(int argc, char* argv[])
           dtemp+=dyson_mo_basis_coeff[a*n_states_cat*n_occ+0*n_occ+k]*dyson_mo_basis_coeff[a*n_states_cat*n_occ+0*n_occ+k];
        }
        std::cout<<"Norm of Dyson orbital "<<a<<"_"<<0<<" = "<<dtemp<<std::endl;
+       */
 //cube_header(dyson_mo_basis_coeff,n_occ,n_states_neut,n_states_cat,neut_mo_cube_array,dyson_cube_loc.c_str(),a,0,2,nx,ny,nz,xmin,xmax,ymin,ymax,zmin,zmax,mo_cube_array);
+      return 0;
     }
 
     //BUILD THE CUBE OF THE DYSON ORBITALS
     //
-}

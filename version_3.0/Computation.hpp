@@ -6,7 +6,8 @@
 #include <cmath>
 #include "global_vars.hpp"
 #include <complex>
-
+#include <gsl/gsl_math.h>
+#include <gsl/gsl_sf_dawson.h>
 
 
 bool Runge_kutta(double Rey0[], double Imy0[], double h, double time, int n_states, double *pot, double *dipole_x, double *dipole_y, double *dipole_z);

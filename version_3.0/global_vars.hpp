@@ -11,7 +11,6 @@
 #include "mkl.h"
 #include "omp.h"
 
-#include "files_reader.hpp"
 //define physical and mathematical constants
 
 const double au_to_fs(0.02418884);

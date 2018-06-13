@@ -1,5 +1,6 @@
 #ifndef FRONUC_DYN_M_H
 #define FRONUC_DYN_M_H
+#define MKL_Complex16 std::complex<double>
 
 
 //Include standards libraries
@@ -7,6 +8,7 @@
 #include <cstdlib>
 #include <iomanip>
 #include <cmath>
+#include <complex>
 #include <vector>
 #include "mkl.h"
 #include "omp.h"
@@ -21,5 +23,6 @@
 #include "dyson_cube_writer.cpp"
 #include "algebra.cpp"
 #include "Computation.cpp"
+
 
 #endif

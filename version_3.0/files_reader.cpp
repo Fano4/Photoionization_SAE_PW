@@ -1,4 +1,3 @@
-#include "files_reader.hpp"
 
 int n_states_reader(int *n_states_neut,int *n_states_cat,int *n_elec_neut,std::string file_address)
 {
@@ -183,7 +182,7 @@ int size_query(int* n_occ,int *n_closed,int* basis_size,std::string molpro_out_p
 }
 
 
-int dipole_MO(double **matrix,int* n_occ,int* basis_size,int* basis_size_sym,std::string molpro_out_path,int n_sym=1)
+int dipole_MO(double **matrix,int* n_occ,int* basis_size,int* basis_size_sym,std::string molpro_out_path,int n_sym)
 {
    //THE DMOLECULAR ORBITALS DIPOLE MOMENT MATRIX IS READ FROM MOLPRO OUTPUT FILE USING THE AO DIPOLE MOMENT MATRIX.
    //THIS MATRIX HAS A MORE COMPLICATED FORM THAN THE OVERLAP MATRIX BECAUSE IT IS NOT BLOCK-DIAGONAL!
@@ -210,11 +209,12 @@ int dipole_MO(double **matrix,int* n_occ,int* basis_size,int* basis_size_sym,std
    double *temp;
    double *temp2;
    double *matrix2;
+   double floating;
    string tmp_str;
    double *aodipole_x = new double [*basis_size**basis_size];
    double *aodipole_y = new double [*basis_size**basis_size];
    double *aodipole_z = new double [*basis_size**basis_size];
-   int n_occ_tot
+   int n_occ_tot;
     for(int k=0;k!=n_sym;k++)
     {
        n_occ_tot+=n_occ[k];
@@ -458,11 +458,11 @@ int dipole_MO(double **matrix,int* n_occ,int* basis_size,int* basis_size_sym,std
       std::cout<<"LCAO COEFFICIENTS NOT FOUND IN MOLPRO OUTPUT"<<std::endl;
       return -1;
    }
-       molpro_file.open(molpro_out_path.c_str());
-       molpro_file.seekg(position);
+       input.open(molpro_out_path.c_str());
+       input.seekg(position);
            for(int i=0;i!=7;i++)
            {
-              molpro_file>>tmp_str;
+              input>>tmp_str;
            }
            total1=0;
            total2=0;
@@ -471,16 +471,16 @@ int dipole_MO(double **matrix,int* n_occ,int* basis_size,int* basis_size_sym,std
             //cout<<"Coefficients of the neutral"<<endl;//DEBOGAGE
             for (int i=0; i!=2*basis_size_sym[s]; i++)
             {
-                molpro_file>>tmp_str;
+                input>>tmp_str;
             }
             for (int j=total1; j!=n_occ[s]+total1; j++)
             {
-                molpro_file>>tmp_str;
-                molpro_file>>tmp_str;
-                molpro_file>>tmp_str;
+                input>>tmp_str;
+                input>>tmp_str;
+                input>>tmp_str;
                 for (int k=total2; k!=basis_size_sym[s]+total2; k++)
                 {
-                    molpro_file>>floating;
+                    input>>floating;
                     MO_coeff_neutral[j**basis_size+k]=floating;
                 }//cout<<endl;
             }
@@ -488,7 +488,7 @@ int dipole_MO(double **matrix,int* n_occ,int* basis_size,int* basis_size_sym,std
             total1+=n_occ[s];
         }
     
-        molpro_file.close();
+        input.close();
 
     temp=new double[*basis_size*n_occ_tot];
     temp2=new double[*basis_size*n_occ_tot];
@@ -1378,7 +1378,7 @@ bool basis_size_data_reader(int n_sym, int* basis_size_sym,int** contraction_num
    }
    string temps;
    int pos(0);
-   search(&pos,file_address.c_str(),0,"BASIS","0","DATA");
+   search(&pos,file_address.c_str(),0,"BASIS",0,"DATA");
 
    input.open(file_address.c_str());
 
@@ -1426,7 +1426,9 @@ bool basis_size_data_reader(int n_sym, int* basis_size_sym,int** contraction_num
       }
       input.close();
 }
-bool basis_data_reader(int n_sym, int* basis_size_sym,int** contraction_number,double*** contraction_coeff,double*** contraction_zeta,int** nucl_basis_func,std::string basis_func_type,std::string file_address)
+return 0;
+}
+bool basis_data_reader(int n_sym, int* basis_size_sym,int** contraction_number,double*** contraction_coeff,double*** contraction_zeta,int** nucl_basis_func,std::string **basis_func_type,std::string file_address)
 {
    using namespace std;
    ifstream input;
@@ -1434,13 +1436,14 @@ bool basis_data_reader(int n_sym, int* basis_size_sym,int** contraction_number,d
    stringstream sstream;
    string teststring;
    int basis_size(0);
+   int l(0);
    for(int i=0;i!=n_sym;i++)
    {
       basis_size+=basis_size_sym[i];
    }
    string temps;
    int pos(0);
-   search(&pos,file_address.c_str(),0,"BASIS","0","DATA");
+   search(&pos,file_address.c_str(),0,"BASIS",0,"DATA");
 
    input.open(file_address.c_str());
 
@@ -1463,22 +1466,21 @@ bool basis_data_reader(int n_sym, int* basis_size_sym,int** contraction_number,d
             input>>temps;
             input>>temps;
             input>>temps;
-            nucl_basis_func[s][i]=temps.stoi();
+            nucl_basis_func[s][i]=atoi(temps.c_str());
             input>>temps;
-            basis_func_types=temps.c_str();
-            for(int j=0;j!=contraction_number[s][i];j++);
+            basis_func_type[s][i]=temps.c_str();
+            for(l=0;l!=contraction_number[s][i];l++);
             {
                input>>temps;
-               contraction_zeta[s][i][j]=temps.stod();
+               contraction_zeta[s][i][l]=atof(temps.c_str());
                input>>temps;
-               contraction_coeff[s][i][j]=temps.stod();
-
+               contraction_coeff[s][i][l]=atof(temps.c_str());
             }
          }
       }
       input.close();
-      return 0;
    }
+      return 0;
 
 }
 
