@@ -182,7 +182,336 @@ int size_query(int* n_occ,int *n_closed,int* basis_size,std::string molpro_out_p
     return 0;
 }
 
-int overlap_MO(double matrix[],int* n_occ,int* basis_size,int* basis_size_int,std::string molpro_out_path,int n_sym=1)
+
+int dipole_MO(double **matrix,int* n_occ,int* basis_size,int* basis_size_sym,std::string molpro_out_path,int n_sym=1)
+{
+   //THE DMOLECULAR ORBITALS DIPOLE MOMENT MATRIX IS READ FROM MOLPRO OUTPUT FILE USING THE AO DIPOLE MOMENT MATRIX.
+   //THIS MATRIX HAS A MORE COMPLICATED FORM THAN THE OVERLAP MATRIX BECAUSE IT IS NOT BLOCK-DIAGONAL!
+   //EACH COMPONENT BELONNGS TO A DIFFERENT SYMMETRY AND THE STRUCTURE OF THE MATRIX REFLECTS THE SYMMETRY OF EACH COMPONENT OF THE VECTOR.
+   
+   //THE FIRST STEP IS TO READ THE AO TRANSITION DIPOLE MATRIX FROM MOLPRO OUTPUT FILE AND PUT IT IN GOOD FORM IN AN ARRAY, FOR EACH COMPONENT. IN THIS VERSION OF THE CODE, WE ASSUME THE FOLLOWING SYMMETRY RULES:
+   // Z = 1 (A1); X = 2 (B1); Y = 3 (B2)
+   //
+   //     A1   B1   B2   A2
+   //     ----------------
+   //A1|  A1   B1   B2   A2
+   //  |
+   //B1|  B1   A1   A2   B2
+   //  |  
+   //B2|  B2   A2   A1   B1
+   //  |
+   //A2|  A2   B2   B1   A1      
+   //  |
+   
+   using namespace std;
+   int position;
+   int total1(0);
+   int total2(0);
+   double *temp;
+   double *temp2;
+   double *matrix2;
+   string tmp_str;
+   double *aodipole_x = new double [*basis_size**basis_size];
+   double *aodipole_y = new double [*basis_size**basis_size];
+   double *aodipole_z = new double [*basis_size**basis_size];
+   int n_occ_tot
+    for(int k=0;k!=n_sym;k++)
+    {
+       n_occ_tot+=n_occ[k];
+    } 
+   double *MO_coeff_neutral=new double[*basis_size*n_occ_tot];
+   for(int i=0;i!=*basis_size**basis_size;i++)
+   {
+      aodipole_x[i]=0;
+      aodipole_y[i]=0;
+      aodipole_z[i]=0;
+   }
+
+   ifstream input;
+
+   //X COMPONENT RESEARCH
+   // THE MATRIX STRUCTURE INCLUDES ALL B1 DIRECT PRODUCTS IN THE ORDER REPRESENTED IN THE PRODUCT TABLE.
+
+   if(!search(&position, molpro_out_path,position, "MATRIX", 0, "DMX_MO"));
+   {
+      std::cout<<"ERROR: CANNOT FOUND X DIPOLE MATRIX IN MOLPRO OUTPUT!"<<std::endl<<molpro_out_path.c_str()<<std::endl;
+      exit(EXIT_FAILURE);
+   }
+
+   input.open(molpro_out_path.c_str());
+   input.seekg(position);
+
+
+   input>>tmp_str;
+   input>>tmp_str;
+   input>>tmp_str;
+
+   //A1*B1
+   total1=0;
+   total2=basis_size_sym[0];
+
+   for(int i=0;i!=basis_size_sym[0];i++)
+   {
+      for(int j=0;j!=basis_size_sym[1];j++)
+      {
+         input>>aodipole_x[(total1+i)**basis_size+j+total2];
+      }
+   }
+
+   //B1*A1
+   total1=basis_size_sym[0];
+   total2=0;
+
+   input>>tmp_str;
+   input>>tmp_str;
+   input>>tmp_str;
+   for(int i=0;i!=basis_size_sym[1];i++)
+   {
+      for(int j=0;j!=basis_size_sym[0];j++)
+      {
+         input>>aodipole_x[(total1+i)**basis_size+j+total2];
+      }
+   }
+   input>>tmp_str;
+   input>>tmp_str;
+   input>>tmp_str;
+
+   //B2*A2
+   total1=basis_size_sym[0]+basis_size_sym[1];
+   total2=basis_size_sym[0]+basis_size_sym[1]+basis_size_sym[2];
+
+   for(int i=0;i!=basis_size_sym[2];i++)
+   {
+      for(int j=0;j!=basis_size_sym[3];j++)
+      {
+         input>>aodipole_x[(total1+i)**basis_size+j+total2];
+      }
+   }
+
+   //A2*B2
+   total1=basis_size_sym[0]+basis_size_sym[1]+basis_size_sym[2];
+   total2=basis_size_sym[0]+basis_size_sym[1];
+
+   input>>tmp_str;
+   input>>tmp_str;
+   input>>tmp_str;
+   for(int i=0;i!=basis_size_sym[3];i++)
+   {
+      for(int j=0;j!=basis_size_sym[2];j++)
+      {
+         input>>aodipole_x[(total1+i)**basis_size+j+total2];
+      }
+   }
+   input.close();
+   //Y COMPONENT RESEARCH
+   if(!search(&position, molpro_out_path,position, "MATRIX", 0, "DMY_MO"));
+   {
+      std::cout<<"ERROR: CANNOT FOUND Y DIPOLE MATRIX IN MOLPRO OUTPUT!"<<std::endl<<molpro_out_path.c_str()<<std::endl;
+      exit(EXIT_FAILURE);
+   }
+
+   input.open(molpro_out_path.c_str());
+   input.seekg(position);
+
+
+   input>>tmp_str;
+   input>>tmp_str;
+   input>>tmp_str;
+
+   //A1*B2
+   total1=0;
+   total2=basis_size_sym[0]+basis_size_sym[1];
+
+   for(int i=0;i!=basis_size_sym[0];i++)
+   {
+      for(int j=0;j!=basis_size_sym[2];j++)
+      {
+         input>>aodipole_y[(total1+i)**basis_size+j+total2];
+      }
+   }
+
+   //B1*A2
+   total1=basis_size_sym[0];
+   total2=basis_size_sym[0]+basis_size_sym[1]+basis_size_sym[2];
+
+   input>>tmp_str;
+   input>>tmp_str;
+   input>>tmp_str;
+   for(int i=0;i!=basis_size_sym[1];i++)
+   {
+      for(int j=0;j!=basis_size_sym[3];j++)
+      {
+         input>>aodipole_y[(total1+i)**basis_size+j+total2];
+      }
+   }
+   input>>tmp_str;
+   input>>tmp_str;
+   input>>tmp_str;
+
+   //B2*A1
+
+   total1=basis_size_sym[0]+basis_size_sym[1];
+   total2=0;
+
+   for(int i=0;i!=basis_size_sym[2];i++)
+   {
+      for(int j=0;j!=basis_size_sym[0];j++)
+      {
+         input>>aodipole_y[(total1+i)**basis_size+j+total2];
+      }
+   }
+
+   //A2*B1
+   total1=basis_size_sym[0]+basis_size_sym[1]+basis_size_sym[2];
+   total2=basis_size_sym[0];
+
+   input>>tmp_str;
+   input>>tmp_str;
+   input>>tmp_str;
+   for(int i=0;i!=basis_size_sym[3];i++)
+   {
+      for(int j=0;j!=basis_size_sym[1];j++)
+      {
+         input>>aodipole_y[(total1+i)**basis_size+j+total2];
+      }
+   }
+   input.close();
+   //Z COMPONENT RESEARCH
+   if(!search(&position, molpro_out_path,position, "MATRIX", 0, "DMZ_MO"));
+   {
+      std::cout<<"ERROR: CANNOT FOUND Y DIPOLE MATRIX IN MOLPRO OUTPUT!"<<std::endl<<molpro_out_path.c_str()<<std::endl;
+      exit(EXIT_FAILURE);
+   }
+
+   input.open(molpro_out_path.c_str());
+   input.seekg(position);
+
+
+   input>>tmp_str;
+   input>>tmp_str;
+   input>>tmp_str;
+
+   //A1*A1
+   total1=0;
+   total2=0;
+
+   for(int i=0;i!=basis_size_sym[0];i++)
+   {
+      for(int j=0;j!=basis_size_sym[0];j++)
+      {
+         input>>aodipole_z[(total1+i)**basis_size+j+total2];
+      }
+   }
+
+   //B1*B1
+   total1=basis_size_sym[0];
+   total2=basis_size_sym[0];
+
+   input>>tmp_str;
+   input>>tmp_str;
+   input>>tmp_str;
+   for(int i=0;i!=basis_size_sym[1];i++)
+   {
+      for(int j=0;j!=basis_size_sym[1];j++)
+      {
+         input>>aodipole_z[(total1+i)**basis_size+j+total2];
+      }
+   }
+   input>>tmp_str;
+   input>>tmp_str;
+   input>>tmp_str;
+
+   //B2*B2
+
+   total1=basis_size_sym[0]+basis_size_sym[1];
+   total2=basis_size_sym[0]+basis_size_sym[1];
+
+   for(int i=0;i!=basis_size_sym[2];i++)
+   {
+      for(int j=0;j!=basis_size_sym[2];j++)
+      {
+         input>>aodipole_z[(total1+i)**basis_size+j+total2];
+      }
+   }
+
+   //A2*A2
+   total1=basis_size_sym[0]+basis_size_sym[1]+basis_size_sym[2];
+   total2=basis_size_sym[0]+basis_size_sym[1]+basis_size_sym[2];
+
+   input>>tmp_str;
+   input>>tmp_str;
+   input>>tmp_str;
+   for(int i=0;i!=basis_size_sym[3];i++)
+   {
+      for(int j=0;j!=basis_size_sym[3];j++)
+      {
+         input>>aodipole_z[(total1+i)**basis_size+j+total2];
+      }
+   }
+   input.close();
+
+   //ONCE THE AO TRANSITION DIPOLE MATRICES ARE KNOWM, WE HAVE TO COMPUTE THE MOLECULAR ORBITALS TRANSITION DIPOLES USING THE LCAO COEFFICIENTS.
+   //SEARCH FOR THE LCAO COEFFICIENTS
+   position=0;
+   if(!search(&position, molpro_out_path,position, "NATURAL", 0, "ORBITALS"))
+   {
+      std::cout<<"LCAO COEFFICIENTS NOT FOUND IN MOLPRO OUTPUT"<<std::endl;
+      return -1;
+   }
+       molpro_file.open(molpro_out_path.c_str());
+       molpro_file.seekg(position);
+           for(int i=0;i!=7;i++)
+           {
+              molpro_file>>tmp_str;
+           }
+           total1=0;
+           total2=0;
+           for(int s=0;s!=n_sym;s++)
+           {
+            //cout<<"Coefficients of the neutral"<<endl;//DEBOGAGE
+            for (int i=0; i!=2*basis_size_sym[s]; i++)
+            {
+                molpro_file>>tmp_str;
+            }
+            for (int j=total1; j!=n_occ[s]+total1; j++)
+            {
+                molpro_file>>tmp_str;
+                molpro_file>>tmp_str;
+                molpro_file>>tmp_str;
+                for (int k=total2; k!=basis_size_sym[s]+total2; k++)
+                {
+                    molpro_file>>floating;
+                    MO_coeff_neutral[j**basis_size+k]=floating;
+                }//cout<<endl;
+            }
+            total2+=basis_size_sym[s];
+            total1+=n_occ[s];
+        }
+    
+        molpro_file.close();
+
+    temp=new double[*basis_size*n_occ_tot];
+    temp2=new double[*basis_size*n_occ_tot];
+    matrix2=new double[*basis_size**basis_size];
+    for(int i=0;i!=*basis_size*n_occ_tot;i++)
+    {
+       temp[i]=0;
+       temp2[i]=0;
+    }
+    
+    transpose(MO_coeff_neutral, temp2, n_occ_tot, *basis_size);
+    matrix_product(temp, aodipole_x, temp2, *basis_size, *basis_size, n_occ_tot);
+    matrix_product(matrix2, MO_coeff_neutral, temp, n_occ_tot, *basis_size, n_occ_tot); 
+    transpose(matrix2, matrix[0], n_occ_tot, n_occ_tot);
+    matrix_product(temp, aodipole_y, temp2, *basis_size, *basis_size, n_occ_tot);
+    matrix_product(matrix2, MO_coeff_neutral, temp, n_occ_tot, *basis_size, n_occ_tot); 
+    transpose(matrix2, matrix[1], n_occ_tot, n_occ_tot);
+    matrix_product(temp, aodipole_z, temp2, *basis_size, *basis_size, n_occ_tot);
+    matrix_product(matrix2, MO_coeff_neutral, temp, n_occ_tot, *basis_size, n_occ_tot); 
+    transpose(matrix2, matrix[2], n_occ_tot, n_occ_tot);
+    return 0;
+}
+int overlap_MO(double matrix[],int* n_occ,int* basis_size,int* basis_size_sym,std::string molpro_out_path,int n_sym=1)
 {
     bool test(0);
     bool test2(0);
@@ -439,7 +768,6 @@ int overlap_MO(double matrix[],int* n_occ,int* basis_size,int* basis_size_int,st
     
     return 0;
 }
-
 int num_of_ci_reader(int *n_states_neut,int *n_states_cat,int *n_ci_neut,int *n_ci_cat,std::string file_address,int *n_occ,int n_sym=1)
 {
     int position(0);
@@ -1036,7 +1364,7 @@ int ci_vec_reader(int *n_states_neut_s,int *n_states_cat_s,int *n_occ,int *n_clo
     return 0;
 }
 
-bool basis_data_reader(int n_sym, int* basis_size_sym,int** contraction_number,double*** contraction_coeff,double*** contraction_zeta,int** nucl_basis_func,std::string basis_func_type,std::string file_address)
+bool basis_size_data_reader(int n_sym, int* basis_size_sym,int** contraction_number,std::string file_address)
 {
    using namespace std;
    ifstream input;
@@ -1096,6 +1424,33 @@ bool basis_data_reader(int n_sym, int* basis_size_sym,int** contraction_number,d
 
          }
       }
+      input.close();
+}
+bool basis_data_reader(int n_sym, int* basis_size_sym,int** contraction_number,double*** contraction_coeff,double*** contraction_zeta,int** nucl_basis_func,std::string basis_func_type,std::string file_address)
+{
+   using namespace std;
+   ifstream input;
+   int count(0);
+   stringstream sstream;
+   string teststring;
+   int basis_size(0);
+   for(int i=0;i!=n_sym;i++)
+   {
+      basis_size+=basis_size_sym[i];
+   }
+   string temps;
+   int pos(0);
+   search(&pos,file_address.c_str(),0,"BASIS","0","DATA");
+
+   input.open(file_address.c_str());
+
+   if(!input.is_open())
+   {
+      std::cout<<"ERROR WHILE OPENING INPUT FILE "<<std::endl<<file_address.c_str()<<std::endl;
+      exit(EXIT_FAILURE);
+   }
+   else
+   {
       input.seekg(pos);
       for(int i=0;i!=7;i++)
       {
@@ -1121,9 +1476,9 @@ bool basis_data_reader(int n_sym, int* basis_size_sym,int** contraction_number,d
             }
          }
       }
+      input.close();
+      return 0;
    }
-
-
 
 }
 
