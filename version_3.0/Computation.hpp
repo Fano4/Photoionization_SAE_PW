@@ -4,14 +4,19 @@
 #include <cstdlib>
 #include <iostream>
 #include <cmath>
-#include "global_vars.hpp"
 #include <complex>
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_sf_dawson.h>
 
 
-bool Runge_kutta(double Rey0[], double Imy0[], double h, double time, int n_states, double *pot, double *dipole_x, double *dipole_y, double *dipole_z);
-bool t_deriv(double* Repsi, double* Impsi, double* Redpsi, double* Imdpsi, double time, int n_states,double *pot, double *dipole_x, double *dipole_y, double *dipole_z);
 bool dyson_mo_coeff_comp(int n_states_neut,int n_states_cat,int n_occ,int ci_size_neut,int ci_size_cat,int n_elec_neut,double **ci_vec_neut,double **ci_vec_cat,double *overlap,double *Dyson_MO_basis_coeff);
+std::complex<double> MO_Fourier_transform( int mo_index, double k, double thet, double phi,double **nucl_spher_pos,int *nucl_basis_func,int* contraction_number,double **contraction_coeff,double **contraction_zeta,std::string *basis_func_type,double *MO_neut_basis_coeff,int basis_size);
+std::complex<double> AO_FT(int ao_index,double k, double thet, double phi,int *contraction_number,double *nucl_spher_pos,double **contraction_coeff,double **contraction_zeta,std::string *basis_func_type);
+std::complex<double> contraction_FT( double k, double thet, double phi,double* nucl_spher_pos,double contraction_zeta,std::string basis_func_type);
+std::complex<double> MO_Fourier_transform_grad( int mo_index,int comp, double k, double thet, double phi,double **nucl_spher_pos,int *nucl_basis_func,int* contraction_number,double **contraction_coeff,double **contraction_zeta,std::string *basis_func_type,double *MO_neut_basis_coeff,int basis_size);
+std::complex<double> AO_FT_grad(int ao_index,int comp,double k, double thet, double phi,int *contraction_number,double *nucl_spher_pos,double **contraction_coeff,double **contraction_zeta,std::string *basis_func_type);
+std::complex<double> contraction_FT_grad_k( double k, double thet, double phi,double* nucl_spher_pos,double contraction_zeta,std::string basis_func_type);
+std::complex<double> contraction_FT_grad_thet( double k, double thet, double phi,double* nucl_spher_pos,double contraction_zeta,std::string basis_func_type);
+std::complex<double> contraction_FT_grad_phi( double k, double thet, double phi,double* nucl_spher_pos,double contraction_zeta,std::string basis_func_type);
 
 #endif /*Computation_hpp*/

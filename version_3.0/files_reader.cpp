@@ -182,7 +182,7 @@ int size_query(int* n_occ,int *n_closed,int* basis_size,std::string molpro_out_p
 }
 
 
-int dipole_MO(double **matrix,int* n_occ,int* basis_size,int* basis_size_sym,std::string molpro_out_path,int n_sym)
+void dipole_MO(double **matrix,int* n_occ,int* basis_size,int* basis_size_sym,std::string molpro_out_path,int n_sym)
 {
    //THE DMOLECULAR ORBITALS DIPOLE MOMENT MATRIX IS READ FROM MOLPRO OUTPUT FILE USING THE AO DIPOLE MOMENT MATRIX.
    //THIS MATRIX HAS A MORE COMPLICATED FORM THAN THE OVERLAP MATRIX BECAUSE IT IS NOT BLOCK-DIAGONAL!
@@ -203,18 +203,17 @@ int dipole_MO(double **matrix,int* n_occ,int* basis_size,int* basis_size_sym,std
    //  |
    
    using namespace std;
-   int position;
+   int position(0);
    int total1(0);
    int total2(0);
    double *temp;
    double *temp2;
-   double *matrix2;
    double floating;
    string tmp_str;
    double *aodipole_x = new double [*basis_size**basis_size];
    double *aodipole_y = new double [*basis_size**basis_size];
    double *aodipole_z = new double [*basis_size**basis_size];
-   int n_occ_tot;
+   int n_occ_tot(0);
     for(int k=0;k!=n_sym;k++)
     {
        n_occ_tot+=n_occ[k];
@@ -232,9 +231,9 @@ int dipole_MO(double **matrix,int* n_occ,int* basis_size,int* basis_size_sym,std
    //X COMPONENT RESEARCH
    // THE MATRIX STRUCTURE INCLUDES ALL B1 DIRECT PRODUCTS IN THE ORDER REPRESENTED IN THE PRODUCT TABLE.
 
-   if(!search(&position, molpro_out_path,position, "MATRIX", 0, "DMX_MO"));
+   if(!search(&position, molpro_out_path,0, "MATRIX", 0, "DMX_MO"))
    {
-      std::cout<<"ERROR: CANNOT FOUND X DIPOLE MATRIX IN MOLPRO OUTPUT!"<<std::endl<<molpro_out_path.c_str()<<std::endl;
+      std::cout<<"ERROR: CANNOT FIND X DIPOLE MATRIX IN MOLPRO OUTPUT!"<<std::endl<<molpro_out_path.c_str()<<std::endl;
       exit(EXIT_FAILURE);
    }
 
@@ -304,9 +303,10 @@ int dipole_MO(double **matrix,int* n_occ,int* basis_size,int* basis_size_sym,std
    }
    input.close();
    //Y COMPONENT RESEARCH
-   if(!search(&position, molpro_out_path,position, "MATRIX", 0, "DMY_MO"));
+   position=0;
+   if(!search(&position, molpro_out_path,position, "MATRIX", 0, "DMY_MO"))
    {
-      std::cout<<"ERROR: CANNOT FOUND Y DIPOLE MATRIX IN MOLPRO OUTPUT!"<<std::endl<<molpro_out_path.c_str()<<std::endl;
+      std::cout<<"ERROR: CANNOT FIND Y DIPOLE MATRIX IN MOLPRO OUTPUT!"<<std::endl<<molpro_out_path.c_str()<<std::endl;
       exit(EXIT_FAILURE);
    }
 
@@ -377,9 +377,10 @@ int dipole_MO(double **matrix,int* n_occ,int* basis_size,int* basis_size_sym,std
    }
    input.close();
    //Z COMPONENT RESEARCH
-   if(!search(&position, molpro_out_path,position, "MATRIX", 0, "DMZ_MO"));
+   position=0;
+   if(!search(&position, molpro_out_path,position, "MATRIX", 0, "DMZ_MO"))
    {
-      std::cout<<"ERROR: CANNOT FOUND Y DIPOLE MATRIX IN MOLPRO OUTPUT!"<<std::endl<<molpro_out_path.c_str()<<std::endl;
+      std::cout<<"ERROR: CANNOT FIND Z DIPOLE MATRIX IN MOLPRO OUTPUT!"<<std::endl<<molpro_out_path.c_str()<<std::endl;
       exit(EXIT_FAILURE);
    }
 
@@ -450,13 +451,22 @@ int dipole_MO(double **matrix,int* n_occ,int* basis_size,int* basis_size_sym,std
    }
    input.close();
 
-   //ONCE THE AO TRANSITION DIPOLE MATRICES ARE KNOWM, WE HAVE TO COMPUTE THE MOLECULAR ORBITALS TRANSITION DIPOLES USING THE LCAO COEFFICIENTS.
+/*    for(int i=0;i!=*basis_size;i++)
+    {
+       for(int j=0;j!=*basis_size;j++)
+       {
+          std::cout<<aodipole_z[i**basis_size+j]<<"   ";
+       }std::cout<<std::endl<<std::endl;
+
+    }
+    exit(EXIT_SUCCESS);
+  */ //ONCE THE AO TRANSITION DIPOLE MATRICES ARE KNOWM, WE HAVE TO COMPUTE THE MOLECULAR ORBITALS TRANSITION DIPOLES USING THE LCAO COEFFICIENTS.
    //SEARCH FOR THE LCAO COEFFICIENTS
    position=0;
    if(!search(&position, molpro_out_path,position, "NATURAL", 0, "ORBITALS"))
    {
       std::cout<<"LCAO COEFFICIENTS NOT FOUND IN MOLPRO OUTPUT"<<std::endl;
-      return -1;
+      exit(EXIT_FAILURE);
    }
        input.open(molpro_out_path.c_str());
        input.seekg(position);
@@ -492,26 +502,50 @@ int dipole_MO(double **matrix,int* n_occ,int* basis_size,int* basis_size_sym,std
 
     temp=new double[*basis_size*n_occ_tot];
     temp2=new double[*basis_size*n_occ_tot];
-    matrix2=new double[*basis_size**basis_size];
     for(int i=0;i!=*basis_size*n_occ_tot;i++)
     {
        temp[i]=0;
        temp2[i]=0;
     }
-    
+
+ /*   for(int i=0;i!=n_occ_tot;i++)
+    {
+       total1=0;
+       for(int j=0;j!=*basis_size;j++)
+       {
+          std::cout<<setprecision(10)<<setw(15)<<MO_coeff_neutral[i**basis_size+j];
+          total1++;
+          if(total1%6==0)
+             std::cout<<std::endl;
+       }std::cout<<std::endl;
+
+    }*/
+    std::cout<<"X dipole "<<n_occ_tot<<std::endl;
     transpose(MO_coeff_neutral, temp2, n_occ_tot, *basis_size);
     matrix_product(temp, aodipole_x, temp2, *basis_size, *basis_size, n_occ_tot);
-    matrix_product(matrix2, MO_coeff_neutral, temp, n_occ_tot, *basis_size, n_occ_tot); 
-    transpose(matrix2, matrix[0], n_occ_tot, n_occ_tot);
+    matrix_product(matrix[0], MO_coeff_neutral, temp, n_occ_tot, *basis_size, n_occ_tot); 
+    std::cout<<"Y dipole"<<std::endl;
     matrix_product(temp, aodipole_y, temp2, *basis_size, *basis_size, n_occ_tot);
-    matrix_product(matrix2, MO_coeff_neutral, temp, n_occ_tot, *basis_size, n_occ_tot); 
-    transpose(matrix2, matrix[1], n_occ_tot, n_occ_tot);
+    matrix_product(matrix[1], MO_coeff_neutral, temp, n_occ_tot, *basis_size, n_occ_tot); 
+    std::cout<<"Z dipole"<<std::endl;
     matrix_product(temp, aodipole_z, temp2, *basis_size, *basis_size, n_occ_tot);
-    matrix_product(matrix2, MO_coeff_neutral, temp, n_occ_tot, *basis_size, n_occ_tot); 
-    transpose(matrix2, matrix[2], n_occ_tot, n_occ_tot);
-    return 0;
+    matrix_product(matrix[2], MO_coeff_neutral, temp, n_occ_tot, *basis_size, n_occ_tot); 
+/*    for(int i=0;i!=n_occ_tot;i++)
+    {
+       total1=0;
+       for(int j=0;j!=n_occ_tot;j++)
+       {
+          std::cout<<setprecision(10)<<setw(15)<<matrix[2][i*n_occ_tot+j];
+          total1++;
+          if(total1%7==0)
+             std::cout<<std::endl;
+       }std::cout<<std::endl;
+
+    }
+    exit(EXIT_SUCCESS);
+*/
 }
-int overlap_MO(double matrix[],int* n_occ,int* basis_size,int* basis_size_sym,std::string molpro_out_path,int n_sym=1)
+int overlap_MO(double matrix[],int* n_occ,int* basis_size,int* basis_size_sym,std::string molpro_out_path,double* MO_coeff_neutral,int n_sym=1)
 {
     bool test(0);
     bool test2(0);
@@ -521,7 +555,6 @@ int overlap_MO(double matrix[],int* n_occ,int* basis_size,int* basis_size_sym,st
     int position(0);
     double *overlap;
     double *matrix2;
-    double *MO_coeff_neutral;
     double *MO_coeff_cation;
     double floating;
     double *temp;
@@ -609,7 +642,6 @@ int overlap_MO(double matrix[],int* n_occ,int* basis_size,int* basis_size_sym,st
 
     position=0;
     
-    MO_coeff_neutral=new double[n_occ_tot**basis_size];
     MO_coeff_cation=new double[n_occ_tot**basis_size];
     for(int i=0;i!=n_occ_tot**basis_size;i++)
     {
@@ -624,7 +656,7 @@ int overlap_MO(double matrix[],int* n_occ,int* basis_size,int* basis_size_sym,st
    }
        molpro_file.open(molpro_out_path.c_str());
        molpro_file.seekg(position);
-           for(int i=0;i!=7;i++)
+           while(tmp_str != "Coefficients")
            {
               molpro_file>>tmp_str;
            }
@@ -664,7 +696,7 @@ int overlap_MO(double matrix[],int* n_occ,int* basis_size,int* basis_size_sym,st
    }
        molpro_file.open(molpro_out_path.c_str());
        molpro_file.seekg(position);
-           for(int i=0;i!=7;i++)
+           while(tmp_str != "Coefficients")
            {
               molpro_file>>tmp_str;
            }
@@ -672,10 +704,11 @@ int overlap_MO(double matrix[],int* n_occ,int* basis_size,int* basis_size_sym,st
            total2=0;
            for(int s=0;s!=n_sym;s++)
            {
-            //cout<<"Coefficients of the cation"<<endl;//DEBOGAGE
+            cout<<"Coefficients of the cation"<<endl;//DEBOGAGE
             for (int i=0; i!=2*sqrt(count[s]); i++)
             {
                 molpro_file>>tmp_str;
+//                std::cout<<tmp_str<<std::endl;
             }
             for (int j=total; j!=n_occ[s]+total; j++)
             {
@@ -776,6 +809,7 @@ int num_of_ci_reader(int *n_states_neut,int *n_states_cat,int *n_ci_neut,int *n_
     double floating;
     int n_symocc(0);
     int test(0);
+    bool test2(0);
     
     std::ifstream molpro_output;
     if(!search(&position, file_address,position, "CI", 0, "vector"))
@@ -845,6 +879,7 @@ int num_of_ci_reader(int *n_states_neut,int *n_states_cat,int *n_ci_neut,int *n_
        }
     for(int i=0;i!=n_sym;i++)
     {
+       test2=0;
        n_ci_neut[i]=0;
        if(n_states_neut[i]!=0)
        {
@@ -859,24 +894,32 @@ int num_of_ci_reader(int *n_states_neut,int *n_states_cat,int *n_ci_neut,int *n_
           molpro_output>>tmp_str;
     
           //std::cout<<"before neutral "<<tmp_str<<std::endl;//DEBOGAGE
-          while(tmp_str!="TOTAL")
+          while(tmp_str!="TOTAL" && tmp_str!="CI" && tmp_str !="**********************************************************************************************************************************" )
           {
               molpro_output>>tmp_str;
+            //  std::cout<<counter<<","<<tmp_str<<std::endl;
               counter++;
           }
-          molpro_output>>tmp_str;
-          for(int j=0;j!=n_states_neut[i];j++)
+          if(tmp_str == "TOTAL")
+             test2=1;
+          if(test2)
           {
              molpro_output>>tmp_str;
+             for(int j=0;j!=n_states_neut[i];j++)
+             {
+                molpro_output>>tmp_str;
+             }
+             molpro_output>>tmp_str;
+             molpro_output>>tmp_str;
           }
-          molpro_output>>tmp_str;
-          molpro_output>>tmp_str;
+          else
+             molpro_output>>tmp_str;
           //std::cout<<"after neutral "<<tmp_str<<std::endl;//DEBOGAGE
     
           n_ci_neut[i]=(counter-1)/(n_states_neut[i]+n_symocc);
        }
     }
-  //  std::cout<<"PROBE 2 GETTING CI VECTOR SIZE FROM MOLPRO OUTPUT"<<std::endl;//DEBOGAGE
+    std::cout<<"PROBE 2 GETTING CI VECTOR SIZE FROM MOLPRO OUTPUT"<<std::endl;//DEBOGAGE
     
     position=molpro_output.tellg();
     molpro_output.close();
@@ -897,6 +940,7 @@ int num_of_ci_reader(int *n_states_neut,int *n_states_cat,int *n_ci_neut,int *n_
     }
     for(int i=0;i!=n_sym;i++)
     {
+       test2=0;
        n_ci_cat[i]=0;
        if(n_states_cat[i]!=0)
        {
@@ -914,24 +958,30 @@ int num_of_ci_reader(int *n_states_neut,int *n_states_cat,int *n_ci_neut,int *n_
           //std::cout<<"PROBE LOOP CI VECTOR"<<std::endl;//DEBOGAGE
 
           //std::cout<<"before cation "<<tmp_str<<std::endl;//DEBOGAGE
-          while(tmp_str!="TOTAL")
+          while(tmp_str!="TOTAL" && tmp_str!="CI" && tmp_str != "**********************************************************************************************************************************")
           {
             molpro_output>>tmp_str;
             counter++;
           }
-          molpro_output>>tmp_str;
-          //std::cout<<tmp_str<<std::endl;//DEBOGAGE
-          for(int j=0;j!=n_states_cat[i];j++)
+          if(tmp_str == "TOTAL")
+             test2=1;
+          if(test2)
           {
+              molpro_output>>tmp_str;
+              //std::cout<<tmp_str<<std::endl;//DEBOGAGE
+              for(int j=0;j!=n_states_cat[i];j++)
+              {
+                 molpro_output>>tmp_str;
+                 //std::cout<<tmp_str<<std::endl;//DEBOGAGE
+              }
+              molpro_output>>tmp_str;
+              // std::cout<<tmp_str<<std::endl;//DEBOGAGE
+              molpro_output>>tmp_str;
+              // std::cout<<tmp_str<<std::endl;//DEBOGAGE
+              //std::cout<<"after cation "<<tmp_str<<std::endl;//DEBOGAGE
+          } 
+          else
              molpro_output>>tmp_str;
-             //std::cout<<tmp_str<<std::endl;//DEBOGAGE
-          }
-          molpro_output>>tmp_str;
-          // std::cout<<tmp_str<<std::endl;//DEBOGAGE
-          molpro_output>>tmp_str;
-          // std::cout<<tmp_str<<std::endl;//DEBOGAGE
-          //std::cout<<"after cation "<<tmp_str<<std::endl;//DEBOGAGE
-    
           //std::cout<<"counter is "<<counter<<" n_ci_cat is "<<(counter-1)/(n_states_cat[i]+n_symocc)<<std::endl;
           n_ci_cat[i]=(counter-1)/(n_states_cat[i]+n_symocc);
 
@@ -1222,13 +1272,18 @@ int ci_vec_reader(int *n_states_neut_s,int *n_states_cat_s,int *n_occ,int *n_clo
         }
       
         molpro_output>>tmp_str;
-        molpro_output>>tmp_str;
-        for(int w=0;w!=n_states_neut_s[s];w++)
+        if(tmp_str == "TOTAL")
         {
            molpro_output>>tmp_str;
+           for(int w=0;w!=n_states_neut_s[s];w++)
+           {
+              molpro_output>>tmp_str;
+           }
+           molpro_output>>tmp_str;
+           molpro_output>>tmp_str;
         }
-        molpro_output>>tmp_str;
-        molpro_output>>tmp_str;
+        else
+           molpro_output>>tmp_str;
     }
     }
     position=molpro_output.tellg();
@@ -1347,18 +1402,23 @@ int ci_vec_reader(int *n_states_neut_s,int *n_states_cat_s,int *n_occ,int *n_clo
          ci_index++;
         }
         molpro_output>>tmp_str;
-        molpro_output>>tmp_str;
-        for(int w=0;w!=n_states_cat_s[s];w++)
+        if(tmp_str == "TOTAL")
         {
            molpro_output>>tmp_str;
+           for(int w=0;w!=n_states_cat_s[s];w++)
+           {
+              molpro_output>>tmp_str;
+           }
+           molpro_output>>tmp_str;
+           molpro_output>>tmp_str;
         }
-        molpro_output>>tmp_str;
-        molpro_output>>tmp_str;
-        std::cout<<"probe loop sym"<<std::endl;//DEBOGAGE
+        else
+           molpro_output>>tmp_str;
+        //std::cout<<"probe loop sym"<<std::endl;//DEBOGAGE
    }
     }
 }
-           std::cout<<"probe end"<<std::endl;//DEBOGAGE
+          /// std::cout<<"probe end"<<std::endl;//DEBOGAGE
     
     molpro_output.close();
     return 0;
@@ -1378,7 +1438,11 @@ bool basis_size_data_reader(int n_sym, int* basis_size_sym,int** contraction_num
    }
    string temps;
    int pos(0);
-   search(&pos,file_address.c_str(),0,"BASIS",0,"DATA");
+   if(!search(&pos,file_address.c_str(),0,"BASIS",0,"DATA"))
+   {
+      std::cout<<"BASIS DATA NOT FOUND IN MOLPRO OUTPUT FILE"<<std::endl;
+      exit(EXIT_FAILURE);
+   }
 
    input.open(file_address.c_str());
 
@@ -1396,31 +1460,51 @@ bool basis_size_data_reader(int n_sym, int* basis_size_sym,int** contraction_num
       }
       for(int s=0;s!=n_sym;s++)
       {
-         for(int i=0;i!=basis_size_sym[s];s++)
+         //std::cout<<basis_size_sym[s]<<std::endl;
+         for(int i=0;i!=basis_size_sym[s];i++)
          {
             for(int j=0;j!=4;j++)
             {
                input>>temps; 
+//               std::cout<<temps<<std::endl;
             }
             temps="";
             sstream.str("");
             if(i<basis_size_sym[s]-1)
             {
+//               std::cout<<"!"<<i<<std::endl;
                sstream<<i+2<<"."<<s+1;
             }
-            else
+            else if(s<n_sym-1)
             {
                sstream<<"1."<<s+2;
             }
+            else if (i==basis_size_sym[s]-1 && s == n_sym-1)
+            {
+               sstream<<i+1<<"."<<n_sym;
+            }
             teststring=sstream.str();
 
+//            std::cout<<teststring<<"±±±±±±±±±±"<<std::endl;
             count=0;
-            while(temps.c_str()!=teststring.c_str())
+            while(temps!=teststring && temps != "NUCLEAR")
             {
                input>>temps;
                count++;
+//               std::cout<<temps.c_str()<<"!="<<teststring.c_str()<<"!!!"<<bool(temps!=teststring)<<std::endl;
+               if(input.eof())
+               {
+                  break;
+               }
             }
+               if(input.eof())
+               {
+                  std::cout<<"end of loop"<<std::endl;
+                  break;
+               }
+//            std::cout<<temps<<std::endl;
             contraction_number[s][i]=count/2;
+//            std::cout<<count<<"=>"<<contraction_number[s][i]<<std::endl;
 
          }
       }
@@ -1436,6 +1520,7 @@ bool basis_data_reader(int n_sym, int* basis_size_sym,int** contraction_number,d
    stringstream sstream;
    string teststring;
    int basis_size(0);
+   bool test(0);
    int l(0);
    for(int i=0;i!=n_sym;i++)
    {
@@ -1461,21 +1546,32 @@ bool basis_data_reader(int n_sym, int* basis_size_sym,int** contraction_number,d
       }
       for(int s=0;s!=n_sym;s++)
       {
-         for(int i=0;i!=basis_size_sym[s];s++)
+         for(int i=0;i!=basis_size_sym[s];i++)
          {
             input>>temps;
+//            std::cout<<"1  "<<temps<<std::endl;
             input>>temps;
             input>>temps;
             nucl_basis_func[s][i]=atoi(temps.c_str());
             input>>temps;
             basis_func_type[s][i]=temps.c_str();
-            for(l=0;l!=contraction_number[s][i];l++);
+            test=0;
+            l=0;
+            while(test==0)
             {
+//               std::cout<<l<<"/"<<contraction_number[s][i]<<std::endl;
                input>>temps;
                contraction_zeta[s][i][l]=atof(temps.c_str());
                input>>temps;
                contraction_coeff[s][i][l]=atof(temps.c_str());
+               l++;
+               if(l>=contraction_number[s][i])
+               {
+                  test=1;
+               }
+
             }
+//            std::cout<<"2  "<<temps<<std::endl;
          }
       }
       input.close();
@@ -1515,7 +1611,7 @@ bool search(int *match_loc,std::string file_address,int research_from,std::strin
                     molpro_output.close();
                     return 0;
                 }
-                //std::cout<<tmp_str<<" (1) = "<<pattern1<<std::endl;//DEBOGAGE
+               // std::cout<<tmp_str<<" (1) = "<<pattern1<<std::endl;//DEBOGAGE
             }
             
             if(pattern2!="")
@@ -1529,13 +1625,13 @@ bool search(int *match_loc,std::string file_address,int research_from,std::strin
                 }while(count<=num_of_entry_between_patterns12);
                 count=0;
                 
-                //std::cout<<tmp_str.toStdString()<<" (2) = "<<pattern2<<std::endl;//DEBOGAGE
+                //std::cout<<tmp_str<<" (2) = "<<pattern2<<std::endl;//DEBOGAGE
                 
                 if (tmp_str==pattern2)
                 {
                     if(pattern3=="")
-                    {
-                        
+                    {       
+                //       std::cout<<"!probe!!"<<std::endl;
                         *match_loc=int(molpro_output.tellg());
                         molpro_output.close();
                         test=1;

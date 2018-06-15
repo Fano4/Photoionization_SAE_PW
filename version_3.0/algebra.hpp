@@ -11,7 +11,6 @@
 
 #include <stdio.h>
 #include <iostream>
-#include "global_vars.hpp"
 
 void matrix_product(double *result_matrix,double *first_matrix,double *second_matrix,int dim1,int dim2,int dim3);
 void transpose(double *input,double *transposed, int n_rows_input, int n_col_input);
