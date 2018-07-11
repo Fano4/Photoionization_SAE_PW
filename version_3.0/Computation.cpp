@@ -126,7 +126,7 @@ std::complex<double> AO_FT_grad(int ao_index,int comp,double k, double thet, dou
        for(int i=0;i!=contraction_number[ao_index];i++)
        {
            value+=contraction_coeff[ao_index][i]*contraction_FT_grad_k(k,thet,phi,nucl_spher_pos,contraction_zeta[ao_index][i],basis_func_type[ao_index]);
-//           std::cout<<contraction_FT_grad_k(k,thet,phi,nucl_spher_pos,contraction_zeta[ao_index][i],basis_func_type[ao_index])<<std::endl;
+//           std::cout<<k<<","<<thet<<","<<phi<<","<<nucl_spher_pos[0]<<","<<contraction_zeta[ao_index][i]<<","<<basis_func_type[ao_index]<<std::endl;
        }
        break;
       case 1:
@@ -174,77 +174,126 @@ std::complex<double> contraction_FT( double k, double thet, double phi,double* n
 {
    using namespace std;
 
+   double temp(0);
    complex<double> f(sin(thet)*sin(nucl_spher_pos[1])*cos(phi-nucl_spher_pos[2])+cos(thet)*cos(nucl_spher_pos[1]));
-   complex<double> phase_factor(exp(-std::complex<double>(0,1)*k*nucl_spher_pos[0]*f));
+   complex<double> phase_factor(exp(std::complex<double>(0,-1)*k*nucl_spher_pos[0]*f));
+   complex<double> k_part_s(0);
+   complex<double> k_part_p(0);
+   complex<double> k_part_d(0);
+   complex<double> k_part_f(0);
+   
    if(basis_func_type=="1s")
    {
-      /*
-       * 1/2 Sqrt[1/Pi] (1/(2Pi))^(3/2) Exp[-I k r f[\[Theta],\[Phi],\[CapitalTheta],\[CapitalPhi]]]E^(-(k^2/(4 d)))
-       * */
-      return 0.017911224007836134*exp(-k*k/(4*contraction_zeta))*phase_factor;
+      k_part_s=(exp(-k*k/(4*contraction_zeta))/(2*pow(contraction_zeta,1.5)));
+   }
+   else if(basis_func_type=="2px" || basis_func_type=="2py" || basis_func_type=="2pz")
+   {
+      k_part_p=std::complex<double>(0,1)*sqrt(2.)*(k-(1./3.)*(k+pow(k,3)/(2*contraction_zeta))*gsl_sf_hyperg_1F1(1,2.5,-k*k/(4*contraction_zeta)))/(4.*sqrt(acos(-1))*pow(contraction_zeta,2));
+   }
+   else if(basis_func_type=="3d2-" || basis_func_type=="3d1-" || basis_func_type=="3d0" || basis_func_type=="3d1+" || basis_func_type=="3d2+")
+   {
+      k_part_d=-sqrt(2.)*(pow(k,2)*exp(-pow(k,2)/(4.*contraction_zeta))*gsl_sf_hyperg_1F1(1,3.5,k*k/(4*contraction_zeta)))/(40.*pow(contraction_zeta,2.5));
+   }
+   else if(basis_func_type=="3f3-" || basis_func_type=="3f2-" || basis_func_type=="3f1-" || basis_func_type=="3f0" || basis_func_type=="3f1+" || basis_func_type=="3f2+" || basis_func_type=="3f3+")
+   {
+      k_part_f=std::complex<double>(0,-1)*sqrt(2.)*(pow(k,3)/(24.*pow(contraction_zeta,3))+k/(4.*pow(contraction_zeta,2))-(pow(k,5)/(240.*pow(contraction_zeta,4))+pow(k,3)/(20.*pow(contraction_zeta,3))+k/(4.*pow(contraction_zeta,2)))*gsl_sf_hyperg_1F1(1,3.5,-k*k/(4*contraction_zeta)))/(sqrt(acos(-1)));
+   }
+   
+
+
+  /* 
+      std::cout<<"PROOOOOOOOOOOOOOOOBE#########################"<<std::endl;
+      std::complex<double> value;
+      contraction_zeta=0.05;
+      nucl_spher_pos[0]=0;
+   //for(int i=0;i!=1024;i++)
+   //{
+    //  k=1e-05+i*2.71/1024;
+//      thet=acos(-1);
+      //k=2.71*(i+1.)/1024;
+//      phi=acos(-1)/2;
+   //   phase_factor=sin(thet)*sin(nucl_spher_pos[1])*cos(phi-nucl_spher_pos[2])+cos(thet)*cos(nucl_spher_pos[1]);
+   //   dfdt=cos(thet)*sin(nucl_spher_pos[1])*cos(phi-nucl_spher_pos[2])-sin(thet)*cos(nucl_spher_pos[1]);
+      //dfdf=(-sin(thet)*sin(nucl_spher_pos[1])*sin(phi-nucl_spher_pos[2]));
+      //dfdf2=(-sin(nucl_spher_pos[1])*sin(phi-nucl_spher_pos[2]));
+             //std::cout<<k*k*27.211/2<<","<<real(value)<<","<<imag(value)<<std::endl;
+      for(int i=0;i!=100;i++)
+      {
+         for(int j=0;j!=50;j++)
+         {
+            thet=acos(-1)*i/100;
+            phi=2*acos(-1)*j/50;
+
+            value=0.5*sqrt(15./acos(-1))*sin(thet)*sin(2.*phi);
+             std::cout<<thet<<"    "<<phi<<"    "<<real(value)<<"    "<<imag(value)<<std::endl;
+         }std::cout<<std::endl;
+   }
+   exit(EXIT_SUCCESS);
+
+*/
+   if(basis_func_type=="1s")
+   {
+      return 0.5*(1/sqrt(acos(-1)))*phase_factor*k_part_s;
    }
    else if(basis_func_type=="2px")
    {
-      /*
-       * Sqrt[3/(4Pi)]Sin[\[Theta]]Sin[\[Phi]]4Pi I Exp[-I k r  f[\[Theta],\[Phi],\[CapitalTheta],\[CapitalPhi]]] ((-(1/d))^(3/2) k (-Sqrt[d] k+(2 d+k^2) DawsonF[k/(2 Sqrt[d])]))/(2 (-(k^2/d))^(3/2) \[Pi]^(3/2))
-       * */
-      return 0.551328895421792*std::complex<double>(0,1)*sin(thet)*cos(phi)*phase_factor*(-sqrt(contraction_zeta)*k+(2*contraction_zeta+k*k)*gsl_sf_dawson(k/(2*sqrt(contraction_zeta))))/(k*k);
+      return sqrt(3./(4.*acos(-1)))*phase_factor*sin(thet)*cos(phi)*k_part_p;
    }
    else if(basis_func_type=="2py")
    {
-      return 0.551328895421792*std::complex<double>(0,1)*sin(thet)*sin(phi)*phase_factor*(-sqrt(contraction_zeta)*k+(2*contraction_zeta+k*k)*gsl_sf_dawson(k/(2*sqrt(contraction_zeta))))/(k*k);
+      return sqrt(3./(4.*acos(-1)))*phase_factor*sin(thet)*sin(phi)*k_part_p;
    }
    else if(basis_func_type=="2pz")
    {
-      return 0.551328895421792*std::complex<double>(0,1)*cos(thet)*phase_factor*(-sqrt(contraction_zeta)*k+(2*contraction_zeta+k*k)*gsl_sf_dawson(k/(2*sqrt(contraction_zeta))))/(k*k);
+      return sqrt(3./(4.*acos(-1)))*phase_factor*cos(thet)*k_part_p;
    }
    else if(basis_func_type=="3d2-")
    {
-      return 0.06936987229253981*phase_factor*sin(thet)*sin(thet)*sin(phi)*cos(phi)*(-0.6752372371178296*pow(contraction_zeta,1.5)*erf(k/(2*contraction_zeta))+k*exp(-k*k/4*contraction_zeta)*(6*contraction_zeta+k*k))/pow(k,3);
+      return 0.25*sqrt(15./acos(-1))*pow(sin(thet),2)*sin(2.*phi)*phase_factor*k_part_d;
    }
    else if(basis_func_type=="3d1-")
    {
-      return 0.06936987229253981*phase_factor*sin(thet)*cos(thet)*sin(phi)*(-0.6752372371178296*pow(contraction_zeta,1.5)*erf(k/(2*contraction_zeta))+k*exp(-k*k/4*contraction_zeta)*(6*contraction_zeta+k*k))/pow(k,3);
+      return 0.25*sqrt(15./acos(-1))*sin(2*thet)*sin(phi)*phase_factor*k_part_d;
    }
    else if(basis_func_type=="3d0")
    {
-      return 0.020025357220873913*phase_factor*(-sin(thet)*sin(thet)*cos(phi)*cos(phi)-sin(thet)*sin(thet)*sin(phi)*sin(phi)+2*cos(thet)*cos(thet))*(-0.6752372371178296*pow(contraction_zeta,1.5)*erf(k/(2*contraction_zeta))+k*exp(-k*k/4*contraction_zeta)*(6*contraction_zeta+k*k))/pow(k,3);
+      return 0.25*sqrt(5./acos(-1))*(2*pow(cos(thet),2)-pow(sin(thet),2))*phase_factor*k_part_d;
    }
    else if(basis_func_type=="3d1+")
    {
-      return 0.06936987229253981*phase_factor*sin(thet)*cos(thet)*cos(phi)*(-0.6752372371178296*pow(contraction_zeta,1.5)*erf(k/(2*contraction_zeta))+k*exp(-k*k/4*contraction_zeta)*(6*contraction_zeta+k*k))/pow(k,3);
+      return 0.25*sqrt(15./acos(-1))*sin(2.*thet)*cos(phi)*phase_factor*k_part_d;
    }
    else if(basis_func_type=="3d2+")
    {
-      return 0.06936987229253981*phase_factor*(sin(thet)*sin(thet)*cos(phi)*cos(phi)-sin(thet)*sin(thet)*sin(phi)*sin(phi))*(-0.6752372371178296*pow(contraction_zeta,1.5)*erf(k/(2*contraction_zeta))+k*exp(-k*k/4*contraction_zeta)*(6*contraction_zeta+k*k))/pow(k,3);
+      return 0.25*sqrt(15./acos(-1))*cos(2*phi)*pow(sin(thet),2)*phase_factor*k_part_d;
    }
    else if(basis_func_type=="4f3-")
    {
-      return std::complex<double>(0,1)*0.042273611654255666*(3*pow(sin(thet)*cos(phi),2)-pow(sin(thet)*sin(phi),2))*sin(thet)*sin(phi)*phase_factor*((60*contraction_zeta*contraction_zeta+12*contraction_zeta*k*k+k*k*k*k)*gsl_sf_dawson(k/(2*sqrt(contraction_zeta)))-sqrt(contraction_zeta)*k*(30*contraction_zeta+k*k))/pow(k,5);
+      return 0.25*sqrt(35/(2*acos(-1)))*(3*pow(sin(thet),2)*pow(cos(phi),2)-pow(sin(thet),2)*pow(sin(phi),2))*sin(thet)*sin(phi)*phase_factor*k_part_f;
    }
    else if(basis_func_type=="4f2-")
    {
-      return std::complex<double>(0,1)*0.20709755627499729*pow(sin(thet),2)*cos(thet)*sin(phi)*cos(phi)*phase_factor*((60*contraction_zeta*contraction_zeta+12*contraction_zeta*k*k+k*k*k*k)*gsl_sf_dawson(k/(2*sqrt(contraction_zeta)))-sqrt(contraction_zeta)*k*(30*contraction_zeta+k*k))/pow(k,5);
+      return 0.25*sqrt(105./acos(-1))*pow(sin(thet),2)*cos(thet)*sin(2.*phi)*phase_factor*k_part_f;
    }
    else if(basis_func_type=="4f1-")
    {
-      return std::complex<double>(0,1)*0.046308421380498219*(4*pow(cos(thet),2)-pow(sin(thet),2)*pow(cos(phi),2)-pow(sin(thet),2)*pow(sin(phi),2))*sin(thet)*sin(phi)*phase_factor*((60*contraction_zeta*contraction_zeta+12*contraction_zeta*k*k+k*k*k*k)*gsl_sf_dawson(k/(2*sqrt(contraction_zeta)))-sqrt(contraction_zeta)*k*(30*contraction_zeta+k*k))/pow(k,5);
+      return 0.25*sqrt(21./(2*acos(-1)))*sin(thet)*sin(phi)*(4*pow(cos(thet),2)-pow(sin(thet),2))*phase_factor*k_part_f;
    }
    else if(basis_func_type=="4f0")
    {
-      return std::complex<double>(0,1)*0.026736179549777268*(2*pow(cos(thet),2)-3*pow(sin(thet),2)*pow(cos(phi),2)-3*pow(sin(thet),2)*pow(sin(phi),2))*phase_factor*((60*contraction_zeta*contraction_zeta+12*contraction_zeta*k*k+k*k*k*k)*gsl_sf_dawson(k/(2*sqrt(contraction_zeta)))-sqrt(contraction_zeta)*k*(30*contraction_zeta+k*k))/pow(k,5);
+      return 0.25*sqrt(7./acos(-1))*cos(thet)*(2*cos(thet)-3*pow(sin(thet),2))*phase_factor*k_part_f;
    }
    else if(basis_func_type=="4f1+")
    {
-      return std::complex<double>(0,1)*0.046308421380498219*(4*pow(cos(thet),2)-pow(sin(thet),2)*pow(cos(phi),2)-pow(sin(thet),2)*pow(sin(phi),2))*sin(thet)*cos(phi)*phase_factor*((60*contraction_zeta*contraction_zeta+12*contraction_zeta*k*k+k*k*k*k)*gsl_sf_dawson(k/(2*sqrt(contraction_zeta)))-sqrt(contraction_zeta)*k*(30*contraction_zeta+k*k))/pow(k,5);
+      return 0.25*sqrt(21./(2*acos(-1)))*sin(thet)*cos(phi)*(4*pow(cos(thet),2)-pow(sin(thet),2))*phase_factor*k_part_f;
    }
    else if(basis_func_type=="4f2+")
    {
-      return std::complex<double>(0,1)*0.20709755627499729*cos(thet)*(pow(sin(thet),2)*pow(cos(phi),2)-pow(sin(phi),2)*pow(sin(thet),2))*phase_factor*((60*contraction_zeta*contraction_zeta+12*contraction_zeta*k*k+k*k*k*k)*gsl_sf_dawson(k/(2*sqrt(contraction_zeta)))-sqrt(contraction_zeta)*k*(30*contraction_zeta+k*k))/pow(k,5);
+      return 0.5*sqrt(105./acos(-1))*pow(sin(thet),2)*cos(thet)*cos(2*phi)*phase_factor*k_part_f;
    }
    else if(basis_func_type=="4f3+")
    {
-      return std::complex<double>(0,1)*0.042273611654255666*(pow(sin(thet)*cos(phi),2)-pow(sin(thet)*sin(phi),2))*sin(thet)*cos(phi)*phase_factor*((60*contraction_zeta*contraction_zeta+12*contraction_zeta*k*k+k*k*k*k)*gsl_sf_dawson(k/(2*sqrt(contraction_zeta)))-sqrt(contraction_zeta)*k*(30*contraction_zeta+k*k))/pow(k,5);
+      return 0.25*sqrt(35/(2*acos(-1)))*(pow(sin(thet),2)*pow(cos(phi),2)-3.*pow(sin(thet),2)*pow(sin(phi),2))*sin(thet)*cos(phi)*phase_factor*k_part_f;
    }
    else
    {
@@ -256,73 +305,97 @@ std::complex<double> contraction_FT_grad_k( double k, double thet, double phi,do
 {
    using namespace std;
 
-      //std::cout<<"probe-------"<<std::endl;
    complex<double> f(sin(thet)*sin(nucl_spher_pos[1])*cos(phi-nucl_spher_pos[2])+cos(thet)*cos(nucl_spher_pos[1]));
    complex<double> phase_factor(exp(-std::complex<double>(0,1)*k*nucl_spher_pos[0]*f));
+   complex<double> k_part_s(0);
+   complex<double> k_part_p(0);
+   complex<double> k_part_d(0);
+   complex<double> k_part_f(0);
+   double temp(0);
+
    if(basis_func_type=="1s")
    {
-   //   std::cout<<"probe!!"<<std::endl;
-      return 0.0089556120039180672*phase_factor*exp(-k*k/(4*contraction_zeta))*(-k-2.0*std::complex<double>(0,1)*contraction_zeta*nucl_spher_pos[0]*f);
+       k_part_s=(exp(-k*k/(4*contraction_zeta))*(-std::complex<double>(0,1)*nucl_spher_pos[0]*f/pow(2*contraction_zeta,1.5)-k/(8*sqrt(2)*pow(contraction_zeta,2.5))));
+   }
+   else if(basis_func_type=="2px" || basis_func_type=="2py" || basis_func_type=="2pz")
+   {
+      k_part_p=sqrt(2/acos(-1))*(1./(4*pow(contraction_zeta,2)))*(nucl_spher_pos[0]*f*(k-(1./3.)*(k+pow(k,3)/(2*contraction_zeta))*gsl_sf_hyperg_1F1(1,2.5,-k*k/(4*contraction_zeta)))+std::complex<double>(0,1)*(1-(1./3.)*(1+3*pow(k,2)/(2*contraction_zeta))*gsl_sf_hyperg_1F1(1,2.5,-k*k/(4*contraction_zeta))+(k/(15*contraction_zeta))*(k+pow(k,3)/(2*contraction_zeta))*gsl_sf_hyperg_1F1(2,3.5,-k*k/(4*contraction_zeta))));
+   }
+
+   else if(basis_func_type=="3d2-" || basis_func_type=="3d1-" || basis_func_type=="3d0" || basis_func_type=="3d1+" || basis_func_type=="3d2+")
+   {
+      k_part_d=(sqrt(2)/(40.*pow(contraction_zeta,2.5)))*(std::complex<double>(0,1)*nucl_spher_pos[0]*f*(pow(k,2)*gsl_sf_hyperg_1F1(1,3.5,k*k/(4*contraction_zeta)))-2*k*gsl_sf_hyperg_1F1(1,3.5,k*k/(4*contraction_zeta))+(2*pow(k,3)/(4*contraction_zeta))*gsl_sf_hyperg_1F1(1,3.5,k*k/(4*contraction_zeta))-(pow(k,3)/(7*contraction_zeta))*gsl_sf_hyperg_1F1(2,4.5,k*k/(4*contraction_zeta)))*exp(-k*k/(4*contraction_zeta));
+   }
+
+
+   else if(basis_func_type=="3f3-" || basis_func_type=="3f2-" || basis_func_type=="3f1-" || basis_func_type=="3f0" || basis_func_type=="3f1+" || basis_func_type=="3f2+" || basis_func_type=="3f3+")
+   {
+        k_part_f=std::complex<double>(0,-1)*sqrt(2./acos(-1))*(std::complex<double>(0,-1)*nucl_spher_pos[0]*f*(pow(k,3)/(24*pow(contraction_zeta,3))+k/(4*pow(contraction_zeta,2))-(pow(k,5)/(240*pow(contraction_zeta,4))+pow(k,3)/(20*pow(contraction_zeta,3))+k/(4*contraction_zeta*contraction_zeta))*gsl_sf_hyperg_1F1(1,3.5,-k*k/(4*contraction_zeta)))+(pow(k,2)/(8*pow(contraction_zeta,3))+1/(4*pow(contraction_zeta,2))-(pow(k,4)/(48*pow(contraction_zeta,4))+3*pow(k,2)/(20*pow(contraction_zeta,3))+1/(4*pow(contraction_zeta,2)))*gsl_sf_hyperg_1F1(1,3.5,-k*k/(4*contraction_zeta))+(pow(k,6)/(1680*pow(contraction_zeta,5))+pow(k,4)/(140*pow(contraction_zeta,4))+pow(k,2)/(28*pow(contraction_zeta,3)))*gsl_sf_hyperg_1F1(2,4.5,-k*k/(4*contraction_zeta))));
+   }
+
+   if(basis_func_type=="1s")
+   {
+      return 0.5*(1/sqrt(acos(-1)))*phase_factor*k_part_s;
    }
    else if(basis_func_type=="2px")
    {
-      return 0.27566444771089604*phase_factor*sin(thet)*cos(phi)*(sqrt(contraction_zeta)*k*(std::complex<double>(0,1)*(4*contraction_zeta+k*k)-2*contraction_zeta*k*f*nucl_spher_pos[0])+gsl_sf_dawson(k/(2*sqrt(contraction_zeta)))*(-std::complex<double>(0,1)*(8*contraction_zeta*contraction_zeta+2*contraction_zeta*k*k+k*k*k*k)+2*contraction_zeta*k*(2*contraction_zeta+k*k)*f*nucl_spher_pos[0]))/(contraction_zeta*k*k*k);
+      return sqrt(3./(4.*acos(-1)))*phase_factor*sin(thet)*cos(phi)*k_part_p;
    }
    else if(basis_func_type=="2py")
    {
-      return 0.27566444771089604*phase_factor*sin(thet)*sin(phi)*(sqrt(contraction_zeta)*k*(std::complex<double>(0,1)*(4*contraction_zeta+k*k)-2*contraction_zeta*k*f*nucl_spher_pos[0])+gsl_sf_dawson(k/(2*sqrt(contraction_zeta)))*(-std::complex<double>(0,1)*(8*contraction_zeta*contraction_zeta+2*contraction_zeta*k*k+k*k*k*k)+2*contraction_zeta*k*(2*contraction_zeta+k*k)*f*nucl_spher_pos[0]))/(contraction_zeta*k*k*k);
+      return sqrt(3./(4.*acos(-1)))*phase_factor*sin(thet)*sin(phi)*k_part_p;
    }
    else if(basis_func_type=="2pz")
    {
-      return 0.27566444771089604*phase_factor*cos(thet)*(sqrt(contraction_zeta)*k*(std::complex<double>(0,1)*(4*contraction_zeta+k*k)-2*contraction_zeta*k*f*nucl_spher_pos[0])+gsl_sf_dawson(k/(2*sqrt(contraction_zeta)))*(-std::complex<double>(0,1)*(8*contraction_zeta*contraction_zeta+2*contraction_zeta*k*k+k*k*k*k)+2*contraction_zeta*k*(2*contraction_zeta+k*k)*f*nucl_spher_pos[0]))/(contraction_zeta*k*k*k);
+      return sqrt(3./(4.*acos(-1)))*phase_factor*cos(thet)*k_part_p;
    }
    else if(basis_func_type=="3d2-")
    {
-      return 0.034684936146269905*cos(phi)*sin(thet)*sin(thet)*sin(phi)*phase_factor*exp(-k*k/(4*contraction_zeta))*(-k*(36*contraction_zeta*contraction_zeta+6*contraction_zeta*k*k+k*k*k*k)-2.0*std::complex<double>(0,1)*contraction_zeta*k*k*(6*contraction_zeta+k*k)*nucl_spher_pos[0]*f+12*pow(contraction_zeta,2.5)*exp(k*k/(4*contraction_zeta))*sqrt(acos(-1))*erf(k/(2*sqrt(contraction_zeta)))*(3.0+std::complex<double>(0,1)*k*f*nucl_spher_pos[0]))/(contraction_zeta*k*k*k*k);
+      return 0.25*sqrt(15./acos(-1))*pow(sin(thet),2)*sin(2.*phi)*phase_factor*k_part_d;
    }
    else if(basis_func_type=="3d1-")
    {
-      return 0.034684936146269905*cos(thet)*sin(thet)*sin(phi)*phase_factor*exp(-k*k/(4*contraction_zeta))*(-k*(36*contraction_zeta*contraction_zeta+6*contraction_zeta*k*k+k*k*k*k)-2.0*std::complex<double>(0,1)*contraction_zeta*k*k*(6*contraction_zeta+k*k)*nucl_spher_pos[0]*f+12*pow(contraction_zeta,2.5)*exp(k*k/(4*contraction_zeta))*sqrt(acos(-1))*erf(k/(2*sqrt(contraction_zeta)))*(3.0+std::complex<double>(0,1)*k*f*nucl_spher_pos[0]))/(contraction_zeta*k*k*k*k);
+      return 0.25*sqrt(15./acos(-1))*sin(2*thet)*sin(phi)*phase_factor*k_part_d;
    }
    else if(basis_func_type=="3d0")
    {
-      return 0.0050063393052184784*(1+3*cos(2*thet))*phase_factor*exp(-k*k/(4*contraction_zeta))*(-k*(36*contraction_zeta*contraction_zeta+6*contraction_zeta*k*k+k*k*k*k)-2.0*std::complex<double>(0,1)*contraction_zeta*k*k*(6*contraction_zeta+k*k)*nucl_spher_pos[0]*f+12*pow(contraction_zeta,2.5)*exp(k*k/(4*contraction_zeta))*sqrt(acos(-1))*erf(k/(2*sqrt(contraction_zeta)))*(3.0+std::complex<double>(0,1)*k*f*nucl_spher_pos[0]))/(contraction_zeta*k*k*k*k);
+      return 0.25*sqrt(5./acos(-1))*(2*pow(cos(thet),2)-pow(sin(thet),2))*phase_factor*k_part_d;
    }
    else if(basis_func_type=="3d1+")
    {
-      return 0.034684936146269905*cos(thet)*sin(thet)*cos(phi)*phase_factor*exp(-k*k/(4*contraction_zeta))*(-k*(36*contraction_zeta*contraction_zeta+6*contraction_zeta*k*k+k*k*k*k)-2.0*std::complex<double>(0,1)*contraction_zeta*k*k*(6*contraction_zeta+k*k)*nucl_spher_pos[0]*f+12*pow(contraction_zeta,2.5)*exp(k*k/(4*contraction_zeta))*sqrt(acos(-1))*erf(k/(2*sqrt(contraction_zeta)))*(3.0+std::complex<double>(0,1)*k*f*nucl_spher_pos[0]))/(contraction_zeta*k*k*k*k);
+      return 0.25*sqrt(15./acos(-1))*sin(2.*thet)*cos(phi)*phase_factor*k_part_d;
    }
    else if(basis_func_type=="3d2+")
    {
-      return 0.017342468073134953*cos(2*phi)*sin(thet)*sin(thet)*phase_factor*exp(-k*k/(4*contraction_zeta))*(-k*(36*contraction_zeta*contraction_zeta+6*contraction_zeta*k*k+k*k*k*k)-2.0*std::complex<double>(0,1)*contraction_zeta*k*k*(6*contraction_zeta+k*k)*nucl_spher_pos[0]*f+12*pow(contraction_zeta,2.5)*exp(k*k/(4*contraction_zeta))*sqrt(acos(-1))*erf(k/(2*sqrt(contraction_zeta)))*(3.0+std::complex<double>(0,1)*k*f*nucl_spher_pos[0]))/(contraction_zeta*k*k*k*k);
+      return 0.25*sqrt(15./acos(-1))*cos(2*phi)*pow(sin(thet),2)*phase_factor*k_part_d;
    }
    else if(basis_func_type=="4f3-")
    {
-      return 0.021136805827127833*phase_factor*(1+cos(2*phi))*pow(sin(thet),3)*sin(phi)*(sqrt(contraction_zeta)*k*(std::complex<double>(0,1)*(6*contraction_zeta*k+k*k*k)-2*contraction_zeta*(30*contraction_zeta+k*k)*f*nucl_spher_pos[0])+gsl_sf_dawson(k/(2*sqrt(contraction_zeta)))*(std::complex<double>(0,-1)*(12*contraction_zeta*contraction_zeta*k+4*contraction_zeta*k*k*k+pow(k,5))+2*contraction_zeta*(60*contraction_zeta*contraction_zeta+12*contraction_zeta*k*k+k*k*k*k)*nucl_spher_pos[0]*f))/contraction_zeta;
+      return 0.25*sqrt(35/(2*acos(-1)))*(3*pow(sin(thet),2)*pow(cos(phi),2)-pow(sin(thet),2)*pow(sin(phi),2))*sin(thet)*sin(phi)*phase_factor*k_part_f;
    }
    else if(basis_func_type=="4f2-")
    {
-      return 0.10354877813749866*phase_factor*cos(thet)*cos(phi)*pow(sin(thet),2)*sin(phi)*(sqrt(contraction_zeta)*k*(std::complex<double>(0,1)*(6*contraction_zeta*k+k*k*k)-2*contraction_zeta*(30*contraction_zeta+k*k)*f*nucl_spher_pos[0])+gsl_sf_dawson(k/(2*sqrt(contraction_zeta)))*(std::complex<double>(0,-1)*(12*contraction_zeta*contraction_zeta*k+4*contraction_zeta*k*k*k+pow(k,5))+2*contraction_zeta*(60*contraction_zeta*contraction_zeta+12*contraction_zeta*k*k+k*k*k*k)*nucl_spher_pos[0]*f))/contraction_zeta;
+      return 0.25*sqrt(105./acos(-1))*pow(sin(thet),2)*cos(thet)*sin(2.*phi)*phase_factor*k_part_f;
    }
    else if(basis_func_type=="4f1-")
    {
-      return 0.0081862496960485968*phase_factor*(3+5*cos(2*thet))*sin(thet)*sin(phi)*(sqrt(contraction_zeta)*k*(std::complex<double>(0,1)*(6*contraction_zeta*k+k*k*k)-2*contraction_zeta*(30*contraction_zeta+k*k)*f*nucl_spher_pos[0])+gsl_sf_dawson(k/(2*sqrt(contraction_zeta)))*(std::complex<double>(0,-1)*(12*contraction_zeta*contraction_zeta*k+4*contraction_zeta*k*k*k+pow(k,5))+2*contraction_zeta*(60*contraction_zeta*contraction_zeta+12*contraction_zeta*k*k+k*k*k*k)*nucl_spher_pos[0]*f))/contraction_zeta;
+      return 0.25*sqrt(21./(2*acos(-1)))*sin(thet)*sin(phi)*(4*pow(cos(thet),2)-pow(sin(thet),2))*phase_factor*k_part_f;
    }
    else if(basis_func_type=="4f0")
    {
-      return 0.006684044887444316*phase_factor*(-1+5*cos(2*thet))*cos(thet)*(sqrt(contraction_zeta)*k*(std::complex<double>(0,1)*(6*contraction_zeta*k+k*k*k)-2*contraction_zeta*(30*contraction_zeta+k*k)*f*nucl_spher_pos[0])+gsl_sf_dawson(k/(2*sqrt(contraction_zeta)))*(std::complex<double>(0,-1)*(12*contraction_zeta*contraction_zeta*k+4*contraction_zeta*k*k*k+pow(k,5))+2*contraction_zeta*(60*contraction_zeta*contraction_zeta+12*contraction_zeta*k*k+k*k*k*k)*nucl_spher_pos[0]*f))/contraction_zeta;
+      return 0.25*sqrt(7./acos(-1))*cos(thet)*(2*pow(cos(thet),2)-3*pow(sin(thet),2))*phase_factor*k_part_f;
    }
    else if(basis_func_type=="4f1+")
    {
-      return 0.0081862496960485968*phase_factor*(3+5*cos(2*phi))*sin(thet)*cos(phi)*(sqrt(contraction_zeta)*k*(std::complex<double>(0,1)*(6*contraction_zeta*k+k*k*k)-2*contraction_zeta*(30*contraction_zeta+k*k)*f*nucl_spher_pos[0])+gsl_sf_dawson(k/(2*sqrt(contraction_zeta)))*(std::complex<double>(0,-1)*(12*contraction_zeta*contraction_zeta*k+4*contraction_zeta*k*k*k+pow(k,5))+2*contraction_zeta*(60*contraction_zeta*contraction_zeta+12*contraction_zeta*k*k+k*k*k*k)*nucl_spher_pos[0]*f))/contraction_zeta;
+      return 0.25*sqrt(21./(2*acos(-1)))*sin(thet)*cos(phi)*(4*pow(cos(thet),2)-pow(sin(thet),2))*phase_factor*k_part_f;
    }
    else if(basis_func_type=="4f2+")
    {
-      return 0.10354877813749866*phase_factor*cos(thet)*cos(2*phi)*pow(sin(thet),2)*(sqrt(contraction_zeta)*k*(std::complex<double>(0,1)*(6*contraction_zeta*k+k*k*k)-2*contraction_zeta*(30*contraction_zeta+k*k)*f*nucl_spher_pos[0])+gsl_sf_dawson(k/(2*sqrt(contraction_zeta)))*(std::complex<double>(0,-1)*(12*contraction_zeta*contraction_zeta*k+4*contraction_zeta*k*k*k+pow(k,5))+2*contraction_zeta*(60*contraction_zeta*contraction_zeta+12*contraction_zeta*k*k+k*k*k*k)*nucl_spher_pos[0]*f))/contraction_zeta;
+      return 0.5*sqrt(105./acos(-1))*pow(sin(thet),2)*cos(thet)*cos(2*phi)*phase_factor*k_part_f;
    }
    else if(basis_func_type=="4f3+")
    {
-      return 0.021136805827127833*phase_factor*(-1+2*cos(2*phi))*pow(sin(thet),3)*cos(phi)*(sqrt(contraction_zeta)*k*(std::complex<double>(0,1)*(6*contraction_zeta*k+k*k*k)-2*contraction_zeta*(30*contraction_zeta+k*k)*f*nucl_spher_pos[0])+gsl_sf_dawson(k/(2*sqrt(contraction_zeta)))*(std::complex<double>(0,-1)*(12*contraction_zeta*contraction_zeta*k+4*contraction_zeta*k*k*k+pow(k,5))+2*contraction_zeta*(60*contraction_zeta*contraction_zeta+12*contraction_zeta*k*k+k*k*k*k)*nucl_spher_pos[0]*f))/contraction_zeta;
+      return 0.25*sqrt(35/(2*acos(-1)))*(pow(sin(thet),2)*pow(cos(phi),2)-3.*pow(sin(thet),2)*pow(sin(phi),2))*sin(thet)*cos(phi)*phase_factor*k_part_f;
    }
    else
    {
@@ -336,72 +409,91 @@ std::complex<double> contraction_FT_grad_thet( double k, double thet, double phi
 
    complex<double> f(sin(thet)*sin(nucl_spher_pos[1])*cos(phi-nucl_spher_pos[2])+cos(thet)*cos(nucl_spher_pos[1]));
    complex<double> dfdt(cos(thet)*sin(nucl_spher_pos[1])*cos(phi-nucl_spher_pos[2])-sin(thet)*cos(nucl_spher_pos[1]));
-   complex<double> dfdf(-sin(thet)*sin(nucl_spher_pos[1])*sin(phi-nucl_spher_pos[2])+cos(thet)*cos(nucl_spher_pos[1]));
    complex<double> phase_factor(exp(-std::complex<double>(0,1)*k*nucl_spher_pos[0]*f));
-
+   complex<double> k_part_s(0);
+   complex<double> k_part_p(0);
+   complex<double> k_part_d(0);
+   complex<double> k_part_f(0);
+   double temp(0);
    if(basis_func_type=="1s")
    {
-      return 0.017911224007836134*std::complex<double>(0,-1)*phase_factor*exp(-k*k/(4*contraction_zeta))*k*nucl_spher_pos[0]*dfdt;
+      k_part_s=(exp(-k*k/(4*contraction_zeta))/(2*pow(contraction_zeta,1.5)));
+   }
+   else if(basis_func_type=="2px" || basis_func_type=="2py" || basis_func_type=="2pz")
+   {
+      k_part_p=std::complex<double>(0,1)*sqrt(2.)*(1-(1./3.)*(1+pow(k,2)/(2*contraction_zeta))*gsl_sf_hyperg_1F1(1,2.5,-k*k/(4*contraction_zeta)))/(4.*sqrt(acos(-1))*pow(contraction_zeta,2));
+   }
+   else if(basis_func_type=="3d2-" || basis_func_type=="3d1-" || basis_func_type=="3d0" || basis_func_type=="3d1+" || basis_func_type=="3d2+")
+   {
+      k_part_d=-sqrt(2.)*(k*exp(-pow(k,2)/(4.*contraction_zeta))*gsl_sf_hyperg_1F1(1,3.5,k*k/(4*contraction_zeta)))/(40.*pow(contraction_zeta,2.5));
+   }
+   else if(basis_func_type=="3f3-" || basis_func_type=="3f2-" || basis_func_type=="3f1-" || basis_func_type=="3f0" || basis_func_type=="3f1+" || basis_func_type=="3f2+" || basis_func_type=="3f3+")
+   {
+      k_part_f=std::complex<double>(0,-1)*sqrt(2.)*(pow(k,2)/(24.*pow(contraction_zeta,3))+1/(4.*pow(contraction_zeta,2))-(pow(k,4)/(240.*pow(contraction_zeta,4))+pow(k,2)/(20.*pow(contraction_zeta,3))+(1/4.*pow(contraction_zeta,2)))*gsl_sf_hyperg_1F1(1,3.5,-k*k/(4*contraction_zeta)))/(sqrt(acos(-1)));
+   }
+   if(basis_func_type=="1s")
+   {
+      return std::complex<double>(0,-1)*nucl_spher_pos[0]*dfdt*0.5*(1/sqrt(acos(-1)))*phase_factor*k_part_s;
    }
    else if(basis_func_type=="2px")
    {
-      return 0.55132889542179209*phase_factor*(-sqrt(contraction_zeta)*k+(2*contraction_zeta+k*k)*gsl_sf_dawson(k/(2*sqrt(contraction_zeta))))*cos(phi)*(std::complex<double>(0,1)*cos(thet)+k*nucl_spher_pos[0]*sin(thet)*dfdt)/(k*k);
+      return (std::complex<double>(0,-1)*k*nucl_spher_pos[0]*dfdt*(sqrt(3./(4.*acos(-1)))*sin(thet)*cos(phi))+sqrt(3./(4.*acos(-1)))*cos(thet)*cos(phi))*phase_factor*k_part_p;
    }
    else if(basis_func_type=="2py")
    {
-      return 0.55132889542179209*phase_factor*(-sqrt(contraction_zeta)*k+(2*contraction_zeta+k*k)*gsl_sf_dawson(k/(2*sqrt(contraction_zeta))))*sin(phi)*(std::complex<double>(0,1)*cos(thet)+k*nucl_spher_pos[0]*sin(thet)*dfdt)/(k*k);
+      return (std::complex<double>(0,-1)*k*nucl_spher_pos[0]*dfdt*(sqrt(3./(4.*acos(-1)))*sin(thet)*sin(phi))+sqrt(3./(4.*acos(-1)))*cos(thet)*sin(phi))*phase_factor*k_part_p;
    }
    else if(basis_func_type=="2pz")
    {
-      return 0.55132889542179209*phase_factor*(-sqrt(contraction_zeta)*k+(2*contraction_zeta+k*k)*gsl_sf_dawson(k/(2*sqrt(contraction_zeta))))*(std::complex<double>(0,-1)*sin(thet)+k*nucl_spher_pos[0]*cos(thet)*dfdt)/(k*k);
+      return (std::complex<double>(0,-1)*k*nucl_spher_pos[0]*dfdt*(sqrt(3./(4.*acos(-1)))*cos(thet))-sqrt(3./(4.*acos(-1)))*sin(thet))*phase_factor*k_part_p;
    }
    else if(basis_func_type=="3d2-")
    {
-      return 0.069369872292539811*phase_factor*exp(-k*k/(4*contraction_zeta))*(6*contraction_zeta*k+k*k*k-6*pow(contraction_zeta,1.5)*exp(k*k/(4*contraction_zeta))*sqrt(acos(-1))*erf(k/(2*sqrt(contraction_zeta))))*cos(phi)*sin(phi)*sin(thet)*(2*cos(thet)-std::complex<double>(0,1)*k*nucl_spher_pos[0]*sin(thet)*dfdt)/pow(k,3);
+      return (std::complex<double>(0,-1)*k*nucl_spher_pos[0]*dfdt*(0.25*sqrt(15./acos(-1))*pow(sin(thet),2)*sin(2.*phi))+0.25*sqrt(15./acos(-1))*sin(2*thet)*sin(2.*phi))*phase_factor*k_part_d;
    }
    else if(basis_func_type=="3d1-")
    {
-      return 0.034684936146269905*phase_factor*exp(-k*k/(4*contraction_zeta))*(6*contraction_zeta*k+k*k*k-6*pow(contraction_zeta,1.5)*exp(k*k/(4*contraction_zeta))*sqrt(acos(-1))*erf(k/(2*sqrt(contraction_zeta))))*sin(phi)*(2*cos(2*thet)-std::complex<double>(0,1)*k*nucl_spher_pos[0]*sin(2*thet)*dfdt)/pow(k,3);
+      return (std::complex<double>(0,-1)*k*nucl_spher_pos[0]*dfdt*(0.25*sqrt(15./acos(-1))*sin(2*thet)*sin(phi))+0.5*sqrt(15./acos(-1))*cos(2*thet)*sin(phi))*phase_factor*k_part_d;
    }
    else if(basis_func_type=="3d0")
    {
-      return 0.010012678610436957*phase_factor*exp(-k*k/(4*contraction_zeta))*(6*contraction_zeta*k+k*k*k-6*pow(contraction_zeta,1.5)*exp(k*k/(4*contraction_zeta))*sqrt(acos(-1))*erf(k/(2*sqrt(contraction_zeta))))*(6*sin(2*thet)-std::complex<double>(0,1)*k*nucl_spher_pos[0]*(1+3*cos(2*thet))*dfdt)/pow(k,3);
+      return (std::complex<double>(0,-1)*k*nucl_spher_pos[0]*dfdt*(0.25*sqrt(5./acos(-1))*(2*pow(cos(thet),2)-pow(sin(thet),2)))-0.75*sqrt(5./acos(-1))*(sin(2*thet)))*phase_factor*k_part_d;
    }
    else if(basis_func_type=="3d1+")
    {
-      return 0.034684936146269905*phase_factor*exp(-k*k/(4*contraction_zeta))*(6*contraction_zeta*k+k*k*k-6*pow(contraction_zeta,1.5)*exp(k*k/(4*contraction_zeta))*sqrt(acos(-1))*erf(k/(2*sqrt(contraction_zeta))))*cos(phi)*(2*cos(2*thet)-std::complex<double>(0,1)*k*nucl_spher_pos[0]*sin(2*thet)*dfdt)/pow(k,3);
+      return (std::complex<double>(0,-1)*k*nucl_spher_pos[0]*dfdt*(0.25*sqrt(15./acos(-1))*sin(2.*thet)*cos(phi))+0.5*sqrt(15./acos(-1))*cos(2*thet)*cos(phi))*phase_factor*k_part_d;
    }
    else if(basis_func_type=="3d2+")
    {
-      return 0.034684936146269905*phase_factor*exp(-k*k/(4*contraction_zeta))*(6*contraction_zeta*k+k*k*k-6*pow(contraction_zeta,1.5)*exp(k*k/(4*contraction_zeta))*sqrt(acos(-1))*erf(k/(2*sqrt(contraction_zeta))))*cos(2*phi)*sin(thet)*(2*cos(thet)-std::complex<double>(0,1)*k*nucl_spher_pos[0]*sin(thet)*dfdt)/pow(k,3);
+      return (std::complex<double>(0,-1)*k*nucl_spher_pos[0]*dfdt*(0.25*sqrt(15./acos(-1))*cos(2*phi)*pow(sin(thet),2))+0.25*sqrt(15./acos(-1))*sin(2*thet)*cos(2.*phi))*phase_factor*k_part_d;
    }
    else if(basis_func_type=="4f3-")
    {
-      return 0.042273611654255666*phase_factor*(-sqrt(contraction_zeta)*k*(30*contraction_zeta+k*k)+(60*contraction_zeta*contraction_zeta+12*contraction_zeta*k*k+k*k*k*k)*gsl_sf_dawson(k/(2*sqrt(contraction_zeta))))*(1+2*cos(2*phi))*sin(thet)*sin(thet)*sin(phi)*(3.0*std::complex<double>(0,1)*cos(thet)+k*nucl_spher_pos[0]*sin(thet)*dfdt)/pow(k,5);
+      return (std::complex<double>(0,-1)*k*nucl_spher_pos[0]*dfdt*(0.25*sqrt(35/(2*acos(-1)))*(3*pow(sin(thet),2)*pow(cos(phi),2)-pow(sin(thet),2)*pow(sin(phi),2)))+0.75*sqrt(35/(2*acos(-1)))*pow(sin(thet),2)*cos(thet)*(3*pow(cos(phi),2)-pow(sin(phi),2))*sin(phi))*phase_factor*k_part_f;
    }
    else if(basis_func_type=="4f2-")
    {
-      return 0.05177438906874933*phase_factor*(-sqrt(contraction_zeta)*k*(30*contraction_zeta+k*k)+(60*contraction_zeta*contraction_zeta+12*contraction_zeta*k*k+k*k*k*k)*gsl_sf_dawson(k/(2*sqrt(contraction_zeta))))*sin(thet)*sin(2*phi)*(std::complex<double>(0,1)+3.0*std::complex<double>(0,1)*cos(2*thet)+k*nucl_spher_pos[0]*sin(2*thet)*dfdt)/pow(k,5);
+      return (std::complex<double>(0,-1)*k*nucl_spher_pos[0]*dfdt*(0.25*sqrt(105./acos(-1))*pow(sin(thet),2)*cos(thet)*sin(2.*phi))+0.25*sqrt(105./acos(-1))*(2.*sin(thet)*pow(cos(thet),2)-pow(sin(thet),3))*sin(2.*phi))*phase_factor*k_part_f;
    }
    else if(basis_func_type=="4f1-")
    {
-      return 0.0081862496960485968*phase_factor*(-sqrt(contraction_zeta)*k*(30*contraction_zeta+k*k)+(60*contraction_zeta*contraction_zeta+12*contraction_zeta*k*k+k*k*k*k)*gsl_sf_dawson(k/(2*sqrt(contraction_zeta))))*sin(phi)*(std::complex<double>(0,1)*(cos(thet)+15*cos(3*thet))+k*nucl_spher_pos[0]*(sin(thet)*+5*sin(3*thet))*dfdt)/pow(k,5);
+      return (std::complex<double>(0,-1)*k*nucl_spher_pos[0]*dfdt*(0.25*sqrt(21./(2*acos(-1)))*sin(thet)*sin(phi)*(4*pow(cos(thet),2)-pow(sin(thet),2)))+0.25*sqrt(21./(2*acos(-1)))*sin(phi)*(4*pow(cos(thet),3)-11.*pow(sin(thet),2)*cos(thet)))*phase_factor*k_part_f;
    }
    else if(basis_func_type=="4f0")
    {
-      return 0.006684044887444316*phase_factor*(-sqrt(contraction_zeta)*k*(30*contraction_zeta+k*k)+(60*contraction_zeta*contraction_zeta+12*contraction_zeta*k*k+k*k*k*k)*gsl_sf_dawson(k/(2*sqrt(contraction_zeta))))*(-3.0*std::complex<double>(0,1)*(sin(thet)+5*sin(3*thet))+k*nucl_spher_pos[0]*(3*cos(thet)*+5*cos(3*thet))*dfdt)/pow(k,5);
+      return (std::complex<double>(0,-1)*k*nucl_spher_pos[0]*dfdt*(0.25*sqrt(7./acos(-1))*cos(thet)*(2*pow(cos(thet),2)-3*pow(sin(thet),2)))-0.75*sqrt(7./acos(-1))*(2*sin(2*thet)*cos(thet)-pow(sin(thet),3)))*phase_factor*k_part_f;
    }
    else if(basis_func_type=="4f1+")
    {
-      return 0.0081862496960485968*phase_factor*(-sqrt(contraction_zeta)*k*(30*contraction_zeta+k*k)+(60*contraction_zeta*contraction_zeta+12*contraction_zeta*k*k+k*k*k*k)*gsl_sf_dawson(k/(2*sqrt(contraction_zeta))))*cos(phi)*(std::complex<double>(0,1)*(cos(thet)+15*cos(3*thet))+k*nucl_spher_pos[0]*(sin(thet)*+5*sin(3*thet))*dfdt)/pow(k,5);
+      return (std::complex<double>(0,-1)*k*nucl_spher_pos[0]*dfdt*(0.25*sqrt(21./(2*acos(-1)))*sin(thet)*cos(phi)*(4*pow(cos(thet),2)-pow(sin(thet),2)))+0.25*sqrt(21./(2*acos(-1)))*cos(phi)*(4*pow(cos(thet),3)-11*pow(sin(thet),2)*cos(thet)))*phase_factor*k_part_f;
    }
    else if(basis_func_type=="4f2+")
    {
-      return 0.05177438906874933*phase_factor*(-sqrt(contraction_zeta)*k*(30*contraction_zeta+k*k)+(60*contraction_zeta*contraction_zeta+12*contraction_zeta*k*k+k*k*k*k)*gsl_sf_dawson(k/(2*sqrt(contraction_zeta))))*sin(thet)*cos(2*phi)*(std::complex<double>(0,1)+3.0*std::complex<double>(0,1)*cos(2*thet)+k*nucl_spher_pos[0]*sin(2*thet)*dfdt)/pow(k,5);
+      return (std::complex<double>(0,-1)*k*nucl_spher_pos[0]*dfdt*(0.5*sqrt(105./acos(-1))*pow(sin(thet),2)*cos(thet)*cos(2*phi))+0.5*sqrt(105./acos(-1))*(2*sin(thet)*pow(cos(thet),2)-pow(sin(thet),3))*cos(2.*phi))*phase_factor*k_part_f;
    }
    else if(basis_func_type=="4f3+")
    {
-      return 0.042273611654255666*phase_factor*(-sqrt(contraction_zeta)*k*(30*contraction_zeta+k*k)+(60*contraction_zeta*contraction_zeta+12*contraction_zeta*k*k+k*k*k*k)*gsl_sf_dawson(k/(2*sqrt(contraction_zeta))))*(1+2*cos(2*phi))*sin(thet)*sin(thet)*cos(phi)*(3.0*std::complex<double>(0,1)*cos(thet)+k*nucl_spher_pos[0]*sin(thet)*dfdt)/pow(k,5);
+      return (std::complex<double>(0,-1)*k*nucl_spher_pos[0]*dfdt*(0.25*sqrt(35/(2*acos(-1)))*(pow(sin(thet),2)*pow(cos(phi),2)-3.*pow(sin(thet),2)*pow(sin(phi),2))*sin(thet)*cos(phi))+0.75*sqrt(35/(2*acos(-1)))*pow(sin(thet),2)*cos(thet)*(pow(cos(phi),2)-3*pow(sin(phi),2))*cos(phi))*phase_factor*k_part_f;
    }
    else
    {
@@ -414,72 +506,93 @@ std::complex<double> contraction_FT_grad_phi( double k, double thet, double phi,
    using namespace std;
 
    complex<double> f(sin(thet)*sin(nucl_spher_pos[1])*cos(phi-nucl_spher_pos[2])+cos(thet)*cos(nucl_spher_pos[1]));
-   complex<double> dfdt(cos(thet)*sin(nucl_spher_pos[1])*cos(phi-nucl_spher_pos[2])-sin(thet)*cos(nucl_spher_pos[1]));
-   complex<double> dfdf(-sin(thet)*sin(nucl_spher_pos[1])*sin(phi-nucl_spher_pos[2])+cos(thet)*cos(nucl_spher_pos[1]));
+   complex<double> dfdf(-sin(thet)*sin(nucl_spher_pos[1])*sin(phi-nucl_spher_pos[2]));
+   complex<double> dfdf2(-sin(nucl_spher_pos[1])*sin(phi-nucl_spher_pos[2]));
    complex<double> phase_factor(exp(-std::complex<double>(0,1)*k*nucl_spher_pos[0]*f));
+   complex<double> k_part_s(0);
+   complex<double> k_part_p(0);
+   complex<double> k_part_d(0);
+   complex<double> k_part_f(0);
+   double temp(0);
    if(basis_func_type=="1s")
    {
-      return 0.017911224007836134*std::complex<double>(0,-1)*phase_factor*exp(-k*k/(4*contraction_zeta))*k*nucl_spher_pos[0]*dfdf;
+      k_part_s=(exp(-k*k/(4*contraction_zeta))/(2*pow(contraction_zeta,1.5)));
+   }
+   else if(basis_func_type=="2px" || basis_func_type=="2py" || basis_func_type=="2pz")
+   {
+      k_part_p=std::complex<double>(0,1)*sqrt(2.)*(1-(1./3.)*(1+pow(k,2)/(2*contraction_zeta))*gsl_sf_hyperg_1F1(1,2.5,-k*k/(4*contraction_zeta)))/(4.*sqrt(acos(-1))*pow(contraction_zeta,2));
+   }
+   else if(basis_func_type=="3d2-" || basis_func_type=="3d1-" || basis_func_type=="3d0" || basis_func_type=="3d1+" || basis_func_type=="3d2+")
+   {
+      k_part_d=-sqrt(2.)*(k*exp(-pow(k,2)/(4.*contraction_zeta))*gsl_sf_hyperg_1F1(1,3.5,k*k/(4*contraction_zeta)))/(40.*pow(contraction_zeta,2.5));
+   }
+   else if(basis_func_type=="3f3-" || basis_func_type=="3f2-" || basis_func_type=="3f1-" || basis_func_type=="3f0" || basis_func_type=="3f1+" || basis_func_type=="3f2+" || basis_func_type=="3f3+")
+   {
+      k_part_f=std::complex<double>(0,-1)*sqrt(2.)*(pow(k,2)/(24.*pow(contraction_zeta,3))+1/(4.*pow(contraction_zeta,2))-(pow(k,4)/(240.*pow(contraction_zeta,4))+pow(k,2)/(20.*pow(contraction_zeta,3))+(1/4.*pow(contraction_zeta,2)))*gsl_sf_hyperg_1F1(1,3.5,-k*k/(4*contraction_zeta)))/(sqrt(acos(-1)));
+   }
+   if(basis_func_type=="1s")
+   {
+      return std::complex<double>(0,-1)*nucl_spher_pos[0]*dfdf2*0.5*(1/sqrt(acos(-1)))*phase_factor*k_part_s;
    }
    else if(basis_func_type=="2px")
    {
-      return 0.55132889542179209*phase_factor*(-sqrt(contraction_zeta)*k+(2*contraction_zeta+k*k)*gsl_sf_dawson(k/(2*sqrt(contraction_zeta))))*sin(thet)*(std::complex<double>(0,-1)*sin(phi)+k*nucl_spher_pos[0]*cos(phi)*dfdf)/(k*k);
+      return (std::complex<double>(0,-1)*k*nucl_spher_pos[0]*dfdf*(sqrt(3./(4.*acos(-1)))*cos(phi))-sqrt(3./(4.*acos(-1)))*sin(phi))*phase_factor*k_part_p;
    }
    else if(basis_func_type=="2py")
    {
-      return 0.55132889542179209*phase_factor*(-sqrt(contraction_zeta)*k+(2*contraction_zeta+k*k)*gsl_sf_dawson(k/(2*sqrt(contraction_zeta))))*sin(thet)*(std::complex<double>(0,1)*cos(phi)+k*nucl_spher_pos[0]*sin(phi)*dfdf)/(k*k);
+      return (std::complex<double>(0,-1)*k*nucl_spher_pos[0]*dfdf*(sqrt(3./(4.*acos(-1)))*sin(phi))+sqrt(3./(4.*acos(-1)))*cos(phi))*phase_factor*k_part_p;
    }
    else if(basis_func_type=="2pz")
    {
-      return 0.55132889542179209*phase_factor*(-sqrt(contraction_zeta)*k+(2*contraction_zeta+k*k)*gsl_sf_dawson(k/(2*sqrt(contraction_zeta))))*cos(thet)*dfdf/(k*k);
+      return std::complex<double>(0,-1)*nucl_spher_pos[0]*dfdf2*sqrt(3./(4.*acos(-1)))*cos(thet)*phase_factor*k_part_p;
    }
    else if(basis_func_type=="3d2-")
    {
-      return 0.034684936146269905*phase_factor*exp(-k*k/(4*contraction_zeta))*(6*contraction_zeta*k+k*k*k-6*pow(contraction_zeta,1.5)*exp(k*k/(4*contraction_zeta))*sqrt(acos(-1))*erf(k/(2*sqrt(contraction_zeta))))*sin(thet)*sin(thet)*(2*cos(2*phi)-std::complex<double>(0,1)*k*nucl_spher_pos[0]*sin(2*phi)*dfdf)/pow(k,3);
+      return (std::complex<double>(0,-1)*k*nucl_spher_pos[0]*dfdf*(0.25*sqrt(15./acos(-1))*sin(thet)*sin(2.*phi))+0.5*sqrt(15./acos(-1))*sin(thet)*cos(2.*phi))*phase_factor*k_part_d;
    }
    else if(basis_func_type=="3d1-")
    {
-      return 0.069369872292539811*phase_factor*exp(-k*k/(4*contraction_zeta))*(6*contraction_zeta*k+k*k*k-6*pow(contraction_zeta,1.5)*exp(k*k/(4*contraction_zeta))*sqrt(acos(-1))*erf(k/(2*sqrt(contraction_zeta))))*sin(thet)*cos(thet)*(cos(phi)-std::complex<double>(0,1)*k*nucl_spher_pos[0]*sin(phi)*dfdf)/pow(k,3);
+      return (std::complex<double>(0,-1)*k*nucl_spher_pos[0]*dfdf*(0.5*sqrt(15./acos(-1))*cos(thet)*sin(phi))+0.5*sqrt(15./acos(-1))*cos(thet)*cos(phi))*phase_factor*k_part_d;
    }
    else if(basis_func_type=="3d0")
    {
-      return 0.010012678610436957*std::complex<double>(0,1)*nucl_spher_pos[0]*phase_factor*exp(-k*k/(4*contraction_zeta))*(6*contraction_zeta*k+k*k*k-6*pow(contraction_zeta,1.5)*exp(k*k/(4*contraction_zeta))*sqrt(acos(-1))*erf(k/(2*sqrt(contraction_zeta))))*(6*sin(2*thet)-std::complex<double>(0,1)*k*nucl_spher_pos[0]*(1+3*cos(2*thet))*dfdf)/pow(k,3);
+      return std::complex<double>(0,-1)*k*nucl_spher_pos[0]*dfdf2*(0.25*sqrt(5./acos(-1))*(2*pow(cos(thet),2)-pow(sin(thet),2))*phase_factor*k_part_d);
    }
    else if(basis_func_type=="3d1+")
    {
-      return 0.069369872292539811*phase_factor*exp(-k*k/(4*contraction_zeta))*(6*contraction_zeta*k+k*k*k-6*pow(contraction_zeta,1.5)*exp(k*k/(4*contraction_zeta))*sqrt(acos(-1))*erf(k/(2*sqrt(contraction_zeta))))*sin(thet)*cos(thet)*(sin(phi)+std::complex<double>(0,1)*k*nucl_spher_pos[0]*cos(phi)*dfdf)/pow(k,3);
+      return (std::complex<double>(0,-1)*k*nucl_spher_pos[0]*dfdf*(0.25*sqrt(15./acos(-1))*sin(2.*thet)*cos(phi))-0.5*sqrt(15./acos(-1))*cos(thet)*sin(phi))*phase_factor*k_part_d;
    }
    else if(basis_func_type=="3d2+")
    {
-      return 0.034684936146269905*phase_factor*exp(-k*k/(4*contraction_zeta))*(6*contraction_zeta*k+k*k*k-6*pow(contraction_zeta,1.5)*exp(k*k/(4*contraction_zeta))*sqrt(acos(-1))*erf(k/(2*sqrt(contraction_zeta))))*sin(thet)*sin(thet)*(2*sin(2*phi)-std::complex<double>(0,1)*k*nucl_spher_pos[0]*cos(2*phi)*dfdf)/pow(k,3);
+      return (std::complex<double>(0,-1)*k*nucl_spher_pos[0]*dfdf*(0.25*sqrt(15./acos(-1))*cos(2*phi)*sin(thet))-0.5*sqrt(15./acos(-1))*sin(thet)*sin(2.*phi))*phase_factor*k_part_d;
    }
    else if(basis_func_type=="4f3-")
    {
-      return 0.042273611654255666*phase_factor*(-sqrt(contraction_zeta)*k*(30*contraction_zeta+k*k)+(60*contraction_zeta*contraction_zeta+12*contraction_zeta*k*k+k*k*k*k)*gsl_sf_dawson(k/(2*sqrt(contraction_zeta))))*(1+2*cos(2*phi))*sin(thet)*sin(thet)*sin(thet)*(3.0*std::complex<double>(0,1)*cos(3*phi)+k*nucl_spher_pos[0]*sin(3*phi)*dfdf)/pow(k,5);
+      return (std::complex<double>(0,-1)*k*nucl_spher_pos[0]*dfdf*(0.25*sqrt(35/(2*acos(-1)))*(3*pow(sin(thet),2)*pow(cos(phi),2)-pow(sin(thet),2)*pow(sin(phi),2))*sin(phi))+0.75*sqrt(35/(2*acos(-1)))*pow(sin(thet),2)*(pow(cos(phi),3)-3*pow(sin(phi),2)*cos(phi)))*phase_factor*k_part_f;
    }
    else if(basis_func_type=="4f2-")
    {
-      return 0.05177438906874933*phase_factor*(-sqrt(contraction_zeta)*k*(30*contraction_zeta+k*k)+(60*contraction_zeta*contraction_zeta+12*contraction_zeta*k*k+k*k*k*k)*gsl_sf_dawson(k/(2*sqrt(contraction_zeta))))*cos(thet)*sin(thet)*sin(thet)*(2.0*std::complex<double>(0,1)*cos(2*phi)+k*nucl_spher_pos[0]*sin(2*phi)*dfdf)/pow(k,5);
+      return (std::complex<double>(0,-1)*k*nucl_spher_pos[0]*dfdf*(0.25*sqrt(105./acos(-1))*sin(thet)*cos(thet)*sin(2.*phi))+0.5*sqrt(105./acos(-1))*sin(thet)*cos(thet)*cos(2.*phi))*phase_factor*k_part_f;
    }
    else if(basis_func_type=="4f1-")
    {
-      return 0.0081862496960485968*phase_factor*(-sqrt(contraction_zeta)*k*(30*contraction_zeta+k*k)+(60*contraction_zeta*contraction_zeta+12*contraction_zeta*k*k+k*k*k*k)*gsl_sf_dawson(k/(2*sqrt(contraction_zeta))))*sin(thet)*(3+5*cos(2*thet))*(std::complex<double>(0,1)*cos(phi)+k*nucl_spher_pos[0]*sin(phi)*dfdf)/pow(k,5);
+      return (std::complex<double>(0,-1)*k*nucl_spher_pos[0]*dfdf*(0.25*sqrt(21./(2*acos(-1)))*sin(phi)*(4*pow(cos(thet),2)-pow(sin(thet),2)))+0.25*sqrt(21./(2*acos(-1)))*cos(phi)*(4*pow(cos(thet),2)-pow(sin(thet),2)))*phase_factor*k_part_f;
    }
    else if(basis_func_type=="4f0")
    {
-      return 0.006684044887444316*phase_factor*(-sqrt(contraction_zeta)*k*(30*contraction_zeta+k*k)+(60*contraction_zeta*contraction_zeta+12*contraction_zeta*k*k+k*k*k*k)*gsl_sf_dawson(k/(2*sqrt(contraction_zeta))))*(-1+5*cos(2*thet))*k*nucl_spher_pos[0]*cos(thet)*dfdf/pow(k,5);
+      return std::complex<double>(0,-1)*k*nucl_spher_pos[0]*dfdf2*(0.25*sqrt(7./acos(-1))*cos(thet)*(2*pow(cos(thet),2)-3*pow(sin(thet),2)))*phase_factor*k_part_f;
    }
    else if(basis_func_type=="4f1+")
    {
-      return 0.0081862496960485968*phase_factor*(-sqrt(contraction_zeta)*k*(30*contraction_zeta+k*k)+(60*contraction_zeta*contraction_zeta+12*contraction_zeta*k*k+k*k*k*k)*gsl_sf_dawson(k/(2*sqrt(contraction_zeta))))*sin(thet)*(3+5*cos(2*thet))*(std::complex<double>(0,-1)*sin(phi)+k*nucl_spher_pos[0]*cos(phi)*dfdf)/pow(k,5);
+      return (std::complex<double>(0,-1)*k*nucl_spher_pos[0]*dfdf*(0.25*sqrt(21./(2*acos(-1)))*cos(phi)*(4*pow(cos(thet),2)-pow(sin(thet),2)))-0.25*sqrt(21./(2*acos(-1)))*sin(phi)*(4*pow(cos(thet),2)-pow(sin(thet),2)))*phase_factor*k_part_f;
    }
    else if(basis_func_type=="4f2+")
    {
-      return 0.05177438906874933*phase_factor*(-sqrt(contraction_zeta)*k*(30*contraction_zeta+k*k)+(60*contraction_zeta*contraction_zeta+12*contraction_zeta*k*k+k*k*k*k)*gsl_sf_dawson(k/(2*sqrt(contraction_zeta))))*cos(thet)*sin(thet)*sin(thet)*(2.0*std::complex<double>(0,-1)*sin(2*phi)+k*nucl_spher_pos[0]*cos(2*phi)*dfdf)/pow(k,5);
+      return (std::complex<double>(0,-1)*k*nucl_spher_pos[0]*dfdf*(0.5*sqrt(105./acos(-1))*sin(thet)*cos(thet)*cos(2*phi))-sqrt(105./acos(-1))*sin(thet)*cos(thet)*sin(2.*phi))*phase_factor*k_part_f;
    }
    else if(basis_func_type=="4f3+")
    {
-      return 0.042273611654255666*phase_factor*(-sqrt(contraction_zeta)*k*(30*contraction_zeta+k*k)+(60*contraction_zeta*contraction_zeta+12*contraction_zeta*k*k+k*k*k*k)*gsl_sf_dawson(k/(2*sqrt(contraction_zeta))))*sin(thet)*sin(thet)*sin(thet)*(3.0*std::complex<double>(0,-1)*sin(3*phi)+k*nucl_spher_pos[0]*cos(3*phi)*dfdf)/pow(k,5);
+      return (std::complex<double>(0,-1)*k*nucl_spher_pos[0]*dfdf*(0.25*sqrt(35/(2*acos(-1)))*(pow(sin(thet),2)*pow(cos(phi),2)-3.*pow(sin(thet),2)*pow(sin(phi),2))*cos(phi))+0.75*sqrt(35/(2*acos(-1)))*(pow(sin(phi),3)-3*sin(phi)*pow(cos(phi),2))*pow(sin(thet),2))*phase_factor*k_part_f;
    }
    else
    {

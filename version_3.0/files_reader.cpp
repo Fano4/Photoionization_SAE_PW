@@ -206,6 +206,8 @@ void dipole_MO(double **matrix,int* n_occ,int* basis_size,int* basis_size_sym,st
    int position(0);
    int total1(0);
    int total2(0);
+   int total3(0);
+   int total4(0);
    double *temp;
    double *temp2;
    double floating;
@@ -508,6 +510,36 @@ void dipole_MO(double **matrix,int* n_occ,int* basis_size,int* basis_size_sym,st
        temp2[i]=0;
     }
 
+    for(int k=0;k!=n_sym;k++)
+    {
+       total1=0;
+       total3=0;
+       for(int i=0;i!=k;i++)
+       {
+          total1+=n_occ[i];
+          total3+=basis_size_sym[i];
+       }
+       for(int kp=0;kp!=n_sym;kp++)
+       {
+          total2=0;
+          total4=0;
+          for(int i=0;i!=kp;i++)
+          {
+             total2+=n_occ[i];
+             total4+=basis_size_sym[i];
+          }
+          for(int i=0;i!=n_occ[k];i++)
+          {
+             for(int j=0;j!=n_occ[kp];j++)
+             {
+                matrix[0][(i+total1)*n_occ_tot+j+total2]=aodipole_x[(i+total3)**basis_size+j+total4];
+                matrix[1][(i+total1)*n_occ_tot+j+total2]=aodipole_y[(i+total3)**basis_size+j+total4];
+                matrix[2][(i+total1)*n_occ_tot+j+total2]=aodipole_z[(i+total3)**basis_size+j+total4];
+             }
+          }
+       }
+    }
+
  /*   for(int i=0;i!=n_occ_tot;i++)
     {
        total1=0;
@@ -520,7 +552,29 @@ void dipole_MO(double **matrix,int* n_occ,int* basis_size,int* basis_size_sym,st
        }std::cout<<std::endl;
 
     }*/
-    std::cout<<"X dipole "<<n_occ_tot<<std::endl;
+
+
+
+
+/*    for(int i=0;i!=n_occ_tot;i++)
+    {
+       for(int j=0;j!=n_occ_tot;j++)
+       {
+          matrix[0][i*n_occ_tot+j]=0;
+          matrix[1][i*n_occ_tot+j]=0;
+          matrix[2][i*n_occ_tot+j]=0;
+          for(int r=0;r!=*basis_size;r++)
+          {
+             for(int s=0;s!=*basis_size;s++)
+             {
+                matrix[0][i*n_occ_tot+j]+=MO_coeff_neutral[i**basis_size+r]*MO_coeff_neutral[j**basis_size+s]*aodipole_x[r**basis_size+s];
+                matrix[1][i*n_occ_tot+j]+=MO_coeff_neutral[i**basis_size+r]*MO_coeff_neutral[j**basis_size+s]*aodipole_y[r**basis_size+s];
+                matrix[2][i*n_occ_tot+j]+=MO_coeff_neutral[i**basis_size+r]*MO_coeff_neutral[j**basis_size+s]*aodipole_z[r**basis_size+s];
+             }
+          }
+       }
+    }*/
+/*    std::cout<<"X dipole "<<n_occ_tot<<std::endl;
     transpose(MO_coeff_neutral, temp2, n_occ_tot, *basis_size);
     matrix_product(temp, aodipole_x, temp2, *basis_size, *basis_size, n_occ_tot);
     matrix_product(matrix[0], MO_coeff_neutral, temp, n_occ_tot, *basis_size, n_occ_tot); 
@@ -529,8 +583,34 @@ void dipole_MO(double **matrix,int* n_occ,int* basis_size,int* basis_size_sym,st
     matrix_product(matrix[1], MO_coeff_neutral, temp, n_occ_tot, *basis_size, n_occ_tot); 
     std::cout<<"Z dipole"<<std::endl;
     matrix_product(temp, aodipole_z, temp2, *basis_size, *basis_size, n_occ_tot);
-    matrix_product(matrix[2], MO_coeff_neutral, temp, n_occ_tot, *basis_size, n_occ_tot); 
-/*    for(int i=0;i!=n_occ_tot;i++)
+    matrix_product(matrix[2], MO_coeff_neutral, temp, n_occ_tot, *basis_size, n_occ_tot);*/ 
+/*    for(int i=0;i!=*basis_size;i++)
+    {
+       total1=0;
+       for(int j=0;j!=*basis_size;j++)
+       {
+          std::cout<<setprecision(10)<<setw(15)<<aodipole_z[i**basis_size+j];
+          total1++;
+          if(total1%7==0)
+             std::cout<<std::endl;
+       }std::cout<<std::endl<<std::endl;
+
+    }
+    std::cout<<"#################################"<<std::endl;
+    for(int i=0;i!=*basis_size;i++)
+    {
+       total1=0;
+       for(int j=0;j!=n_occ_tot;j++)
+       {
+          std::cout<<setprecision(10)<<setw(15)<<temp2[i*n_occ_tot+j];
+          total1++;
+          if(total1%7==0)
+             std::cout<<std::endl;
+       }std::cout<<std::endl<<std::endl;
+
+    }
+  *//*  std::cout<<"#################################"<<std::endl;
+    for(int i=0;i!=n_occ_tot;i++)
     {
        total1=0;
        for(int j=0;j!=n_occ_tot;j++)
@@ -539,11 +619,12 @@ void dipole_MO(double **matrix,int* n_occ,int* basis_size,int* basis_size_sym,st
           total1++;
           if(total1%7==0)
              std::cout<<std::endl;
-       }std::cout<<std::endl;
+       }std::cout<<std::endl<<std::endl;
 
     }
     exit(EXIT_SUCCESS);
-*/
+    */
+
 }
 int overlap_MO(double matrix[],int* n_occ,int* basis_size,int* basis_size_sym,std::string molpro_out_path,double* MO_coeff_neutral,int n_sym=1)
 {
@@ -727,8 +808,8 @@ int overlap_MO(double matrix[],int* n_occ,int* basis_size,int* basis_size_sym,st
     
         molpro_file.close();
    
-/*
-    
+
+   /* 
         std::cout<<"#####################MO COeff NEUTRAL#####################"<<std::endl;
      for (int j=0; j!=n_occ_tot; j++)
      {
@@ -752,7 +833,9 @@ int overlap_MO(double matrix[],int* n_occ,int* basis_size,int* basis_size_sym,st
      }cout<<endl;
         std::cout<<"#########################################################"<<std::endl;
      //DEBOGAGE
-*/
+
+        exit(EXIT_SUCCESS);
+        */
     temp=new double[*basis_size*n_occ_tot];
     temp2=new double[*basis_size*n_occ_tot];
     for(int i=0;i!=*basis_size*n_occ_tot;i++)
@@ -777,11 +860,25 @@ int overlap_MO(double matrix[],int* n_occ,int* basis_size,int* basis_size_sym,st
     matrix_product(matrix2, MO_coeff_cation, temp, n_occ_tot, *basis_size, n_occ_tot);
     
     transpose(matrix2, matrix, n_occ_tot, n_occ_tot);
-
-
+/*
+    for(int i=0;i!=n_occ_tot;i++)
+    {
+       for(int j=0;j!=n_occ_tot;j++)
+       {
+          matrix2[i*n_occ_tot+j]=0;
+          for(int r=0;r!=*basis_size;r++)
+          {
+             for(int s=0;s!=*basis_size;s++)
+             {
+                matrix[i*n_occ_tot+j]+=MO_coeff_cation[i**basis_size+r]*MO_coeff_neutral[j**basis_size+s]*overlap[r**basis_size+s];
+             }
+          }
+       }
+    }
+*/
     
-    
-   /* double norm=0;
+/*    
+    double norm=0;
     for (int i=0; i!=*basis_size; i++)
     {
         for (int j=0; j!=*basis_size; j++)
@@ -790,8 +887,8 @@ int overlap_MO(double matrix[],int* n_occ,int* basis_size,int* basis_size_sym,st
         }
     }
     norm=sqrt(norm);
-    cout<<"Norm of the MO is "<<norm<<endl<<endl;*///DEBOGAGE
-
+    cout<<"Norm of the MO is "<<norm<<endl<<endl;//DEBOGAGE
+*/
     delete [] overlap;
     delete [] matrix2;
     delete [] MO_coeff_neutral;
@@ -1520,6 +1617,7 @@ bool basis_data_reader(int n_sym, int* basis_size_sym,int** contraction_number,d
    stringstream sstream;
    string teststring;
    int basis_size(0);
+   double temp_norm(0);
    bool test(0);
    int l(0);
    for(int i=0;i!=n_sym;i++)
@@ -1575,6 +1673,37 @@ bool basis_data_reader(int n_sym, int* basis_size_sym,int** contraction_number,d
          }
       }
       input.close();
+   }
+   for(int s=0;s!=n_sym;s++)
+   {
+      for(int i=0;i!=basis_size_sym[s];i++)
+      {
+         temp_norm=0;
+         for(l=0;l!=contraction_number[s][i];l++)
+         {
+          //  std::cout<<contraction_coeff[s][i][l]<<"!!!"<<l<<"$$$"<<i<<"###"<<s<<std::endl;
+            for(int lp=0;lp!=contraction_number[s][i];lp++)
+            {
+               temp_norm+=contraction_coeff[s][i][l]*contraction_coeff[s][i][lp]*pow(acos(-1)/contraction_zeta[s][i][l]+contraction_zeta[s][i][lp],1.5);
+            }
+         }
+        //    std::cout<<"norm of basis function "<<i<<" symmetry "<<s<<":"<<temp_norm<<std::endl;
+         for(l=0;l!=contraction_number[s][i];l++)
+         {
+            contraction_coeff[s][i][l]/=sqrt(temp_norm);
+            //std::cout<<"==>"<<contraction_coeff[s][i][l]<<"!!!"<<l<<"$$$"<<i<<"###"<<s<<std::endl;
+         }
+         /*temp_norm=0;
+         for(l=0;l!=contraction_number[s][i];l++)
+         {
+            for(int lp=0;lp!=contraction_number[s][i];lp++)
+            {
+               temp_norm+=sqrt(acos(-1))*contraction_coeff[s][i][l]*contraction_coeff[s][i][lp]/sqrt(contraction_zeta[s][i][l]+contraction_zeta[s][i][lp]);
+            }
+         }
+            std::cout<<"norm of basis function "<<i<<" symmetry "<<s<<":"<<temp_norm<<std::endl;
+            */
+      }
    }
       return 0;
 
