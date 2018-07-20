@@ -18,11 +18,14 @@
 #include "dyson_cube_writer.hpp"
 #include "algebra.hpp"
 #include "Computation.hpp"
+#include "hf5_photoion.hpp"
 
 #include "files_reader.cpp"
 #include "dyson_cube_writer.cpp"
 #include "algebra.cpp"
 #include "Computation.cpp"
+#include "hf5_photoion.cpp"
 
+int spherical_harmonics_translator(std::string basis_func_type,bool component);
 
 #endif

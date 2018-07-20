@@ -73,6 +73,8 @@ int photoion_comp(int argc, char* argv[])
     int index2(0);
     int temp_int(0);
 
+
+
 //*****************************GET DATA FOR COMPUTING DYSON ORBITALS FROM MOLPRO OUTPUT FILE*****************************
         //GET THE NUMBER OF ELECTRONIC STATES AND THE SIZE OF THE ACTIVE SPACE
    if(symmetry)
@@ -145,16 +147,16 @@ int photoion_comp(int argc, char* argv[])
     std::cout<<"CI_VEC_READER ROUTINE ENDED WITHOUT ISSUE"<<std::endl;
 
 
-    MO_coeff_neutral=new double[n_occ*basis_size];
+    MO_coeff_neutral=new double[(n_occ+n_closed)*basis_size];
     overlap=new double[n_occ*n_occ];
     mo_dipole=new double *[3];
     mo_dipole_spher=new double *[3];
-    mo_dipole[0]=new double[n_occ*n_occ];
-    mo_dipole[1]=new double[n_occ*n_occ];
-    mo_dipole[2]=new double[n_occ*n_occ];
-    mo_dipole_spher[0]=new double[n_occ*n_occ];
-    mo_dipole_spher[1]=new double[n_occ*n_occ];
-    mo_dipole_spher[2]=new double[n_occ*n_occ];
+    mo_dipole[0]=new double[(n_occ+n_closed)*(n_occ+n_closed)];
+    mo_dipole[1]=new double[(n_occ+n_closed)*(n_occ+n_closed)];
+    mo_dipole[2]=new double[(n_occ+n_closed)*(n_occ+n_closed)];
+    mo_dipole_spher[0]=new double[(n_occ+n_closed)*(n_occ+n_closed)];
+    mo_dipole_spher[1]=new double[(n_occ+n_closed)*(n_occ+n_closed)];
+    mo_dipole_spher[2]=new double[(n_occ+n_closed)*(n_occ+n_closed)];
 //*****************************COMPUTE DYSON ORBITALS*****************************
     //COMPUTE THE OVERLAP MATRIX BETWEEN THE MO OF THE NEUTRAL AND THE MO OF THE CATION FROM THE AO OVERLAP MATRIX
     if(symmetry)
@@ -240,11 +242,16 @@ int photoion_comp(int argc, char* argv[])
     basis_data_reader(n_sym,basis_size_sym,contraction_number_sym,contraction_coeff_sym,contraction_zeta_sym,nucl_basis_func_sym,basis_func_type_sym,molpro_output_path);
     total=0;
     int total2(0);
+    int max_contraction_num(0);
     for(int s=0;s!=n_sym;s++)
     {
        for(int t=0;t!=basis_size_sym[s];t++)
        {
           contraction_number[total]=contraction_number_sym[s][t];
+
+          if(contraction_number[total] > max_contraction_num)
+             max_contraction_num=contraction_number[total];
+
           basis_func_type[total]=basis_func_type_sym[s][t];
           nucl_basis_func[total]=nucl_basis_func_sym[s][t];
           for(int k=0;k!=contraction_number_sym[s][t];k++)
@@ -254,6 +261,27 @@ int photoion_comp(int argc, char* argv[])
           }
 //          std::cout<<basis_func_type[total]<<" !!"<<std::endl;
           total++;
+       }
+    }
+    double **contraction_coeff_array=new double *[basis_size];
+    double **contraction_zeta_array=new double *[basis_size];
+    for(int i=0;i!=basis_size;i++)
+    {
+       contraction_coeff_array[i]=new double[max_contraction_num];
+       contraction_zeta_array[i]=new double[max_contraction_num];
+
+       for(int j=0;j!=max_contraction_num;j++)
+       {
+          if(j<contraction_number[i])
+          {
+            contraction_coeff_array[i][j]=contraction_coeff[i][j];
+            contraction_zeta_array[i][j]=contraction_zeta[i][j];
+          }
+          else
+          {
+            contraction_coeff_array[i][j]=NAN;
+            contraction_zeta_array[i][j]=NAN;
+          }
        }
     }
 //    exit(EXIT_SUCCESS);
@@ -281,6 +309,18 @@ int photoion_comp(int argc, char* argv[])
        }
     }
 
+    /*
+     TESTING HF5 DIALOG
+     */
+      double nucl_coord(1.6125/0.529);
+      int grid_size(1);
+      int nucl_dim(1);
+      write_output("test.h5", &n_states_neut, &n_states_cat, &n_occ, &n_closed,1,&grid_size,&nucl_coord,2,nucl_spher_pos,mo_dipole,&basis_size,MO_coeff_neutral,dyson_mo_basis_coeff,contraction_number,contraction_coeff,contraction_zeta,nucl_basis_func,basis_func_type);
+      read_output("test.h5", &n_states_neut, &n_states_cat, &n_occ, &n_closed,&nucl_dim,&grid_size,&nucl_coord,&num_of_nucl,nucl_spher_pos,mo_dipole,&basis_size,MO_coeff_neutral,dyson_mo_basis_coeff,contraction_number,contraction_coeff,contraction_zeta,nucl_basis_func,basis_func_type);
+      exit(EXIT_SUCCESS);
+    /*
+     TESTING HF5 DIALOG
+     */
 
     double kp(0);
     int state_neut(1);
@@ -437,5 +477,3 @@ int photoion_comp(int argc, char* argv[])
       return 0;
     }
 
-    //BUILD THE CUBE OF THE DYSON ORBITALS
-    //
