@@ -1,41 +1,51 @@
 #include "hf5_photoion.hpp"
 
-bool write_output(std::string h5filename,int* n_states_neut,int* n_states_cat,int *n_occ,int *n_closed,int n_nucl_dim,int *grid_size,double *nucl_coord,int num_of_nucl,double **nucl_spher_pos,double **mo_dipoles_mat,int* basis_size,double *MO_coeff_neutral,double *dyson_mo_coeff,int *contraction_number,double **contraction_coeff,double **contraction_zeta,int* nucleus_basis_func,std::string *basis_func_type)
+bool write_output(std::string h5filename,int* n_states_neut,int* n_states_cat,int *n_occ,int *n_closed,int *n_nucl_dim,int *grid_size,int *num_of_nucl,int* basis_size,int *contraction_number,double *nucl_coord,double ***nucl_spher_pos,double ***mo_dipoles_mat,double **MO_coeff_neutral,double **dyson_mo_coeff,double **contraction_coeff,double **contraction_zeta,int* nucleus_basis_func,std::string *basis_func_type)
 {
    using namespace H5;
-      double nucl_cart_coord[*grid_size][num_of_nucl][3];
+      double nucl_cart_coord[*grid_size][*num_of_nucl][3];
       double mo_dipole_array[*grid_size][3][*n_occ+*n_closed][*n_occ+*n_closed];
       double lcao_mo_coeff[*grid_size][*n_occ+*n_closed][*basis_size];
       double dyson_mo_coeff_array[*grid_size][*n_states_neut][*n_states_cat][*n_occ+*n_closed];
       int basis_func_type_array[*basis_size][2];
-      nucl_cart_coord[0][0][0]=nucl_spher_pos[0][0]*sin(nucl_spher_pos[0][1])*cos(nucl_spher_pos[0][2]);
-      nucl_cart_coord[0][0][1]=nucl_spher_pos[0][0]*sin(nucl_spher_pos[0][1])*sin(nucl_spher_pos[0][2]);
-      nucl_cart_coord[0][0][2]=nucl_spher_pos[0][0]*cos(nucl_spher_pos[0][1]);
-      nucl_cart_coord[0][1][0]=nucl_spher_pos[1][0]*sin(nucl_spher_pos[1][1])*cos(nucl_spher_pos[1][2]);
-      nucl_cart_coord[0][1][1]=nucl_spher_pos[1][0]*sin(nucl_spher_pos[1][1])*sin(nucl_spher_pos[1][2]);
-      nucl_cart_coord[0][1][2]=nucl_spher_pos[1][0]*cos(nucl_spher_pos[1][1]);
+      for(int i=0;i!=*grid_size;i++)
+      {
+         for(int j=0;j!=*num_of_nucl;j++)
+         {
+            nucl_cart_coord[i][j][0]=nucl_spher_pos[i][j][0]*sin(nucl_spher_pos[i][j][1])*cos(nucl_spher_pos[i][j][2]);
+            nucl_cart_coord[i][j][1]=nucl_spher_pos[i][j][0]*sin(nucl_spher_pos[i][j][1])*sin(nucl_spher_pos[i][j][2]);
+            nucl_cart_coord[i][j][2]=nucl_spher_pos[i][j][0]*cos(nucl_spher_pos[i][j][1]);
+         }
+      }
+     // std::cout<<*basis_size<<"  PROBE!!!!"<<std::endl;
       for(int j=0;j!=*basis_size;j++)
       {
          basis_func_type_array[j][0]=spherical_harmonics_translator(basis_func_type[j],0);
          basis_func_type_array[j][1]=spherical_harmonics_translator(basis_func_type[j],1);
+      //   std::cout<<basis_func_type[j].c_str()<<" => "<<basis_func_type_array[j][0]<<" , "<<basis_func_type_array[j][1]<<std::endl;
       }
-      for(int i=0;i!=*n_occ+*n_closed;i++)
+      for(int kp=0;kp!=*grid_size;kp++)
       {
-         for(int j=0;j!=*n_occ+*n_closed;j++)
+         for(int i=0;i!=*n_occ+*n_closed;i++)
          {
-            mo_dipole_array[0][0][i][j]=mo_dipoles_mat[0][i*(*n_occ+*n_closed)+j];
-            mo_dipole_array[0][1][i][j]=mo_dipoles_mat[1][i*(*n_occ+*n_closed)+j];
-            mo_dipole_array[0][2][i][j]=mo_dipoles_mat[2][i*(*n_occ+*n_closed)+j];
-         }
-         for(int j=0;j!=*basis_size;j++)
-         {
-            lcao_mo_coeff[0][i][j]=MO_coeff_neutral[i**basis_size+j];
-         }
-         for(int j=0;j!=*n_states_neut;j++)
-         {
-            for(int k=0;k!=*n_states_cat;k++)
+            for(int j=0;j!=*n_occ+*n_closed;j++)
             {
-               dyson_mo_coeff_array[0][j][k][i]=dyson_mo_coeff[0**n_states_neut**n_states_cat*(*n_occ+*n_closed)+j**n_states_cat*(*n_occ+*n_closed)+k*(*n_occ+*n_closed)+i];
+               mo_dipole_array[kp][0][i][j]=mo_dipoles_mat[kp][0][i*(*n_occ+*n_closed)+j];
+               mo_dipole_array[kp][1][i][j]=mo_dipoles_mat[kp][1][i*(*n_occ+*n_closed)+j];
+               mo_dipole_array[kp][2][i][j]=mo_dipoles_mat[kp][2][i*(*n_occ+*n_closed)+j];
+            }
+            for(int j=0;j!=*basis_size;j++)
+            {
+               lcao_mo_coeff[kp][i][j]=MO_coeff_neutral[kp][i**basis_size+j];
+            //   std::cout<<"lcao mo coeff geom "<<kp<<" mo "<<i<<" basis func "<<j<<" , "<<lcao_mo_coeff[kp][i][j]<<std::endl;
+            }
+            for(int j=0;j!=*n_states_neut;j++)
+            {
+               for(int k=0;k!=*n_states_cat;k++)
+               {
+                  dyson_mo_coeff_array[kp][j][k][i]=dyson_mo_coeff[kp][j**n_states_cat*(*n_occ+*n_closed)+k*(*n_occ+*n_closed)+i];
+              //    std::cout<<"dyson mo coeff geom "<<kp<<" neut state "<<j<<" cat state "<<k<<" mo "<<i<<" , "<<dyson_mo_coeff_array[kp][j][k][i]<<std::endl;
+               }
             }
          }
       }
@@ -109,7 +119,7 @@ bool write_output(std::string h5filename,int* n_states_neut,int* n_states_cat,in
       dim1=1;
       dataspace = new DataSpace(1,&dim1);
       dataset = new DataSet(nuclear_coord.createDataSet("n_nucl_dim",PredType::NATIVE_INT, *dataspace));
-      dataset->write(&n_nucl_dim,PredType::NATIVE_INT);
+      dataset->write(n_nucl_dim,PredType::NATIVE_INT);
       
       delete dataspace;
       delete dataset;
@@ -134,17 +144,17 @@ bool write_output(std::string h5filename,int* n_states_neut,int* n_states_cat,in
       dim1=1;
       dataspace = new DataSpace(1,&dim1);
       dataset = new DataSet(nuclear_coord.createDataSet("num_of_nucl",PredType::NATIVE_INT, *dataspace));
-      dataset->write(&num_of_nucl,PredType::NATIVE_INT);
+      dataset->write(num_of_nucl,PredType::NATIVE_INT);
       
       delete dataspace;
       delete dataset;
    //create nucl_cartesian_coordinates in nuclear_coord group
       hsize_t dim3[3];
-      temp=num_of_nucl;
-      dim3[0]=temp;
-      dim3[1]=3;
       temp=*grid_size;
-      dim3[2]=temp;
+      dim3[0]=temp;
+      temp=*num_of_nucl;
+      dim3[1]=temp;
+      dim3[2]=3;
       dataspace = new DataSpace(3,dim3);
       dataset = new DataSet(nuclear_coord.createDataSet("nucl_cartesian_array",PredType::NATIVE_DOUBLE, *dataspace));
       dataset->write(nucl_cart_coord,PredType::NATIVE_DOUBLE);
@@ -201,11 +211,11 @@ bool write_output(std::string h5filename,int* n_states_neut,int* n_states_cat,in
       dim4[0]=*grid_size;
       dim4[1]=*n_states_neut;
       dim4[2]=*n_states_cat;
-      dim4[3]=*n_occ;
+      dim4[3]=(*n_occ+*n_closed);
 
       dataspace = new DataSpace(4,dim4);
       dataset = new DataSet(lcao_coeff.createDataSet("dyson_mo_coeff",PredType::NATIVE_DOUBLE, *dataspace));
-      dataset->write(dyson_mo_coeff,PredType::NATIVE_DOUBLE);
+      dataset->write(dyson_mo_coeff_array,PredType::NATIVE_DOUBLE);
       
       delete dataspace;
       delete dataset;
@@ -239,13 +249,23 @@ bool write_output(std::string h5filename,int* n_states_neut,int* n_states_cat,in
          if(contraction_number[i] > max_cont_num)
             max_cont_num=contraction_number[i];
       }
+      double contraction_coeff_array[*basis_size][max_cont_num];
+      double contraction_zeta_array[*basis_size][max_cont_num];
+      for(int i=0;i!=*basis_size;i++)
+      {
+         for(int j=0;j!=max_cont_num;j++)
+         {
+            contraction_coeff_array[i][j]=contraction_coeff[i][j];
+            contraction_zeta_array[i][j]=contraction_zeta[i][j];
+         }
+      }
       //create contraction_coeff_dataset
       hsize_t dim2[2];
       dim2[0]=*basis_size;
       dim2[1]=max_cont_num;
       dataspace = new DataSpace(2,dim2);
       dataset = new DataSet(basis_set_info.createDataSet("contraction_coeff",PredType::NATIVE_DOUBLE, *dataspace));
-      dataset->write(contraction_coeff,PredType::NATIVE_DOUBLE); 
+      dataset->write(contraction_coeff_array,PredType::NATIVE_DOUBLE); 
       delete dataspace;
       delete dataset;
       //create contraction_zeta_dataset
@@ -253,7 +273,7 @@ bool write_output(std::string h5filename,int* n_states_neut,int* n_states_cat,in
       dim2[1]=max_cont_num;
       dataspace = new DataSpace(2,dim2);
       dataset = new DataSet(basis_set_info.createDataSet("contraction_zeta",PredType::NATIVE_DOUBLE, *dataspace));
-      dataset->write(contraction_zeta,PredType::NATIVE_DOUBLE); 
+      dataset->write(contraction_zeta_array,PredType::NATIVE_DOUBLE); 
       delete dataspace;
       delete dataset;
       //create nucleus_basis_function
@@ -296,16 +316,18 @@ bool write_output(std::string h5filename,int* n_states_neut,int* n_states_cat,in
        return -1;
     }
 }
-bool read_output(std::string h5filename,int* n_states_neut,int* n_states_cat,int *n_occ,int *n_closed,int *n_nucl_dim,int *grid_size,double *nucl_coord,int *num_of_nucl,double **nucl_spher_pos,double **mo_dipoles_mat,int* basis_size,double *MO_coeff_neutral,double *dyson_mo_coeff,int *contraction_number,double **contraction_coeff,double **contraction_zeta,int* nucleus_basis_func,std::string *basis_func_type)
+bool read_output(std::string h5filename,int* n_states_neut,int* n_states_cat,int *n_occ,int *n_closed,int *n_nucl_dim,int *grid_size,int *num_of_nucl,int* basis_size,int *contraction_number,double *nucl_coord,double ***nucl_spher_pos,double ***mo_dipoles_mat,double **MO_coeff_neutral,double **dyson_mo_coeff,double **contraction_coeff,double **contraction_zeta,int* nucl_basis_func,std::string *basis_func_type)
 {
    using namespace H5;
    int tester(0);
+
    try
    {
       Exception::dontPrint();
 
       H5File file(h5filename,H5F_ACC_RDONLY);
 
+      std::cout<<std::endl<<"OPENED H5FILE"<<std::endl;
       DataSet *dataset=new DataSet(file.openDataSet("/electronic_struct_param/n_states_neut"));
       dataset->read(n_states_neut,PredType::NATIVE_INT);
       delete dataset;
@@ -321,6 +343,7 @@ bool read_output(std::string h5filename,int* n_states_neut,int* n_states_cat,int
       dataset=new DataSet(file.openDataSet("/electronic_struct_param/n_mo_closed"));
       dataset->read(n_closed,PredType::NATIVE_INT);
       delete dataset;
+      std::cout<<std::endl<<"ELECTRONIC STRUCT PARAMETERS READ IN HF5"<<std::endl;
 
       dataset=new DataSet(file.openDataSet("/nuclear_coord/n_nucl_dim"));
       dataset->read(n_nucl_dim,PredType::NATIVE_INT);
@@ -330,142 +353,225 @@ bool read_output(std::string h5filename,int* n_states_neut,int* n_states_cat,int
       dataset->read(grid_size,PredType::NATIVE_INT);
       delete dataset;
 
-      dataset=new DataSet(file.openDataSet("/nuclear_coord/nucl_coord_array"));
-      dataset->read(nucl_coord,PredType::NATIVE_DOUBLE);
-      delete dataset;
 
       dataset=new DataSet(file.openDataSet("/nuclear_coord/num_of_nucl"));
       dataset->read(num_of_nucl,PredType::NATIVE_INT);
       delete dataset;
+      std::cout<<std::endl<<"NUCLEAR COORD PARAMETERS READ IN HF5"<<std::endl;
 
-      double nucl_cart_coord[*grid_size][*num_of_nucl][3];
-      dataset=new DataSet(file.openDataSet("/nuclear_coord/nucl_cartesian_array"));
-      dataset->read(nucl_cart_coord,PredType::NATIVE_DOUBLE);
-      delete dataset;
-
-
-      double mo_dipole_array[*grid_size][3][*n_occ+*n_closed][*n_occ+*n_closed];
-      dataset=new DataSet(file.openDataSet("/mo_dipoles/mo_dipoles_mat"));
-      dataset->read(mo_dipole_array,PredType::NATIVE_DOUBLE);
-      delete dataset;
-
-      double lcao_mo_coeff[*grid_size][*n_occ+*n_closed][*basis_size];
-      dataset=new DataSet(file.openDataSet("/lcao_coeff/lcao_mo_coeff"));
-      dataset->read(lcao_mo_coeff,PredType::NATIVE_DOUBLE);
-      delete dataset;
-
-      double dyson_mo_coeff_array[*grid_size][*n_states_neut][*n_states_cat][*n_occ+*n_closed];
-      dataset=new DataSet(file.openDataSet("/lcao_coeff/dyson_mo_coeff"));
-      dataset->read(dyson_mo_coeff_array,PredType::NATIVE_DOUBLE);
-      delete dataset;
-
- //     std::cout<<*basis_size<<"!!!"<<std::endl;
       dataset=new DataSet(file.openDataSet("/basis_set_info/basis_size"));
       dataset->read(basis_size,PredType::NATIVE_INT);
       delete dataset;
- //     std::cout<<*basis_size<<"!!!"<<std::endl;
 
-      dataset=new DataSet(file.openDataSet("/basis_set_info/contraction_number"));
-      dataset->read(contraction_number,PredType::NATIVE_INT);
-      delete dataset;
+      std::cout<<std::endl<<"BASIS SET PARAMETERS READ IN HF5"<<std::endl;
 
-      int max_cont_num(0);
-      for(int i=0;i!=*basis_size;i++)
+      if(nucl_coord != NULL)
       {
-         if(contraction_number[i] > max_cont_num)
-            max_cont_num=contraction_number[i];
+          double nucl_coord_array[*grid_size];
+          dataset=new DataSet(file.openDataSet("/nuclear_coord/nucl_coord_array"));
+          dataset->read(nucl_coord_array,PredType::NATIVE_DOUBLE);
+          delete dataset;
+          for(int i=0;i!=*grid_size;i++)
+          {
+             nucl_coord[i]=nucl_coord_array[i];
+          }
       }
-
-      dataset=new DataSet(file.openDataSet("/basis_set_info/contraction_coeff"));
-      dataset->read(contraction_coeff,PredType::NATIVE_DOUBLE);
-      delete dataset;
-
-      dataset=new DataSet(file.openDataSet("/basis_set_info/contraction_zeta"));
-      dataset->read(contraction_zeta,PredType::NATIVE_DOUBLE);
-      delete dataset;
-
-      dataset=new DataSet(file.openDataSet("/basis_set_info/nucleus_basis_func"));
-      dataset->read(nucleus_basis_func,PredType::NATIVE_INT);
-      delete dataset;
-
-      int basis_func_type_array[*basis_size][2];
-      dataset=new DataSet(file.openDataSet("/basis_set_info/basis_func_type"));
-      dataset->read(basis_func_type_array,PredType::NATIVE_INT);
-      delete dataset;
-
-      for(int j=0;j!=*basis_size;j++)
+         int max_cont_num(0);
+      if(contraction_number != NULL)
       {
-         basis_func_type[j]=inverse_spherical_harmonics_translator(basis_func_type_array[j][0],basis_func_type_array[j][1]);
+         int contraction_number_array[*basis_size];
+         dataset=new DataSet(file.openDataSet("/basis_set_info/contraction_number"));
+         dataset->read(contraction_number_array,PredType::NATIVE_INT);
+         delete dataset;
+
+          for(int i=0;i!=*basis_size;i++)
+          {
+             contraction_number[i]=contraction_number_array[i];
+          }
+
+         for(int i=0;i!=*basis_size;i++)
+         {
+            if(contraction_number[i] > max_cont_num)
+                max_cont_num=contraction_number[i];
+         }
       }
-      for(int i=0;i!=*n_occ+*n_closed;i++)
+         const int cmax_cont_num(max_cont_num);
+      if(nucl_spher_pos != NULL)
       {
-         for(int j=0;j!=*n_occ+*n_closed;j++)
+         double nucl_cart_coord[*grid_size][*num_of_nucl][3];
+         dataset=new DataSet(file.openDataSet("/nuclear_coord/nucl_cartesian_array"));
+         dataset->read(nucl_cart_coord,PredType::NATIVE_DOUBLE);
+         delete dataset;
+         for(int x=0;x!=*grid_size;x++)
          {
-            mo_dipoles_mat[0][i*(*n_occ+*n_closed)+j]=mo_dipole_array[0][0][i][j];
-            mo_dipoles_mat[1][i*(*n_occ+*n_closed)+j]=mo_dipole_array[0][1][i][j];
-            mo_dipoles_mat[2][i*(*n_occ+*n_closed)+j]=mo_dipole_array[0][2][i][j];
-         }
-         for(int j=0;j!=*basis_size;j++)
-         {
-            MO_coeff_neutral[i**basis_size+j]=lcao_mo_coeff[0][i][j];
-         }
-         for(int j=0;j!=*n_states_neut;j++)
-         {
-            for(int k=0;k!=*n_states_cat;k++)
+            for(int i=0;i!=*num_of_nucl;i++)
             {
-               dyson_mo_coeff[0**n_states_neut**n_states_cat*(*n_occ+*n_closed)+j**n_states_cat*(*n_occ+*n_closed)+k*(*n_occ+*n_closed)+i]=dyson_mo_coeff_array[0][j][k][i];
+               nucl_spher_pos[x][i][0]=sqrt(pow(nucl_cart_coord[x][i][0],2)+pow(nucl_cart_coord[x][i][1],2)+pow(nucl_cart_coord[x][i][2],2));
+               if(nucl_spher_pos[x][i][0]==0)
+               {
+                  nucl_spher_pos[x][i][1]=0;
+                  nucl_spher_pos[x][i][2]=0;
+               }
+               else if(nucl_cart_coord[x][i][0]==0)
+               {
+                  nucl_spher_pos[x][i][1]=acos(nucl_cart_coord[x][i][2]/nucl_spher_pos[x][i][0]);
+                  if(nucl_cart_coord[x][i][1]==0)
+                  {
+                     nucl_spher_pos[x][i][2]=0;
+                  }
+                  else if (nucl_cart_coord[x][i][1]>0)
+                  {
+                     nucl_spher_pos[x][i][2]=acos(-1)/2;
+                  }
+                  else
+                  {
+                     nucl_spher_pos[x][i][2]=3*acos(-1)/2;
+                  }
+               }
+               else
+               {
+                  nucl_spher_pos[x][i][1]=acos(nucl_cart_coord[x][i][2]/nucl_spher_pos[x][i][0]);
+                  nucl_spher_pos[x][i][2]=atan(nucl_cart_coord[x][i][1]/nucl_cart_coord[x][i][0]);
+               }
             }
          }
       }
-      for(int i=0;i!=*num_of_nucl;i++)
+      if(mo_dipoles_mat !=NULL)
       {
-         nucl_spher_pos[i][0]=sqrt(pow(nucl_cart_coord[0][i][0],2)+pow(nucl_cart_coord[0][i][1],2)+pow(nucl_cart_coord[0][i][2],2));
-       if(nucl_spher_pos[i][0]==0)
-       {
-          nucl_spher_pos[i][1]=0;
-          nucl_spher_pos[i][2]=0;
-       }
-       else if(nucl_cart_coord[0][i][0]==0)
-       {
-          nucl_spher_pos[i][1]=acos(nucl_cart_coord[0][i][2]/nucl_spher_pos[i][0]);
-          if(nucl_cart_coord[0][i][1]==0)
-          {
-             nucl_spher_pos[i][2]=0;
-          }
-          else if (nucl_cart_coord[0][i][1]>0)
-          {
-             nucl_spher_pos[i][2]=acos(-1)/2;
-          }
-          else
-          {
-             nucl_spher_pos[i][2]=3*acos(-1)/2;
-          }
-       }
-       else
-       {
-           nucl_spher_pos[i][1]=acos(nucl_cart_coord[0][i][2]/nucl_spher_pos[i][0]);
-           nucl_spher_pos[i][2]=atan(nucl_cart_coord[0][i][1]/nucl_cart_coord[0][i][0]);
-       }
+         double mo_dipole_array[*grid_size][3][*n_occ+*n_closed][*n_occ+*n_closed];
+         dataset=new DataSet(file.openDataSet("/mo_dipoles/mo_dipoles_mat"));
+         dataset->read(mo_dipole_array,PredType::NATIVE_DOUBLE);
+         delete dataset;
+         for(int x=0;x!=*grid_size;x++)
+         {
+            for(int i=0;i!=*n_occ+*n_closed;i++)
+            {
+               for(int j=0;j!=*n_occ+*n_closed;j++)
+               {
+                  mo_dipoles_mat[x][0][i*(*n_occ+*n_closed)+j]=mo_dipole_array[x][0][i][j];
+                  mo_dipoles_mat[x][1][i*(*n_occ+*n_closed)+j]=mo_dipole_array[x][1][i][j];
+                  mo_dipoles_mat[x][2][i*(*n_occ+*n_closed)+j]=mo_dipole_array[x][2][i][j];
+               }
+            }
+         }
       }
+
+      if(MO_coeff_neutral != NULL)
+      {
+         double lcao_mo_coeff[*grid_size][*n_occ+*n_closed][*basis_size];
+         dataset=new DataSet(file.openDataSet("/lcao_coeff/lcao_mo_coeff"));
+         dataset->read(lcao_mo_coeff,PredType::NATIVE_DOUBLE);
+         delete dataset;
+         for(int x=0;x!=*grid_size;x++)
+         {
+            for(int i=0;i!=*n_occ+*n_closed;i++)
+            {
+               for(int j=0;j!=*basis_size;j++)
+               {
+                  MO_coeff_neutral[x][i**basis_size+j]=lcao_mo_coeff[x][i][j];
+               }
+            }
+         }
+      }
+
+      if(dyson_mo_coeff != NULL)
+      {
+         double dyson_mo_coeff_array[*grid_size][*n_states_neut][*n_states_cat][*n_occ+*n_closed];
+         dataset=new DataSet(file.openDataSet("/lcao_coeff/dyson_mo_coeff"));
+         dataset->read(dyson_mo_coeff_array,PredType::NATIVE_DOUBLE);
+         delete dataset;
+
+         for(int x=0;x!=*grid_size;x++)
+         {
+            for(int i=0;i!=*n_occ+*n_closed;i++)
+            {
+               for(int j=0;j!=*n_states_neut;j++)
+               {
+                  for(int k=0;k!=*n_states_cat;k++)
+                  {
+                     dyson_mo_coeff[x][j**n_states_cat*(*n_occ+*n_closed)+k*(*n_occ+*n_closed)+i]=dyson_mo_coeff_array[x][j][k][i];
+                  }
+               }
+            }
+         }
+      }
+
+      if(contraction_coeff != NULL)
+      {
+         double contraction_coeff_array[*basis_size][cmax_cont_num];
+         dataset=new DataSet(file.openDataSet("/basis_set_info/contraction_coeff"));
+         dataset->read(contraction_coeff_array,PredType::NATIVE_DOUBLE);
+         delete dataset;
+         for(int i=0;i!=*basis_size;i++)
+         {
+            for(int j=0;j!=cmax_cont_num;j++)
+            {
+               contraction_coeff[i][j]=contraction_coeff_array[i][j];
+            }
+         }
+      }
+
+      if(contraction_zeta != NULL)
+      {
+         double contraction_zeta_array[*basis_size][cmax_cont_num];
+         dataset=new DataSet(file.openDataSet("/basis_set_info/contraction_zeta"));
+         dataset->read(contraction_zeta_array,PredType::NATIVE_DOUBLE);
+         delete dataset;
+         for(int i=0;i!=*basis_size;i++)
+         {
+            for(int j=0;j!=cmax_cont_num;j++)
+            {
+               contraction_zeta[i][j]=contraction_zeta_array[i][j];
+            }
+         }
+      }
+
+      if(nucl_basis_func != NULL)
+      {
+         int nucl_basis_func_array[*basis_size];
+         dataset=new DataSet(file.openDataSet("/basis_set_info/nucleus_basis_func"));
+         dataset->read(nucl_basis_func_array,PredType::NATIVE_INT);
+         delete dataset;
+         for(int i=0;i!=*basis_size;i++)
+         {
+            nucl_basis_func[i]=nucl_basis_func_array[i];
+         }
+      }
+
+      if(basis_func_type != NULL)
+      {
+         int basis_func_type_array[*basis_size][2];
+         dataset=new DataSet(file.openDataSet("/basis_set_info/basis_func_type"));
+         dataset->read(basis_func_type_array,PredType::NATIVE_INT);
+         delete dataset;
+         for(int j=0;j!=*basis_size;j++)
+         {
+            basis_func_type[j]=inverse_spherical_harmonics_translator(basis_func_type_array[j][0],basis_func_type_array[j][1]);
+         }
+      }
+      std::cout<<std::endl<<"BASIS SET INFO PARAMETERS READ IN HF5"<<std::endl;
    }
    catch(FileIException error)
     {
        error.printError();
-       return -1;
+       std::cout<<"ERROR OF TYPE 1 IN PICE HF5 READER"<<std::endl;
+       exit(EXIT_FAILURE);
     }
 
     // catch failure caused by the DataSet operations
     catch(DataSetIException error)
     {
        error.printError();
-       return -1;
+       std::cout<<"ERROR OF TYPE 2 IN PICE HF5 READER"<<std::endl;
+       exit(EXIT_FAILURE);
     }
 
     // catch failure caused by the DataSpace operations
     catch(DataSpaceIException error)
     {
        error.printError();
-       return -1;
+       std::cout<<"ERROR OF TYPE 3 IN PICE HF5 READER"<<std::endl;
+       exit(EXIT_FAILURE);
     }
    
 }

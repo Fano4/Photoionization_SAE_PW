@@ -63,7 +63,7 @@ int size_query(int* n_occ,int *n_closed,int* basis_size,std::string molpro_out_p
         if (!molpro_file.is_open())
         {
             cout<<"ERROR DURING MOLPRO OUTPUT FILE ACQUISITION"<<endl<<molpro_out_path.c_str()<<endl;
-            return -1;
+            exit(EXIT_FAILURE);
         }
         
        if(n_sym==1)
@@ -134,8 +134,16 @@ int size_query(int* n_occ,int *n_closed,int* basis_size,std::string molpro_out_p
             {
                 molpro_file>>integer;
                 *basis_size=integer;
+                molpro_file>>tmp_str;
+                cout<<"Basis set size found!!"<<endl;//DEBOGAGE
+                for(int i=0;i!=n_sym;i++)
+                {
+                   molpro_file>>tmp_str;
+                   basis_size[i]=atoi(separateThem(tmp_str).c_str());
+                   std::cout<<"sym "<<i+1<<" = "<<basis_size[i]<<std::endl;
+                   molpro_file>>tmp_str;
+                }
                 
-                cout<<"Basis set size found!! Size= "<<*basis_size<<endl;//DEBOGAGE
                 test=1;
             }
         }while(test!=1);//Search for the basis set size in molpro output
@@ -646,12 +654,13 @@ int overlap_MO(double matrix[],int* n_occ,int* basis_size,int* basis_size_sym,st
     {
        n_occ_tot+=n_occ[k];
     } 
-    std::cout<<n_occ_tot<<std::endl;
+//    std::cout<<n_occ_tot<<std::endl;
     using namespace std;
     
     string tmp_str;
     
     
+    std::cout<<"basis size is "<<*basis_size<<std::endl;
     overlap=new double[*basis_size**basis_size];
     matrix2=new double [n_occ_tot*n_occ_tot];
     for(int i=0;i!=*basis_size**basis_size;i++)
@@ -683,6 +692,7 @@ int overlap_MO(double matrix[],int* n_occ,int* basis_size,int* basis_size_sym,st
     for(int k=0;k!=n_sym;k++)
     {
        molpro_file.open(molpro_out_path.c_str());
+ //   std::cout<<"probe"<<std::endl;
        count[k]=0;
        molpro_file.seekg(position);
        molpro_file>>tmp_str;
@@ -699,28 +709,35 @@ int overlap_MO(double matrix[],int* n_occ,int* basis_size,int* basis_size_sym,st
           test2=1;
        count[k]--;
 
-       molpro_file.seekg(position);
+      molpro_file.seekg(position);
   //     std::cout<<"$$$"<<std::endl;
 
-       basis_size_sym[k]=sqrt(count[k]);
+       //basis_size_sym[k]=sqrt(count[k]);
 
-       for (int i=total; i<sqrt(count[k])+total; i++)
+       for (int i=total; i<basis_size_sym[k]+total; i++)
        {
-          for(int j=total;j<sqrt(count[k])+total;j++)
+          for(int j=total;j<basis_size_sym[k]+total;j++)
           {
-             molpro_file>>floating;
+//             std::cout<<"probei"<<std::endl;
+             molpro_file>>tmp_str;
+//             std::cout<<"probef"<<std::endl;
+             floating=atof(tmp_str.c_str());
              overlap[i**basis_size+j]=floating;
+//             std::cout<<"value "<<floating<<" assigned"<<std::endl;
+//             std::cout<<basis_size_sym[k]<<";"<<position<<";"<<i<<";"<<j<<std::endl;
           }
                     // cout<<overlap[i**basis_size+total]<<endl;//DEBOGAGE
        }
-       position=molpro_file.tellg();
-       molpro_file.close();
+      position=molpro_file.tellg();
+      molpro_file.close();
        total+=sqrt(count[k]);
+    //std::cout<<"probe2"<<std::endl;
 
        if(test2)
           break;
     }
 
+    std::cout<<"AO S MATRIX READ IN MOLPRO OUTPUT WITHOUT ERROR"<<std::endl;
     position=0;
     
     MO_coeff_cation=new double[n_occ_tot**basis_size];
@@ -749,7 +766,7 @@ int overlap_MO(double matrix[],int* n_occ,int* basis_size,int* basis_size_sym,st
             for (int i=0; i!=2*sqrt(count[s]); i++)
             {
                 molpro_file>>tmp_str;
-                //cout<<tmp_str<<endl;//DEBOGAGE
+    ;            //cout<<tmp_str<<endl;//DEBOGAGE
             }
             
             for (int j=total; j!=n_occ[s]+total; j++)
@@ -769,6 +786,7 @@ int overlap_MO(double matrix[],int* n_occ,int* basis_size,int* basis_size_sym,st
            }
            position=molpro_file.tellg();
            molpro_file.close();
+    std::cout<<"MO COEFF NEUTRAL READ IN MOLPRO OUTPUT WITHOUT ERROR"<<std::endl;
 
    if(!search(&position, molpro_out_path,position, "NATURAL", 0, "ORBITALS"))
    {
@@ -785,7 +803,7 @@ int overlap_MO(double matrix[],int* n_occ,int* basis_size,int* basis_size_sym,st
            total2=0;
            for(int s=0;s!=n_sym;s++)
            {
-            cout<<"Coefficients of the cation"<<endl;//DEBOGAGE
+            //cout<<"Coefficients of the cation"<<endl;//DEBOGAGE
             for (int i=0; i!=2*sqrt(count[s]); i++)
             {
                 molpro_file>>tmp_str;
@@ -807,9 +825,10 @@ int overlap_MO(double matrix[],int* n_occ,int* basis_size,int* basis_size_sym,st
         }
     
         molpro_file.close();
+    std::cout<<"MO COEFF CATION READ IN MOLPRO OUTPUT WITHOUT ERROR"<<std::endl;
    
 
-   /* 
+   /*
         std::cout<<"#####################MO COeff NEUTRAL#####################"<<std::endl;
      for (int j=0; j!=n_occ_tot; j++)
      {
@@ -835,7 +854,7 @@ int overlap_MO(double matrix[],int* n_occ,int* basis_size,int* basis_size_sym,st
      //DEBOGAGE
 
         exit(EXIT_SUCCESS);
-        */
+     */ 
     temp=new double[*basis_size*n_occ_tot];
     temp2=new double[*basis_size*n_occ_tot];
     for(int i=0;i!=*basis_size*n_occ_tot;i++)
@@ -891,7 +910,6 @@ int overlap_MO(double matrix[],int* n_occ,int* basis_size,int* basis_size_sym,st
 */
     delete [] overlap;
     delete [] matrix2;
-    delete [] MO_coeff_neutral;
     delete [] MO_coeff_cation;
     delete [] temp;
     delete [] temp2;
@@ -1108,7 +1126,10 @@ int ci_vec_reader(int *n_states_neut_s,int *n_states_cat_s,int *n_occ,int *n_clo
     {
        n_states_neut+=n_states_neut_s[i];
        n_states_cat+=n_states_cat_s[i];
+       std::cout<<n_states_cat_s[i]<<" cation states in sym "<<i<<std::endl;
     }
+       std::cout<<n_states_cat<<" cation states "<<std::endl;
+
     std::ifstream molpro_output;
 
     if(n_sym==1)
@@ -1407,7 +1428,7 @@ int ci_vec_reader(int *n_states_neut_s,int *n_states_cat_s,int *n_occ,int *n_clo
     {
        cat_states_sym+=bool(n_states_cat_s[i]);
     }
-    std::cout<<cat_states_sym<<" cation states"<<std::endl;//DEBOGAGE
+    std::cout<<cat_states_sym<<" symmetry in cationic states"<<std::endl;//DEBOGAGE
     
     for(int s=0;s!=n_sym;s++)
     {
@@ -1802,3 +1823,23 @@ bool search(int *match_loc,std::string file_address,int research_from,std::strin
 }
 
 
+charTypeT charType(char c)
+{
+    if(isdigit(c))return digit;
+    if(isalpha(c))return alpha;
+    return other;
+}
+
+std::string separateThem(std::string inString)
+{
+   using namespace std;
+  string oString = "";charTypeT st=other;
+    for(int i=0;i!=inString.size();i++)
+    {
+       char c = inString[i];
+        if( (st==alpha && charType(c)==digit) || (st==digit && charType(c)==alpha) )
+          return oString;
+         // oString.push_back(' ');
+        oString.push_back(c);st=charType(c);
+    }
+}

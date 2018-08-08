@@ -2,6 +2,7 @@
 #include <fstream>
 #include <string>
 #include <sstream>
+#include <utility>
 
 
 int n_states_reader(int *n_states_neut,int *n_states_cat,int *n_elec_neut,std::string file_address);
@@ -13,3 +14,8 @@ int size_query(int* n_occ,int *n_closed,int* basis_size,std::string molpro_out_p
 bool basis_size_data_reader(int n_sym, int* basis_size_sym,int** contraction_number,std::string file_address);
 bool basis_data_reader(int n_sym, int* basis_size_sym,int** contraction_number,double*** contraction_coeff,double*** contraction_zeta,int** nucl_basis_func,std::string basis_func_type,std::string file_address);
 void dipole_MO(double **matrix,int* n_occ,int* basis_size,int* basis_size_sym,std::string molpro_out_path,int n_sym=1);
+
+
+enum charTypeT{ other, alpha, digit};
+charTypeT charType(char c);
+std::string separateThem(std::string inString);

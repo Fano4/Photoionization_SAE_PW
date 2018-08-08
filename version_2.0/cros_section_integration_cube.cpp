@@ -17,7 +17,7 @@ int main(int argc, char *argv [])
    //THIS CODE COMPUTES THE PHOTOIONIZATION CROSS SECTION FROM CUBE FILES IN RECIPROCAL SPACE. FIRST STEP IS COMPUTATION OF CROSS SECTION IN THE CUBE FROM PICE. SECOND STEP IS CONVERTING THE CROSS SECTION FROM CARTESIAN TO SPHERICAL COORDINATES. THEN, EITHER MPFAD IS COMPUTED AS DIFFERENTIAL CROSS SECTION OR PHOTOELECTRON SPECTRUM IS COMPUTED BY INTEGRATION OF ALL MFPAD AS A FUNCTION OF K
    //
    using namespace std;
-   string pice_address("/data1/home/stephan/LiH_512_points_pice_28_05_18/LiH_");
+   string pice_address("/data1/home/stephan/test_finegrid/LiH_");
    string spectrum_address("/data1/home/stephan/mfpad_test.txt");
    int n_theta(90);
    int n_phi(120);
@@ -26,15 +26,15 @@ int main(int argc, char *argv [])
    double **sphere_dist=new double *[2];
    sphere_dist[0]=new double[n_points];
    sphere_dist[1]=new double[n_points];
-   int nx(64);//125);
-   int ny(64);//125);
-   int nz(64);//125);
-   double xmin(-1.047198);
-   double xmax(1.047198);
-   double ymin(-1.047198);
-   double ymax(1.047198);
-   double zmin(-1.047198);
-   double zmax(1.047198);
+   int nx(256);//125);
+   int ny(256);//125);
+   int nz(256);//125);
+   double xmin(-4.188790);
+   double xmax(4.188790);
+   double ymin(-4.188790);
+   double ymax(4.188790);
+   double zmin(-4.188790);
+   double zmax(4.188790);
 
    double kmax(0.85731);
    double nk=200;
@@ -52,7 +52,7 @@ int main(int argc, char *argv [])
 
    std::cout<<"Electric field components : (X-comp) , (Y-comp) , (Z-comp)"<<std::endl<<x_comp<<" , "<<y_comp<<", "<<z_comp<<std::endl;
 
-   cube_diff_cross_section(x_comp,y_comp,z_comp,nx*ny*nz,cs_cube,9,0,pice_address,1.6125);
+   cube_diff_cross_section(x_comp,y_comp,z_comp,nx*ny*nz,cs_cube,10,0,pice_address,1.6125);
    //write_mfpad(k,n_theta,n_phi,nx,xmin,xmax,ny,ymin,ymax,nz,zmin,zmax,cs_cube,mfpad,spectrum_address);
    sphere_dist_gen(n_points,sphere_dist,0,n_phi);
    for(int i=1;i!=nk;i++)
@@ -60,7 +60,7 @@ int main(int argc, char *argv [])
       k=i*kmax/nk;
       //write_mfpad(k,n_theta,n_phi,nx,xmin,xmax,ny,ymin,ymax,nz,zmin,zmax,cs_cube,mfpad);
       spherical_extract_from_cube(k,sphere_dist,n_points_sphere,xmin,xmax,nx,ymin,ymax,ny,zmin,zmax,nz,cs_cube,mfpad);
-      std::cout<<k*k*27.211/2.<<", "<<pow(192.,1.5)*k*total_cs(n_theta,n_phi,sphere_dist,mfpad)*0.05*0.05*27.211<<std::endl;
+      std::cout<<k*k*27.211/2.<<", "<<k*total_cs(n_theta,n_phi,sphere_dist,mfpad)*0.05*0.05*27.211<<std::endl;
    }
 
    return 0;
@@ -186,7 +186,7 @@ void spherical_extract_from_cube(double k,double** sphere_dist,double n_points_s
       y_index=int(round((ysphere-ymin)*ny/(ymax-ymin)));
       z_index=int(round((zsphere-zmin)*nz/(zmax-zmin)));
 //      std::cout<<nx<<","<<ny<<","<<nz<<","<<x_index<<","<<y_index<<","<<z_index<<","<<i<<"/"<<n_points_sphere;
-      if(x_index>=64 || y_index>=64 || z_index>=64)
+      if(x_index>=nx || y_index>=ny || z_index>=nz)
       {
          std::cout<<"FATAL ERROR: ASKED FOR A POINT OUT OF THE CUBE LIMITS => ASK FOR SMALLER k_max"<<std::endl;
          exit(EXIT_SUCCESS);
