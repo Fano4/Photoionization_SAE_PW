@@ -20,5 +20,6 @@ bool kronecker_delta(int a, int b);
 bool two_cubes_moment(double *cube1,double *cube2,double *moment,int nx,int ny,int nz,double xmin,double xmax,double ymin,double ymax,double zmin,double zmax);
 double cube_dot_product(double *cube1,double *cube2,int nx,int ny, int nz,double dx,double dy,double dz,int angle_vec_size,double *output);
 double vector_prod(double vector1[],double vector2[],int gsize);
+long double intplushalf_gamma(int n); //(Gamma(n+1/2))
 
 #endif /* computation_hpp */

@@ -39,6 +39,8 @@ int photoion_comp(int argc, char* argv[])
     int **contraction_number_sym;
     int **nucl_basis_func_sym;
     std::string** basis_func_type_sym;
+    int ***angular_mom_numbers_sym;
+    int **angular_mom_numbers;
     double **contraction_coeff;
     double **contraction_zeta;
     double **contraction_coeff_array;
@@ -61,8 +63,8 @@ int photoion_comp(int argc, char* argv[])
        }
     }
     //variables depending on grid size
-    const std::string hf5_outfile("LiH_pice_data.h5");
-    int grid_size(512);
+    const std::string hf5_outfile("LiH_1.6125_test.h5");
+    int grid_size(1);
     double ***nucl_spher_pos=new double**[grid_size];
     double **MO_coeff_neutral=new double*[grid_size];
     double *overlap;
@@ -79,11 +81,11 @@ int photoion_comp(int argc, char* argv[])
     int index(0);
     int index2(0);
     int temp_int(0);
-    double xmin(0.8);
-    double xmax(21.6);
+    double xmin(1.6125);
+    double xmax(1.6125);
     double mLi(6.015122795);
     double mH(1.007825);
-    std::string file_root("/data1/home/stephan/LiH_gridtest_+++custom/LiH_");
+    std::string file_root("/data1/home/stephan/LiH_gridtest_+++custom_MO_1.6125/LiH_");
     stringstream ss_molpro_file;
     std::string molpro_output_path;
 
@@ -100,7 +102,7 @@ for(int x=0;x!=grid_size;x++)
    rH=mLi*xp/(mLi+mH);
    rLi=mH*xp/(mLi+mH);
 
-   nucl_coord[x]=xp;
+   nucl_coord[x]=xp/.529;
    ss_molpro_file.str("");
    ss_molpro_file<<file_root.c_str()<<xp<<".out";
    molpro_output_path=ss_molpro_file.str();
@@ -134,6 +136,7 @@ for(int x=0;x!=grid_size;x++)
     contraction_number_sym=new int*[n_sym];
     nucl_basis_func_sym=new int*[n_sym];
     basis_func_type_sym=new std::string*[n_sym];
+    angular_mom_numbers_sym=new int**[n_sym];
 
     std::cout<<"INITIALIZED SYMMETRY DEPENDENT ARRAYS. INITIALIZING BASIS SET SIZE DEPENDENT ARRAYS :"<<std::endl;
     int total(0);
@@ -146,6 +149,7 @@ for(int x=0;x!=grid_size;x++)
        contraction_zeta_sym[s]=new double*[basis_size_sym[s]];
        nucl_basis_func_sym[s]=new int[basis_size_sym[s]];
        basis_func_type_sym[s]=new std::string[basis_size_sym[s]];
+       angular_mom_numbers_sym[s]=new int*[basis_size_sym[s]];
        total+=basis_size_sym[s];
     }
 //    std::cout<<"probe"<<std::endl;
@@ -154,6 +158,7 @@ for(int x=0;x!=grid_size;x++)
     contraction_number=new int[total];
     nucl_basis_func=new int[total];
     basis_func_type=new std::string[total];
+    angular_mom_numbers=new int*[total];
 
     basis_size_data_reader(n_sym, basis_size_sym,contraction_number_sym,molpro_output_path);
     std::cout<<"basis set data read!"<<std::endl;
@@ -166,12 +171,14 @@ for(int x=0;x!=grid_size;x++)
           contraction_zeta[total]=new double[contraction_number_sym[s][t]];
           contraction_coeff_sym[s][t]=new double [contraction_number_sym[s][t]];
           contraction_zeta_sym[s][t]=new double [contraction_number_sym[s][t]];
+          angular_mom_numbers_sym[s][t]=new int [2];
+          angular_mom_numbers[total]=new int [2];
 //          std::cout<<contraction_number_sym[s][t]<<" , "<<s<<" , "<<t<<std::endl;
           total++;
        }
     }
     std::cout<<"INITIALIZED ALL BASIS SET ARRAYS"<<std::endl;
-    basis_data_reader(n_sym,basis_size_sym,contraction_number_sym,contraction_coeff_sym,contraction_zeta_sym,nucl_basis_func_sym,basis_func_type_sym,molpro_output_path);
+    basis_data_reader(n_sym,basis_size_sym,contraction_number_sym,contraction_coeff_sym,contraction_zeta_sym,nucl_basis_func_sym,basis_func_type_sym,molpro_output_path,angular_mom_numbers_sym);
     total=0;
     int total2(0);
     int max_contraction_num(0);
@@ -191,6 +198,8 @@ for(int x=0;x!=grid_size;x++)
              contraction_zeta[total][k]=contraction_zeta_sym[s][t][k];
              contraction_coeff[total][k]=contraction_coeff_sym[s][t][k];
           }
+          angular_mom_numbers[total][0]=l_number(basis_func_type[total].c_str());
+          angular_mom_numbers[total][1]=ml_number(basis_func_type[total].c_str(),angular_mom_numbers[total][0]);
 //          std::cout<<basis_func_type[total]<<" !!"<<std::endl;
           total++;
        }
@@ -223,10 +232,10 @@ for(int x=0;x!=grid_size;x++)
     {
        nucl_spher_pos[x][i]=new double[3];
     }
-    nucl_spher_pos[x][0][0]=rH;
+    nucl_spher_pos[x][0][0]=rH/.529;
     nucl_spher_pos[x][0][1]=acos(-1);
     nucl_spher_pos[x][0][2]=0.0;
-    nucl_spher_pos[x][1][0]=rLi;
+    nucl_spher_pos[x][1][0]=rLi/.529;
     nucl_spher_pos[x][1][1]=0.0;
     nucl_spher_pos[x][1][2]=0.0;
 
@@ -250,8 +259,6 @@ for(int x=0;x!=grid_size;x++)
     //std::cout<<"ci size neut is "<<ci_size_neut<<std::endl<<"ci size cat is "<<ci_size_cat<<std::endl;
 
     //ALLOCATE ARRAYS THAT DEPEND ON THE SIZE OF THE CI VECTOR
-    ci_vec_neut=new double*[2];
-    ci_vec_cat=new double*[2];
     ci_vec_neut[0]=new double[n_elec_neut*ci_size_neut+n_states_neut*ci_size_neut];//vector partitionned in two sections. Section 1 is filled with the mo label of each electron. section 2 is filled with CI coeff.
     ci_vec_neut[1]=new double[n_elec_neut*ci_size_neut];//this vector represents the spin state of each electron
     ci_vec_cat[0]=new double [(n_elec_neut-1)*ci_size_cat+n_states_cat*ci_size_cat];
@@ -342,23 +349,40 @@ for(int x=0;x!=grid_size;x++)
 //       std::cout<<"["<<int(i/n_occ)<<","<<int(i%n_occ)<<"]"<<"("<<mo_dipole[0][i]<<","<<mo_dipole[1][i]<<","<<mo_dipole[2][i]<<") => "<<"("<<mo_dipole_spher[0][i]<<","<<mo_dipole_spher[1][i]<<","<<mo_dipole_spher[2][i]<<")"<<std::endl;
     }
     //COMPUTE THE DYSON MO COEFFICIENTS IN THE BASIS OF THE MO OF THE NEUTRAL
+    std::cout<<"COMPUTING DYSON MO COEFFICIENTS"<<std::endl;
+//    DEBOGAGE!!!
     dyson_mo_coeff_comp( n_states_neut,n_states_cat, n_occ,ci_size_neut, ci_size_cat, n_elec_neut, ci_vec_neut, ci_vec_cat,overlap, dyson_mo_basis_coeff[x]);
+/*    for(int i=0;i!=n_occ;i++)
+    {
+       for(int j=0;j!=basis_size;j++)
+       {
+          MO_coeff_neutral[x][i*basis_size+j]=0;
+       }
+          MO_coeff_neutral[x][i*basis_size+i]=1;
+    }
+    
+      for(int i=0;i!=n_states_neut;i++)
+      {
+         for(int j=0;j!=n_occ;j++)
+         {
+            dyson_mo_basis_coeff[x][i*n_states_cat*n_occ+j]=0;
+         }
+         dyson_mo_basis_coeff[x][i*n_states_cat*n_occ+i]=1;
+      }*/
+//    DEBOGAGE!!!
 
     delete [] ci_vec_neut;
     delete [] ci_vec_cat;
     delete [] overlap;
    }
 
+std::cout<<"POSITION DEPENDENT PART DONE"<<std::endl;
 //    exit(EXIT_SUCCESS);
-/*
-    for(int i=0;i!=n_occ;i++)
-    {
-       for(int j=0;j!=n_occ;j++)
-       {
-          std::cout<<overlap[i*n_occ+j]<<"   ";
-       }std::cout<<std::endl;
-    }*/
-/*
+ 
+
+//   build_ao_s(NULL,nucl_basis_func,contraction_number,nucl_spher_pos[0],contraction_coeff,contraction_zeta,basis_func_type,basis_size); 
+
+    double temp_norm;
     for(int i=0;i!=n_states_neut;i++)
     {
        for(int j=0;j!=n_states_cat;j++)
@@ -366,18 +390,45 @@ for(int x=0;x!=grid_size;x++)
           temp_norm=0;
           for(int t=0;t!=n_occ;t++)
           {
-             temp_norm+=dyson_mo_basis_coeff[i*n_states_cat*n_occ+j*n_occ+t]*dyson_mo_basis_coeff[i*n_states_cat*n_occ+j*n_occ+t];
+             temp_norm+=dyson_mo_basis_coeff[0][i*n_states_cat*n_occ+j*n_occ+t]*dyson_mo_basis_coeff[0][i*n_states_cat*n_occ+j*n_occ+t];
           }
           std::cout<<"Dyson orbital norm between states "<<i<<" and "<<j<<" : "<<temp_norm<<std::endl;
        }
     }
-*/
+
+/*
+ * BUILDING AND PRINTING DYSON MO'S CUBES FOR TESTING 
+ * */
+
+    std::string dyson_cube_loc("/data1/home/stephan/LiH_gridtest_+++custom_MO_1.6125/LiH_anal_dyson_");
+    int nx(150);
+    int ny(150);
+    int nz(150);
+    double cxmin(-37.5);
+    double cxmax(-37.5+nx*0.5);
+    double cymin(-37.5);
+    double cymax(-37.5+nx*0.5);
+    double czmin(-37.5);
+    double czmax(-37.5+nx*0.5);
+    int j(0);
+    for(int i=0;i!=n_states_neut;i++)
+    {
+//       for(int j=0;j!=n_states_cat;j++)
+       {
+          std::cout<<"WRITING CUBE FOR DYSON "<<i<<" - "<<j<<std::endl;
+         cube_header(&n_states_neut, &n_states_cat, &n_occ, &n_closed,&nucl_dim,&grid_size,&num_of_nucl,&basis_size,contraction_number,nucl_coord[0],nucl_spher_pos[0],MO_coeff_neutral[0],dyson_mo_basis_coeff[0],contraction_coeff_array,contraction_zeta_array,nucl_basis_func,basis_func_type,angular_mom_numbers, dyson_cube_loc,i,j,2,nx, ny, nz, cxmin, cxmax, cymin, cymax, czmin, czmax);
+       }
+    }
+      exit(EXIT_SUCCESS);
+/*
+ * BUILDING AND PRINTING DYSON MO'S CUBES FOR TESTING 
+ * */
+
     /*
      TESTING HF5 DIALOG
      */
       write_output(hf5_outfile, &n_states_neut, &n_states_cat, &n_occ, &n_closed,&nucl_dim,&grid_size,&num_of_nucl,&basis_size,contraction_number,nucl_coord,nucl_spher_pos,mo_dipole,MO_coeff_neutral,dyson_mo_basis_coeff,contraction_coeff_array,contraction_zeta_array,nucl_basis_func,basis_func_type);
 //      read_output("test.h5", &n_states_neut, &n_states_cat, &n_occ, &n_closed,&nucl_dim,&grid_size,&num_of_nucl,&basis_size,nucl_spher_pos,mo_dipole,MO_coeff_neutral,dyson_mo_basis_coeff,contraction_number,contraction_coeff,contraction_zeta,nucl_basis_func,basis_func_type);
-      exit(EXIT_SUCCESS);
     /*
      TESTING HF5 DIALOG
      */

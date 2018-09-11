@@ -80,7 +80,7 @@ bool dyson_mo_coeff_comp(int n_states_neut,int n_states_cat,int n_occ,int ci_siz
                         if(test2)
                         {
                         Dyson_MO_basis_coeff[n_occ*n_states_cat*i+n_occ*j+k]+=(ci_vec_neut[0][(n_elec_neut+n_states_neut)*n+n_elec_neut+i]*ci_vec_cat[0][(n_elec_neut-1+n_states_cat)*l+n_elec_neut-1+j]*determinant(temp,(n_elec_neut-1)));
-                           //std::cout<<" sum is "<<Dyson_MO_basis_coeff[n_occ*n_states_cat*i+n_occ*j+k]<<std::endl;
+   //                        std::cout<<" sum is "<<Dyson_MO_basis_coeff[n_occ*n_states_cat*i+n_occ*j+k]<<std::endl;
                         }
 
                         
@@ -92,11 +92,11 @@ bool dyson_mo_coeff_comp(int n_states_neut,int n_states_cat,int n_occ,int ci_siz
                 if(!test)
                 {
                     Dyson_MO_basis_coeff[n_occ*n_states_cat*i+n_occ*j+k]=0;
-//                    std::cout<<std::endl<<"states "<<i<<"  and  "<<j<<"    "<<Dyson_MO_basis_coeff[n_occ*n_states_cat*i+n_occ*j+k]<<"   MO  "<<k<<std::endl<<"====================================="<<std::endl<<std::endl;
+                    std::cout<<std::endl<<"states "<<i<<"  and  "<<j<<"    "<<Dyson_MO_basis_coeff[n_occ*n_states_cat*i+n_occ*j+k]<<"   MO  "<<k<<std::endl<<"====================================="<<std::endl<<std::endl;
                 }
                 else
                 {
-//                    std::cout<<std::endl<<"states "<<i<<"  and  "<<j<<"    "<<Dyson_MO_basis_coeff[n_occ*n_states_cat*i+n_occ*j+k]<<"   MO  "<<k<<std::endl<<"====================================="<<std::endl<<std::endl;
+                    std::cout<<std::endl<<"states "<<i<<"  and  "<<j<<"    "<<Dyson_MO_basis_coeff[n_occ*n_states_cat*i+n_occ*j+k]<<"   MO  "<<k<<std::endl<<"====================================="<<std::endl<<std::endl;
                 }
                     
             }
@@ -598,4 +598,225 @@ std::complex<double> contraction_FT_grad_phi( double k, double thet, double phi,
       std::cout<<"Spherical harmonics not recognized in basis function : "<<basis_func_type.c_str()<<std::endl;
       exit(EXIT_FAILURE);
    }
+}
+
+double MO_value( int mo_index, double x, double y, double z,double **nucl_spher_pos,int *nucl_basis_func,int* contraction_number,double **contraction_coeff,double **contraction_zeta,std::string *basis_func_type,double *MO_neut_basis_coeff,int basis_size,int **angular_mom_numbers)
+{
+   double value(0);
+   double xp(0);
+   double yp(0);
+   double zp(0);
+   double r(0);
+   double thet(0);
+   double phi(0);
+
+   for(int i=0;i!=basis_size;i++)
+   {
+      xp=x-nucl_spher_pos[nucl_basis_func[i]-1][0]*sin(nucl_spher_pos[nucl_basis_func[i]-1][1])*cos(nucl_spher_pos[nucl_basis_func[i]-1][2]);
+      yp=y-nucl_spher_pos[nucl_basis_func[i]-1][0]*sin(nucl_spher_pos[nucl_basis_func[i]-1][1])*sin(nucl_spher_pos[nucl_basis_func[i]-1][2]);
+      zp=z-nucl_spher_pos[nucl_basis_func[i]-1][0]*cos(nucl_spher_pos[nucl_basis_func[i]-1][1]);
+      r=sqrt(pow(xp,2)+pow(yp,2)+pow(zp,2));
+      if(r==0)
+      {
+          thet=acos(-1)/2;
+          phi=0;
+      }
+      else
+      {
+          thet=acos(zp/r);
+      if( xp == 0 && yp >= 0 )
+      {
+         phi=acos(-1)/2;
+      }
+      else if(xp == 0 && yp < 0)
+      {
+         phi=3.*acos(-1)/2; 
+      }
+      else if(xp < 0 && yp == 0)
+      {
+         phi=acos(-1); 
+      }
+      else
+      {
+         phi=atan2(yp,xp);
+      }
+   }
+      value+=MO_neut_basis_coeff[mo_index*basis_size+i]*AO_value(i,r,thet,phi,contraction_number,nucl_spher_pos[nucl_basis_func[i]-1],contraction_coeff,contraction_zeta,basis_func_type,angular_mom_numbers);
+//      std::cout<<"==>"<<MO_neut_basis_coeff[mo_index*basis_size+i]<<"*"<<AO_value(i,r,thet,phi,contraction_number,nucl_spher_pos[nucl_basis_func[i]-1],contraction_coeff,contraction_zeta,basis_func_type,angular_mom_numbers)<<std::endl;
+   }
+   return value;
+}
+double AO_value(int ao_index,double r, double thet, double phi,int *contraction_number,double *nucl_spher_pos,double **contraction_coeff,double **contraction_zeta,std::string *basis_func_type,int **angular_mom_numbers)
+{
+
+   double value(0);
+   double norm(0);
+   for(int i=0;i!=contraction_number[ao_index];i++)
+   {
+         value+=contraction_coeff[ao_index][i]*contraction_value(r,thet,phi,nucl_spher_pos,contraction_zeta[ao_index][i],basis_func_type[ao_index],angular_mom_numbers[ao_index]);
+//         if(value>=1)
+//            std::cout<<"==>==>"<<contraction_coeff[ao_index][i]<<" * "<<contraction_value(r,thet,phi,nucl_spher_pos,contraction_zeta[ao_index][i],basis_func_type[ao_index],angular_mom_numbers[ao_index])<<" = "<<contraction_coeff[ao_index][i]*contraction_value(r,thet,phi,nucl_spher_pos,contraction_zeta[ao_index][i],basis_func_type[ao_index],angular_mom_numbers[ao_index])<<std::endl;
+   }
+   return value;
+
+}
+double contraction_value( double r, double thet, double phi,double* nucl_spher_pos,double contraction_zeta,std::string basis_func_type,int* angular_mom_numbers)
+{
+   using namespace std;
+
+//   if(exp(-contraction_zeta*pow(r,2))*pow(r,2) > 1)
+//      std::cout<<"****"<<exp(-contraction_zeta*pow(r,2))<<","<<r<<std::endl<<"==>"<<exp(-contraction_zeta*pow(r,2))*pow(r,2)<<std::endl;
+
+//   std::cout<<basis_func_type.c_str()<<" - l = "<<angular_mom_numbers[0]<<" ; ml = "<<angular_mom_numbers[1]<<std::endl;
+
+   switch(angular_mom_numbers[0])
+   {
+      case 0:
+         return 0.5*(1/sqrt(acos(-1)))*exp(-contraction_zeta*pow(r,2));
+      case 1:
+         switch(angular_mom_numbers[1])
+         {
+            case -1:
+               return sqrt(3./(4.*acos(-1)))*sin(thet)*sin(phi)*exp(-contraction_zeta*pow(r,2))*r;
+            case 0:
+               return sqrt(3./(4.*acos(-1)))*cos(thet)*exp(-contraction_zeta*pow(r,2))*r;
+            case 1:
+               return sqrt(3./(4.*acos(-1)))*sin(thet)*cos(phi)*exp(-contraction_zeta*pow(r,2))*r;
+         }
+      case 2:
+         switch(angular_mom_numbers[1])
+         {
+            case -2:
+               return 0.25*sqrt(15./(acos(-1)))*pow(sin(thet),2)*sin(2.*phi)*exp(-contraction_zeta*pow(r,2))*pow(r,2);
+            case -1:
+               return 0.25*sqrt(15./(acos(-1)))*sin(2*thet)*sin(phi)*exp(-contraction_zeta*pow(r,2))*pow(r,2);
+            case 0:
+               return 0.25*sqrt(5./acos(-1))*(3*pow(cos(thet),2)-1)*exp(-contraction_zeta*pow(r,2))*pow(r,2);
+            case 1:
+               return 0.25*sqrt(15./(acos(-1)))*sin(2.*thet)*cos(phi)*exp(-contraction_zeta*pow(r,2))*pow(r,2);
+            case 2:
+               return 0.25*sqrt(15./(acos(-1)))*cos(2*phi)*pow(sin(thet),2)*exp(-contraction_zeta*pow(r,2))*pow(r,2);
+         }
+      case 3:
+         switch(angular_mom_numbers[1])
+         {
+            case -3:
+                return 0.25*sqrt(35/(2*acos(-1)))*(4*pow(cos(phi),2)-1)*pow(sin(thet),3)*sin(phi)*exp(-contraction_zeta*pow(r,2))*pow(r,3);
+            case -2:
+                return 0.25*sqrt(105./acos(-1))*pow(sin(thet),2)*cos(thet)*sin(2.*phi)*exp(-contraction_zeta*pow(r,2))*pow(r,3);
+            case -1:
+                return 0.25*sqrt(21./(2*acos(-1)))*sin(thet)*sin(phi)*(4*pow(cos(thet),2)-pow(sin(thet),2))*exp(-contraction_zeta*pow(r,2))*pow(r,3);
+            case 0:
+                return 0.25*sqrt(7./acos(-1))*cos(thet)*(2*pow(cos(thet),2)-3*pow(sin(thet),2))*exp(-contraction_zeta*pow(r,2))*pow(r,3);
+            case 1:
+                return 0.25*sqrt(21./(2*acos(-1)))*sin(thet)*cos(phi)*(4*pow(cos(thet),2)-pow(sin(thet),2))*exp(-contraction_zeta*pow(r,2))*pow(r,3);
+            case 2:
+                return 0.25*sqrt(105./acos(-1))*pow(sin(thet),2)*cos(thet)*cos(2*phi)*exp(-contraction_zeta*pow(r,2))*pow(r,3);
+            case 3:
+                return 0.25*sqrt(35/(2*acos(-1)))*(1-4.*pow(sin(phi),2))*pow(sin(thet),3)*cos(phi)*exp(-contraction_zeta*pow(r,2))*pow(r,3);
+         }
+   }
+/*
+   double temp(0);
+   if(basis_func_type=="1s")
+   {
+      return 0.5*(1/sqrt(acos(-1)))*exp(-contraction_zeta*pow(r,2));
+   }
+   else if(basis_func_type=="2px")
+   {
+      return sqrt(3./(4.*acos(-1)))*sin(thet)*cos(phi)*exp(-contraction_zeta*pow(r,2))*r;
+   }
+   else if(basis_func_type=="2py")
+   {
+      return sqrt(3./(4.*acos(-1)))*sin(thet)*sin(phi)*exp(-contraction_zeta*pow(r,2))*r;
+   }
+   else if(basis_func_type=="2pz")
+   {
+      return sqrt(3./(4.*acos(-1)))*cos(thet)*exp(-contraction_zeta*pow(r,2))*r;
+   }
+   else if(basis_func_type=="3d2-")
+   {
+      return 0.25*sqrt(15./(acos(-1)))*pow(sin(thet),2)*sin(2.*phi)*exp(-contraction_zeta*pow(r,2))*pow(r,2);
+   }
+   else if(basis_func_type=="3d1-")
+   {
+      return 0.25*sqrt(15./(acos(-1)))*sin(2*thet)*sin(phi)*exp(-contraction_zeta*pow(r,2))*pow(r,2);
+   }
+   else if(basis_func_type=="3d0")
+   {
+      return 0.25*sqrt(5./acos(-1))*(3*pow(cos(thet),2)-1)*exp(-contraction_zeta*pow(r,2))*pow(r,2);
+   }
+   else if(basis_func_type=="3d1+")
+   {
+      return 0.25*sqrt(15./(acos(-1)))*sin(2.*thet)*cos(phi)*exp(-contraction_zeta*pow(r,2))*pow(r,2);
+   }
+   else if(basis_func_type=="3d2+")
+   {
+      return 0.25*sqrt(15./(acos(-1)))*cos(2*phi)*pow(sin(thet),2)*exp(-contraction_zeta*pow(r,2))*pow(r,2);
+   }
+   else if(basis_func_type=="4f3-")
+   {
+//      return 0.25*sqrt(35/(2*acos(-1)))*(3*pow(sin(thet),2)*pow(cos(phi),2)-pow(sin(thet),2)*pow(sin(phi),2))*sin(thet)*sin(phi)*exp(-contraction_zeta*pow(r,2))*pow(r,3);
+      return 0.25*sqrt(35/(2*acos(-1)))*(4*pow(cos(phi),2)-1)*pow(sin(thet),3)*sin(phi)*exp(-contraction_zeta*pow(r,2))*pow(r,3);
+   }
+   else if(basis_func_type=="4f2-")
+   {
+      return 0.25*sqrt(105./acos(-1))*pow(sin(thet),2)*cos(thet)*sin(2.*phi)*exp(-contraction_zeta*pow(r,2))*pow(r,3);
+   }
+   else if(basis_func_type=="4f1-")
+   {
+      return 0.25*sqrt(21./(2*acos(-1)))*sin(thet)*sin(phi)*(4*pow(cos(thet),2)-pow(sin(thet),2))*exp(-contraction_zeta*pow(r,2))*pow(r,3);
+   }
+   else if(basis_func_type=="4f0")
+   {
+      return 0.25*sqrt(7./acos(-1))*cos(thet)*(2*pow(cos(thet),2)-3*pow(sin(thet),2))*exp(-contraction_zeta*pow(r,2))*pow(r,3);
+   }
+   else if(basis_func_type=="4f1+")
+   {
+      return 0.25*sqrt(21./(2*acos(-1)))*sin(thet)*cos(phi)*(4*pow(cos(thet),2)-pow(sin(thet),2))*exp(-contraction_zeta*pow(r,2))*pow(r,3);
+   }
+   else if(basis_func_type=="4f2+")
+   {
+      return 0.25*sqrt(105./acos(-1))*pow(sin(thet),2)*cos(thet)*cos(2*phi)*exp(-contraction_zeta*pow(r,2))*pow(r,3);
+   }
+   else if(basis_func_type=="4f3+")
+   {
+      return 0.25*sqrt(35/(2*acos(-1)))*(1-4.*pow(sin(phi),2))*pow(sin(thet),3)*cos(phi)*exp(-contraction_zeta*pow(r,2))*pow(r,3);
+   }
+   else
+   {
+      std::cout<<"Spherical harmonics not recognized in basis function : "<<basis_func_type.c_str()<<std::endl;
+      exit(EXIT_FAILURE);
+   }
+*/
+}
+bool build_ao_s(double* S,int *nucl_basis_func,int *contraction_number,double **nucl_spher_pos,double **contraction_coeff,double **contraction_zeta,std::string *basis_func_type,int basis_size)
+{
+   double val=0;
+   int l_val=0;
+   int l_valp=0;
+   
+   for(int i=0;i!=basis_size;i++)
+   {
+      l_val=l_number(basis_func_type[i].c_str());
+      for(int j=0;j!=basis_size;j++)
+      {
+         l_valp=l_number(basis_func_type[j].c_str());
+         if(nucl_basis_func[i]==nucl_basis_func[j])
+         {
+            std::cout<<"atom "<<nucl_basis_func[i]<<" - atom "<<nucl_basis_func[j]<<std::endl;
+            val=0;
+            for(int ip=0;ip!=contraction_number[i];ip++)
+            {
+               for(int jp=0;jp!=contraction_number[j];jp++)
+               {
+                  val+=0.5*(contraction_coeff[i][ip]*contraction_coeff[j][jp]*intplushalf_gamma(0.5*l_val+1.5))/(pow(contraction_zeta[i][ip]+contraction_zeta[j][jp],1.5+l_val))*kronecker_delta(l_val,l_valp);
+               }
+            }
+            std::cout<<"<"<<i+1<<"|"<<j+1<<"> = "<<val<<std::endl;
+         }
+      }
+   }
+   exit(EXIT_SUCCESS);
+   return 1;
 }

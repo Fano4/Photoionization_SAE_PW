@@ -1630,7 +1630,7 @@ bool basis_size_data_reader(int n_sym, int* basis_size_sym,int** contraction_num
 }
 return 0;
 }
-bool basis_data_reader(int n_sym, int* basis_size_sym,int** contraction_number,double*** contraction_coeff,double*** contraction_zeta,int** nucl_basis_func,std::string **basis_func_type,std::string file_address)
+bool basis_data_reader(int n_sym, int* basis_size_sym,int** contraction_number,double*** contraction_coeff,double*** contraction_zeta,int** nucl_basis_func,std::string **basis_func_type,std::string file_address,int ***angular_mom_numbers)
 {
    using namespace std;
    ifstream input;
@@ -1641,6 +1641,7 @@ bool basis_data_reader(int n_sym, int* basis_size_sym,int** contraction_number,d
    double temp_norm(0);
    bool test(0);
    int l(0);
+   int l_val(0);
    for(int i=0;i!=n_sym;i++)
    {
       basis_size+=basis_size_sym[i];
@@ -1672,8 +1673,13 @@ bool basis_data_reader(int n_sym, int* basis_size_sym,int** contraction_number,d
             input>>temps;
             input>>temps;
             nucl_basis_func[s][i]=atoi(temps.c_str());
+            std::cout<<i+1<<"."<<s+1<<"- nucleus "<<nucl_basis_func[s][i]<<std::endl;
             input>>temps;
             basis_func_type[s][i]=temps.c_str();
+            angular_mom_numbers[s][i][0]=l_number(basis_func_type[s][i]);
+            angular_mom_numbers[s][i][1]=ml_number(basis_func_type[s][i],angular_mom_numbers[s][i][0]);
+//            std::cout<< basis_func_type[s][i].c_str()<<" -> l = "<<angular_mom_numbers[s][i][0]<<" and ml = "<<angular_mom_numbers[s][i][1]<<std::endl;
+            l_val=angular_mom_numbers[s][i][0];
             test=0;
             l=0;
             while(test==0)
@@ -1683,6 +1689,7 @@ bool basis_data_reader(int n_sym, int* basis_size_sym,int** contraction_number,d
                contraction_zeta[s][i][l]=atof(temps.c_str());
                input>>temps;
                contraction_coeff[s][i][l]=atof(temps.c_str());
+               contraction_coeff[s][i][l]/=(sqrt(0.5*intplushalf_gamma(l_val+1)/pow(2*contraction_zeta[s][i][l],l_val+1.5)));
                l++;
                if(l>=contraction_number[s][i])
                {
@@ -1695,37 +1702,46 @@ bool basis_data_reader(int n_sym, int* basis_size_sym,int** contraction_number,d
       }
       input.close();
    }
-   for(int s=0;s!=n_sym;s++)
+ /*  for(int s=0;s!=n_sym;s++)
    {
       for(int i=0;i!=basis_size_sym[s];i++)
       {
+         l_val=l_number(basis_func_type[s][i].c_str());
          temp_norm=0;
          for(l=0;l!=contraction_number[s][i];l++)
          {
-          //  std::cout<<contraction_coeff[s][i][l]<<"!!!"<<l<<"$$$"<<i<<"###"<<s<<std::endl;
+         //   std::cout<<contraction_coeff[s][i][l]<<"!!!"<<l<<"$$$"<<i<<"###"<<s<<std::endl;
             for(int lp=0;lp!=contraction_number[s][i];lp++)
             {
-               temp_norm+=contraction_coeff[s][i][l]*contraction_coeff[s][i][lp]*pow(acos(-1)/contraction_zeta[s][i][l]+contraction_zeta[s][i][lp],1.5);
+               temp_norm+=0.5*contraction_coeff[s][i][l]*contraction_coeff[s][i][lp]*intplushalf_gamma(l_val+1)/pow(contraction_zeta[s][i][l]+contraction_zeta[s][i][lp],l_val+1.5);
+//               std::cout<<lp<<"  "<<l_val<<"   "<<intplushalf_gamma(l_val)<<"   "<<std::endl;
             }
          }
-        //    std::cout<<"norm of basis function "<<i<<" symmetry "<<s<<":"<<temp_norm<<std::endl;
+            std::cout<<"norm of basis function "<<i<<" symmetry "<<s<<":"<<temp_norm<<std::endl;
+
+         if(temp_norm==0)
+         {
+            std::cout<<"ERROR ! Norm of basis function "<<i<<" = 0 "<<std::endl;
+            exit(EXIT_FAILURE);
+         }
          for(l=0;l!=contraction_number[s][i];l++)
          {
             contraction_coeff[s][i][l]/=sqrt(temp_norm);
             //std::cout<<"==>"<<contraction_coeff[s][i][l]<<"!!!"<<l<<"$$$"<<i<<"###"<<s<<std::endl;
          }
-         /*temp_norm=0;
+         
+         temp_norm=0;
          for(l=0;l!=contraction_number[s][i];l++)
          {
             for(int lp=0;lp!=contraction_number[s][i];lp++)
             {
-               temp_norm+=sqrt(acos(-1))*contraction_coeff[s][i][l]*contraction_coeff[s][i][lp]/sqrt(contraction_zeta[s][i][l]+contraction_zeta[s][i][lp]);
+               temp_norm+=contraction_coeff[s][i][l]*contraction_coeff[s][i][lp]*pow(acos(-1)/(contraction_zeta[s][i][l]+contraction_zeta[s][i][lp]),1.5);
             }
          }
-            std::cout<<"norm of basis function "<<i<<" symmetry "<<s<<":"<<temp_norm<<std::endl;
-            */
+            std::cout<<"New norm of basis function "<<i<<" symmetry "<<s<<":"<<temp_norm<<std::endl;
+            
       }
-   }
+   }*/
       return 0;
 
 }
@@ -1842,4 +1858,88 @@ std::string separateThem(std::string inString)
          // oString.push_back(' ');
         oString.push_back(c);st=charType(c);
     }
+}
+int l_number(std::string bas_func_type)
+{
+   if(bas_func_type == "1s")
+   {
+      return 0;
+   }
+   else if(bas_func_type=="2px" || bas_func_type=="2py" || bas_func_type=="2pz" )
+   {
+      return 1;
+   }
+   else if(bas_func_type=="3d2-" || bas_func_type=="3d1-" || bas_func_type=="3d0" || bas_func_type=="3d1+" || bas_func_type=="3d2+" )
+   {
+      return 2;
+   }
+   else if( bas_func_type=="4f3-" || bas_func_type=="4f2-" || bas_func_type=="4f1-" || bas_func_type=="4f0" || bas_func_type=="4f1+" || bas_func_type=="4f2+" || bas_func_type=="4f3+")
+   {
+      return 3;
+   }
+   else
+   {
+      std::cout<<"ERROR IN L VALUE DETERMINATION : "<<bas_func_type.c_str()<<std::endl;
+      exit(EXIT_SUCCESS);
+   }
+}
+int ml_number(std::string bas_func_type,int l)
+{
+   switch(l) {
+
+   case 0:
+      return 0;
+   case 1:
+      if(bas_func_type=="2px")
+         return 1;
+      else if(bas_func_type=="2pz")
+         return 0;
+      else if(bas_func_type=="2py")
+         return -1;
+      else 
+      {
+         std::cout<<"ERROR IN SPHERICAL HARMONICS READING in ml_number : "<<bas_func_type.c_str()<<std::endl;
+         exit(EXIT_FAILURE);
+      }
+   case 2:
+      if(bas_func_type=="3d2-")
+         return -2;
+      else if(bas_func_type=="3d1-")
+         return -1;
+      else if(bas_func_type=="3d0")
+         return 0;
+      else if(bas_func_type=="3d1+")
+         return 1;
+      else if(bas_func_type=="3d2+")
+         return 2;
+      else 
+      {
+         std::cout<<"ERROR IN SPHERICAL HARMONICS READING in ml_number : "<<bas_func_type.c_str()<<std::endl;
+         exit(EXIT_FAILURE);
+      }
+   case 3:
+      if(bas_func_type=="4f3-")
+         return -3;
+      else if(bas_func_type=="4f2-")
+         return -2;
+      else if(bas_func_type=="4f1-")
+         return -1;
+      else if(bas_func_type=="4f0")
+         return 0;
+      else if(bas_func_type=="4f1+")
+         return 1;
+      else if(bas_func_type=="4f2+")
+         return 2;
+      else if(bas_func_type=="4f3+")
+         return 3;
+      else 
+      {
+         std::cout<<"ERROR IN SPHERICAL HARMONICS READING in ml_number : "<<bas_func_type.c_str()<<std::endl;
+         exit(EXIT_FAILURE);
+      }
+   default:
+         std::cout<<"ERROR IN SPHERICAL HARMONICS READING in ml_number : "<<bas_func_type.c_str()<<std::endl;
+         exit(EXIT_FAILURE);
+
+   }
 }

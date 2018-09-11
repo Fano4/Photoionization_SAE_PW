@@ -8,106 +8,99 @@
 
 #include "dyson_cube_writer.hpp"
 
-bool cube_header(double *dyson_MO_basis_coeff,int n_occ,int n_states_neut,int n_states_cat,double **MO_cube_array,std::string Dyson_cube_loc,int state_neut,int state_cat,int n_nucl,int nx,int ny,int nz,double xmin,double xmax,double ymin,double ymax,double zmin,double zmax,double *dyson_cube)
+bool cube_header(int* n_states_neut,int* n_states_cat,int *n_occ,int *n_closed,int *n_nucl_dim,int *grid_size,int *num_of_nucl,int* basis_size,int *contraction_number,double nucl_coord,double **nucl_spher_pos,double *MO_coeff_neutral,double *dyson_mo_coeff,double **contraction_coeff,double **contraction_zeta,int* nucleus_basis_func,std::string *basis_func_type,int **angular_mom_numbers,std::string Dyson_cube_loc,int state_neut,int state_cat,int n_nucl,int nx,int ny,int nz,double xmin,double xmax,double ymin,double ymax,double zmin,double zmax)
 {
     using namespace std;
     double temp_norm(0);
+
+    double* dyson_cube=new double[nx*ny*nz];
+   double r(0);
+   double thet(0);
+   double phi(0);
+   double x(0);
+   double y(0);
+   double z(0);
     
     stringstream filename_str;
     string filename;
-   /* for(int i=0;i!=n_states_neut*n_states_cat;i++)
-    {
-       temp_norm=0;  
-       for(int v=0;v!=nx;v++)
-       {
-          for(int w=0;w!=ny;w++)
-          {
-             for(int y=0;y!=nz;y++)
-             {
-                temp_norm+=MO_cube_array[i][v*ny*nz+w*nz+y]*MO_cube_array[i][v*ny*ny+w*nz+y]*((xmax-xmin)/nx)*((ymax-ymin)/ny)*((zmax-zmin)/nz);
-             }
-          }
-       }
-       std::cout<<"dyson norm is "<<temp_norm<<std::endl;
-       
-       for(int v=0;v!=nx;v++)
-       {
-          for(int w=0;w!=ny;w++)
-          {
-             for(int y=0;y!=nz;y++)
-             {
-                MO_cube_array[i][v*ny*nz+w*nz+y]/=sqrt(temp_norm);
-             }
-          }
-       }
-    }
-*/
-   /* for(int k=0;k!=n_occ;k++)
-    {
-       std::cout<<dyson_MO_basis_coeff[n_states_cat*n_occ*state_neut+n_occ*state_cat+k]<<std::endl;
-    }*/
+
     filename_str<<Dyson_cube_loc<<state_neut<<"."<<state_cat<<".cube";
     filename=filename_str.str();
     std::cout<<filename<<std::endl;
     
-    ofstream Dyson_cube(filename.c_str());
+    ofstream Dyson_cube;
     string temp;
     bool test(0);
     double floating;
-    double sum;
     double temp_cube[nx*ny*nz];
     int index(0);
     int index2(0);
     int mo_index(0);
+    int i(0);
+    int j(0);
+    int k(0);
+    int l(0);
 
-    Dyson_cube<<"Dyson orbital cube file"<<std::endl<<"Dyson between state "<<state_neut<<" of the neutral and state "<<state_cat<<" of the cation"<<"\n";
-    Dyson_cube<<"-"<<n_nucl<<"  "<<xmin<<"  "<<ymin<<"  "<<zmin<<" \n";
-    Dyson_cube<<nx<<"   "<<(xmax-xmin)/nx<<"    0.000000    0.000000 \n";
-    Dyson_cube<<ny<<"   "<<"0.000000    "<<(ymax-ymin)/ny<<"    0.000000 \n";
-    Dyson_cube<<nz<<"   "<<"0.000000    0.000000    "<<(zmax-zmin)/nz<<" \n";
-    Dyson_cube<<"    1    1.000000    0.0000000000        0.0000000000      -1.295266 \n";
-    Dyson_cube<<"    3    3.000000    0.0000000000        0.0000000000      0.217021 \n";
-    //Dyson_cube<<"    6    6.000000    0.000000    0.993566    0.000000 \n";
-    //Dyson_cube<<"    1    1.000000    1.775571    2.096624    0.000000 \n";
-    //Dyson_cube<<"    1    1.000000   -1.775571    2.096624    0.000000 \n";
-    //Dyson_cube<<"    8    8.000000    0.000000   -1.269371    0.000000 \n";
-    //Dyson_cube<<"  6    6.000000    0.000000    0.000000    1.173348 \n";
-    //Dyson_cube<<"  7    7.000000    0.000000    0.000000   -1.005506 \n";
-    //Dyson_cube<<"1    1.000000    0.000000    0.000000    3.212534 \n";
-
-    Dyson_cube<<"1  111 \n";
-
-        sum=0;
-           for(int i=0;i!=nx;i++)
+           for( i=0;i!=nx;i++)
            {
-              for(int j=0;j!=ny;j++)
+              for( j=0;j!=ny;j++)
               {
-                 for(int l=0;l!=nz;l++)
+                 for( l=0;l!=nz;l++)
                  {
                     dyson_cube[i*ny*nz+j*nz+l]=0;
                  }
               }
            }
-        for (int k=0; k!=n_occ; k++)
-        {
-           for(int i=0;i!=nx;i++)
-           {
-              for(int j=0;j!=ny;j++)
-              {
-                 for(int l=0;l!=nz;l++)
-                 {
-                    dyson_cube[i*ny*nz+j*nz+l]+=dyson_MO_basis_coeff[n_occ*n_states_cat*state_neut+n_occ*state_cat+k]*MO_cube_array[k][i*ny*nz+j*nz+l];
+      for( i=0;i<nx;i++)
+      {
+         std::cout<<"Writing cube "<<i<<std::endl;
+         x=xmin+i*(xmax-xmin)/nx;
+#pragma omp parallel for private(j,k,l,r,thet,phi,y,z) shared(i,x,nx,ny,nz,xmin,xmax,ymin,ymax,zmin,zmax,dyson_cube,dyson_mo_coeff,nucl_spher_pos,nucleus_basis_func,contraction_number,contraction_coeff,contraction_zeta,basis_func_type,MO_coeff_neutral,basis_size,n_occ,angular_mom_numbers)
+         for( j=0;j<ny;j++)
+         {
+            y=ymin+j*(ymax-ymin)/ny;
+            for( l=0;l<nz;l++)
+            {
+               z=zmin+l*(zmax-zmin)/nz;
+                for (k=0; k<*n_occ; k++)
+                {
+                    dyson_cube[i*ny*nz+j*nz+l]+=dyson_mo_coeff[*n_states_cat**n_occ*state_neut+state_cat**n_occ+k]*MO_value(k,x,y,z,nucl_spher_pos,nucleus_basis_func,contraction_number,contraction_coeff,contraction_zeta,basis_func_type,MO_coeff_neutral,*basis_size,angular_mom_numbers);
+ //                   std::cout<<dyson_mo_coeff[*n_states_cat**n_occ*state_neut+state_cat**n_occ+k]<<"*"<<MO_value(k,x,y,z,nucl_spher_pos,nucleus_basis_func,contraction_number,contraction_coeff,contraction_zeta,basis_func_type,MO_coeff_neutral,*basis_size,angular_mom_numbers)<<std::endl;
                  }
               }
            }
         }
-        for(int i=0;i!=nx;i++)
+
+      std::cout<<"cube built!"<<std::endl;
+       temp_norm=0;  
+       for( i=0;i!=nx;i++)
+       {
+          for( j=0;j!=ny;j++)
+          {
+             for( l=0;l!=nz;l++)
+             {
+                temp_norm+=dyson_cube[i*ny*nz+j*nz+l]*dyson_cube[i*ny*nz+j*nz+l]*((xmax-xmin)/nx)*((ymax-ymin)/ny)*((zmax-zmin)/nz);
+             }
+          }
+       }
+       std::cout<<"dyson norm is "<<temp_norm<<std::endl;
+
+    Dyson_cube.open(filename.c_str());
+    Dyson_cube<<"Dyson orbital cube file"<<std::endl<<"Dyson between state "<<state_neut<<" of the neutral and state "<<state_cat<<" of the cation"<<"\n";
+    Dyson_cube<<"-"<<n_nucl<<"  "<<xmin<<"  "<<ymin<<"  "<<zmin<<" \n";
+    Dyson_cube<<nx<<"   "<<(xmax-xmin)/nx<<"    0.000000    0.000000 \n";
+    Dyson_cube<<ny<<"   "<<"0.000000    "<<(ymax-ymin)/ny<<"    0.000000 \n";
+    Dyson_cube<<nz<<"   "<<"0.000000    0.000000    "<<(zmax-zmin)/nz<<" \n";
+    Dyson_cube<<"    1    1.000000    0.0000000000        0.0000000000      "<<-1.295266/0.529<<" \n";
+    Dyson_cube<<"    3    3.000000    0.0000000000        0.0000000000      "<<0.217021/0.529<<" \n";
+    Dyson_cube<<"1  111 \n";
+        for( i=0;i!=nx;i++)
         {
-           for(int j=0;j!=ny;j++)
+           for( j=0;j!=ny;j++)
            {
-              for(int k=0;k!=nz;k++)
+              for( l=0;l!=nz;l++)
               {
-                Dyson_cube<<scientific<<setw(16)<<sqrt(2)*dyson_cube[i*ny*nz+j*nz+k];
+                Dyson_cube<<scientific<<setw(16)<<dyson_cube[i*ny*nz+j*nz+l];
                 index++;
                 index2++;
                 if (index2%6==0)
@@ -169,3 +162,4 @@ bool cube_reader(int mo_index1,int mo_index2,int nx,int ny,int nz,std::string MO
 
    return 1;
 }
+

@@ -77,7 +77,7 @@ double determinant(double *A,int dim)
     */
     delete [] ipiv;
     delete [] B;
-    return det_val;
+    return sign*det_val;
 }
 
 void matrix_product(double *C,double *A,double *B,int dim1,int dim2,int dim3)
@@ -120,6 +120,12 @@ long int factorial(int n)
     else
         return 1;
 
+}
+
+long double intplushalf_gamma(int n) //(Gamma(n+1/2))
+{
+//   std::cout<<sqrt(acos(-1))*factorial(2*n)/(pow(2,2*n)*factorial(n))<<std::endl;
+   return sqrt(acos(-1))*factorial(2*n)/(pow(4,n)*factorial(n));
 }
 
 double vector_prod(double vector1[],double vector2[],int gsize)
