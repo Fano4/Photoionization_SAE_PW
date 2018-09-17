@@ -111,9 +111,9 @@ bool dyson_mo_coeff_comp(int n_states_neut,int n_states_cat,int n_occ,int ci_siz
 std::complex<double> MO_Fourier_transform_grad( int mo_index,int comp, double k, double thet, double phi,double **nucl_spher_pos,int *nucl_basis_func,int* contraction_number,double **contraction_coeff,double **contraction_zeta,int **angular_mom_numbers,double *MO_neut_basis_coeff,int basis_size)
 {
    std::complex<double> value(0);
+//      std::cout<<MO_neut_basis_coeff[mo_index*basis_size+i]<<","<<nucl_basis_func[i]-1<<std::endl;
    for(int i=0;i!=basis_size;i++)
    {
-//      std::cout<<MO_neut_basis_coeff[mo_index*basis_size+i]<<","<<nucl_basis_func[i]-1<<std::endl;
           value+=MO_neut_basis_coeff[mo_index*basis_size+i]*AO_FT_grad(i,comp,k,thet,phi,contraction_number,nucl_spher_pos[nucl_basis_func[i]-1],contraction_coeff,contraction_zeta,angular_mom_numbers[i]);
    }
 //   std::cout<<value<<"=="<<std::endl;
@@ -200,11 +200,12 @@ std::complex<double> contraction_FT( double k, double thet, double phi,double* n
       *((pow(std::complex<double>(0,-k),l)*exp(-pow(k,2)/(4*contraction_zeta)))/(pow(2*contraction_zeta,1.5+l))) // Radial part
       *phase_factor // phase factor
       ;
+      //std::cout<<thet<<";"<<phi<<" : probe! => "<<value<<std::endl;
    }
    else
    {
    value=
-      (pow(-1,ml)*sqrt(2)*gsl_sf_legendre_sphPlm(l,ml,cos(thet))) // Real spherical harmonics
+      (pow(-1,ml)*gsl_sf_legendre_sphPlm(l,0,cos(thet))) // Real spherical harmonics
       *((pow(std::complex<double>(0,-k),l)*exp(-pow(k,2)/(4*contraction_zeta)))/(pow(2*contraction_zeta,1.5+l))) // Radial part
       *phase_factor // phase factor
       ;
@@ -226,9 +227,8 @@ std::complex<double> contraction_FT_grad_k( double k, double thet, double phi,do
    if(angular_mom_numbers[1]<0)
    {
    value=
-      (pow(-1,ml)*sqrt(2)*gsl_sf_legendre_sphPlm(l,-ml,cos(thet))*sin(-ml*phi)) // Real spherical harmonics
-      *(std::complex<double>(0,-l)*(pow(std::complex<double>(0,-k),l-1)*exp(-pow(k,2)/(4*contraction_zeta)))/(pow(2*contraction_zeta,1.5+l))
-            + (pow(std::complex<double>(0,-k),l)*exp(-pow(k,2)/(4*contraction_zeta))*(-k/(2*contraction_zeta)-std::complex<double>(0,1)*nucl_spher_pos[0]*f))/(pow(2*contraction_zeta,1.5+l))) // Radial part
+      (pow(-1,ml)*sqrt(2)*(factorial(l-ml)/factorial(l+ml))*gsl_sf_legendre_sphPlm(l,-ml,cos(thet))*sin(-ml*phi)) // Real spherical harmonics
+      *(std::complex<double>(l,0)-k*(k/(2*contraction_zeta)+std::complex<double>(0,1)*nucl_spher_pos[0]*f))*(pow(std::complex<double>(0,-1),l)*pow(k,l-1)*exp(-pow(k,2)/(4*contraction_zeta))/pow(2,1.5+l))
       *phase_factor // phase factor
       ;
    }
@@ -236,17 +236,15 @@ std::complex<double> contraction_FT_grad_k( double k, double thet, double phi,do
    {
    value=
       (pow(-1,ml)*sqrt(2)*gsl_sf_legendre_sphPlm(l,ml,cos(thet))*cos(ml*phi)) // Real spherical harmonics
-      *(std::complex<double>(0,-l)*(pow(std::complex<double>(0,-k),l-1)*exp(-pow(k,2)/(4*contraction_zeta)))/(pow(2*contraction_zeta,1.5+l))
-            + (pow(std::complex<double>(0,-k),l)*exp(-pow(k,2)/(4*contraction_zeta))*(-k/(2*contraction_zeta)-std::complex<double>(0,1)*nucl_spher_pos[0]*f))/(pow(2*contraction_zeta,1.5+l))) // Radial part
+      *(std::complex<double>(l,0)-k*(k/(2*contraction_zeta)+std::complex<double>(0,1)*nucl_spher_pos[0]*f))*(pow(std::complex<double>(0,-1),l)*pow(k,l-1)*exp(-pow(k,2)/(4*contraction_zeta))/pow(2,1.5+l))
       *phase_factor // phase factor
       ;
    }
    else
    {
    value=
-      (pow(-1,ml)*sqrt(2)*gsl_sf_legendre_sphPlm(l,ml,cos(thet))) // Real spherical harmonics
-      *(std::complex<double>(0,-l)*(pow(std::complex<double>(0,-k),l-1)*exp(-pow(k,2)/(4*contraction_zeta)))/(pow(2*contraction_zeta,1.5+l))
-            + (pow(std::complex<double>(0,-k),l)*exp(-pow(k,2)/(4*contraction_zeta))*(-k/(2*contraction_zeta)-std::complex<double>(0,1)*nucl_spher_pos[0]*f))/(pow(2*contraction_zeta,1.5+l))) // Radial part
+      (gsl_sf_legendre_sphPlm(l,0,cos(thet))) // Real spherical harmonics
+      *(std::complex<double>(l,0)-k*(k/(2*contraction_zeta)+std::complex<double>(0,1)*nucl_spher_pos[0]*f))*(pow(std::complex<double>(0,-1),l)*pow(k,l-1)*exp(-pow(k,2)/(4*contraction_zeta))/pow(2,1.5+l))
       *phase_factor // phase factor
       ;
    }
@@ -268,32 +266,65 @@ std::complex<double> contraction_FT_grad_thet( double k, double thet, double phi
    if(ml<0)
    {
 //      std::cout<<"probe 1 t : l = "<<l<<" ; ml = "<<ml<<std::endl;
-   value=
-     ( std::complex<double>(0,-1)*k*nucl_spher_pos[0]*(pow(-1,ml)*sqrt(2)*gsl_sf_legendre_sphPlm(l,-ml,cos(thet))*sin(-ml*phi)*dfdt)
-     + (pow(-1,ml)*sqrt(2)*(-cos(thet)*l*gsl_sf_legendre_sphPlm(l,-ml,cos(thet))+(l+ml)*gsl_sf_legendre_sphPlm(l-1,bool(l+ml>0)*(-ml),cos(thet)))*sin(-ml*phi)))// Real spherical harmonics
-      *((pow(std::complex<double>(0,-1),l)*pow(k,l-1)*exp(-pow(k,2)/(4*contraction_zeta)))/(pow(2*contraction_zeta,1.5+l))) // Radial part
-      *phase_factor // phase factor
-      ;
+      if(thet!=0)
+      {
+         value=
+         ( std::complex<double>(0,-1)*k*nucl_spher_pos[0]*dfdt*(pow(-1,ml)*sqrt(2)*(factorial(l-ml)/factorial(l+ml))*gsl_sf_legendre_sphPlm(l,-ml,cos(thet))*sin(-ml*phi))
+         +(pow(-1,ml)*sqrt(2)*(factorial(l-ml)/factorial(l+ml))*(sin(-ml*phi)/sin(thet))*(cos(thet)*l*gsl_sf_legendre_sphPlm(l,-ml,cos(thet))-(l-ml)*sqrt((2*l+1)*(l+ml)/((2*l-1)*(l-ml)))*gsl_sf_legendre_sphPlm(l-1,bool(l+ml>0)*(-ml),cos(thet))*bool(l+ml>0))))// Real spherical harmonics
+         *((pow(std::complex<double>(0,-1),l)*pow(k,l-1)*exp(-pow(k,2)/(4*contraction_zeta)))/(pow(2*contraction_zeta,1.5+l))) // Radial part
+         *phase_factor // phase factor
+         ;
+      }
+      else
+      {
+         value=
+         ( std::complex<double>(0,-1)*k*nucl_spher_pos[0]*dfdt*(pow(-1,ml)*sqrt(2)*(factorial(l-ml)/factorial(l+ml))*gsl_sf_legendre_sphPlm(l,-ml,cos(thet))*sin(-ml*phi)))
+         *((pow(std::complex<double>(0,-1),l)*pow(k,l-1)*exp(-pow(k,2)/(4*contraction_zeta)))/(pow(2*contraction_zeta,1.5+l))) // Radial part
+         *phase_factor // phase factor
+         ;
+      }
    }
    else if(ml>0)
    {
 //      std::cout<<"probe 2 t : l = "<<l<<" ; ml = "<<ml<<std::endl;
-   value=
-     ( std::complex<double>(0,-1)*k*nucl_spher_pos[0]*(pow(-1,ml)*sqrt(2)*gsl_sf_legendre_sphPlm(l,ml,cos(thet))*cos(ml*phi)*dfdt)
-     + (pow(-1,ml)*sqrt(2)*(-cos(thet)*l*gsl_sf_legendre_sphPlm(l,ml,cos(thet))+(l-ml)*gsl_sf_legendre_sphPlm(l-1,bool(l-ml>0)*(ml),cos(thet)))*cos(ml*phi)))// Real spherical harmonics
-      *((pow(std::complex<double>(0,-1),l)*pow(k,l-1)*exp(-pow(k,2)/(4*contraction_zeta)))/(pow(2*contraction_zeta,1.5+l))) // Radial part
-      *phase_factor // phase factor
-      ;
+      if(thet!=0)
+      {
+         value=
+           ( std::complex<double>(0,-1)*k*nucl_spher_pos[0]*dfdt*(pow(-1,ml)*sqrt(2)*gsl_sf_legendre_sphPlm(l,ml,cos(thet))*cos(ml*phi))
+           +(pow(-1,ml)*sqrt(2)*(cos(ml*phi)/sin(thet))*(cos(thet)*l*gsl_sf_legendre_sphPlm(l,ml,cos(thet))-(l+ml)*sqrt((2*l+1)*(l-ml)/((2*l-1)*(l+ml)))*gsl_sf_legendre_sphPlm(l-1,bool(l-ml>0)*(ml),cos(thet))*(bool(l-ml>0)))))// Real spherical harmonics
+           *((pow(std::complex<double>(0,-1),l)*pow(k,l-1)*exp(-pow(k,2)/(4*contraction_zeta)))/(pow(2*contraction_zeta,1.5+l))) // Radial part
+           *phase_factor // phase factor
+           ;
+      }
+      else
+      {
+         value=
+           ( std::complex<double>(0,-1)*k*nucl_spher_pos[0]*dfdt*(pow(-1,ml)*sqrt(2)*gsl_sf_legendre_sphPlm(l,ml,cos(thet))*cos(ml*phi)))
+           *((pow(std::complex<double>(0,-1),l)*pow(k,l-1)*exp(-pow(k,2)/(4*contraction_zeta)))/(pow(2*contraction_zeta,1.5+l))) // Radial part
+           *phase_factor // phase factor
+           ;
+      }
    }
    else
    {
 //      std::cout<<"probe 3 t : l = "<<l<<" ; ml = "<<ml<<std::endl;
-   value=
-     ( std::complex<double>(0,-1)*k*nucl_spher_pos[0]*(pow(-1,ml)*sqrt(2)*gsl_sf_legendre_sphPlm(l,ml,cos(thet))*sin(-ml*phi)*dfdt)
-     + (pow(-1,ml)*sqrt(2)*(-cos(thet)*l*gsl_sf_legendre_sphPlm(l,ml,cos(thet))+(l-ml)*gsl_sf_legendre_sphPlm(bool(l-1>=0)*(l-1),ml,cos(thet)))*cos(ml*phi)))// Real spherical harmonics
-      *((pow(std::complex<double>(0,-1),l)*pow(k,l-1)*exp(-pow(k,2)/(4*contraction_zeta)))/(pow(2*contraction_zeta,1.5+l))) // Radial part
-      *phase_factor // phase factor
-      ;
+      if(thet!=0)
+      {
+         value=
+          (std::complex<double>(0,-1)*k*nucl_spher_pos[0]*gsl_sf_legendre_sphPlm(l,0,cos(thet))*dfdt
+          + (l/sin(thet))*(cos(thet)*gsl_sf_legendre_sphPlm(l,0,cos(thet))+gsl_sf_legendre_sphPlm(bool(l-1>=0)*(l-1),0,cos(thet))))// Real spherical harmonics
+          *((pow(std::complex<double>(0,-1),l)*pow(k,l-1)*exp(-pow(k,2)/(4*contraction_zeta)))/(pow(2*contraction_zeta,1.5+l))) // Radial part
+          *phase_factor // phase factor
+          ;
+      }
+      else
+      {
+         value=
+          (std::complex<double>(0,-1)*k*nucl_spher_pos[0]*sqrt(2)*gsl_sf_legendre_sphPlm(l,0,cos(thet))*dfdt)
+          *((pow(std::complex<double>(0,-1),l)*pow(k,l-1)*exp(-pow(k,2)/(4*contraction_zeta)))/(pow(2*contraction_zeta,1.5+l))) // Radial part
+          *phase_factor // phase factor
+          ;
+      }
    }
 
    return value;
@@ -316,7 +347,7 @@ std::complex<double> contraction_FT_grad_phi( double k, double thet, double phi,
       if(thet!=0)
       {
          value=
-            (-ml*(pow(-1,ml)*sqrt(2)*gsl_sf_legendre_sphPlm(l,-ml,cos(thet))*cos(-ml*phi))//gsl_sf_sin(thet))
+            (-ml*(pow(-1,ml)*sqrt(2)*gsl_sf_legendre_sphPlm(l,-ml,cos(thet))*cos(-ml*phi))
               +(std::complex<double>(0,-1)*k*nucl_spher_pos[0]*pow(-1,ml)*sqrt(2)*gsl_sf_legendre_sphPlm(l,-ml,cos(thet))*sin(-ml*phi)*dfdf2)) // Real spherical harmonics
             *((pow(std::complex<double>(0,-1),l)*pow(k,l-1)*exp(-pow(k,2)/(4*contraction_zeta)))/(pow(2*contraction_zeta,1.5+l))) // Radial part
       *phase_factor // phase factor
@@ -357,7 +388,7 @@ std::complex<double> contraction_FT_grad_phi( double k, double thet, double phi,
    {
 //      std::cout<<"probe 3 f : l = "<<l<<" ; ml = "<<ml<<std::endl;
    value=
-      (std::complex<double>(0,-1)*k*nucl_spher_pos[0]*pow(-1,ml)*sqrt(2)*gsl_sf_legendre_sphPlm(l,ml,cos(thet))*dfdf2) // Real spherical harmonics
+      (std::complex<double>(0,-1)*k*nucl_spher_pos[0]*pow(-1,ml)*gsl_sf_legendre_sphPlm(l,ml,cos(thet))*dfdf2) // Real spherical harmonics
       *((pow(std::complex<double>(0,-1),l)*pow(k,l-1)*exp(-pow(k,2)/(4*contraction_zeta)))/(pow(2*contraction_zeta,1.5+l))) // Radial part
       *phase_factor // phase factor
       ;
