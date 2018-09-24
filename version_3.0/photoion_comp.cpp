@@ -358,7 +358,7 @@ for(int x=0;x!=grid_size;x++)
        {
           MO_coeff_neutral[x][i*basis_size+j]=0;
        }
-          MO_coeff_neutral[x][i*basis_size+i]=1;
+          MO_coeff_neutral[x][i*basis_size+37]=1;
     }
     
       for(int i=0;i!=n_states_neut;i++)
@@ -435,20 +435,21 @@ std::cout<<"POSITION DEPENDENT PART DONE"<<std::endl;
      */
 
     double kp(0);
-    double kmax(sqrt(2*200/27.211));
-    int state_neut(0);
+    double kmax(sqrt(2*200/27.211)/4);
+    int state_neut(11);
     double int_cs(0);
-    double thet(0);
-    double phi(0);
-    int nk=400;
-    std::complex<double> temp;
+    double thet(0.3);
+    double phi(1.25);
+    int nk=50;
+    std::complex<double> *temp=new std::complex<double>[3];
+//    std::complex<double> temp;
     std::complex<double> sinet;
     std::complex<double> cosinet;
     std::complex<double> sinep;
     std::complex<double> cosinep;
     std::complex<double> modulus;
-    int n_theta=100;
-    int n_phi=100;
+    int n_theta=20;
+    int n_phi=40;
     //double efield[3]={1,0,0};//SPHERICAL COORDINATES
     double efield[3]={0,0,0.05};//CARTESIAN COORDINATES
     int i(0);
@@ -481,9 +482,9 @@ exit(EXIT_SUCCESS);
     for(int k=0;k!=nk;k++)
     {
        kp=kmax*(k+1)/nk;
-//       kp=0.664;
+//       kp=0;
        int_cs=0;
-#pragma omp parallel for reduction(+:int_cs) private (i,j,t,p,temp,thet,phi)
+//#pragma omp parallel for reduction(+:int_cs) private (i,j,t,p,temp,thet,phi)
        for( t=0;t<n_theta;t++)
        {
 //          std::cout<<t<<std::endl;
@@ -492,10 +493,44 @@ exit(EXIT_SUCCESS);
           {
 //            std::cout<<"point!"<<k<<","<<t<<","<<p<<"=>"<<temp<<std::endl;
              phi=2*p*acos(-1)/n_phi;
-             temp=0;
+             temp[0]=0;
+             temp[1]=0;
+             temp[2]=0;
+            // temp=0;
              for( i=0;i<n_occ;i++)
              {
-//                std::cout<<kp<<","<<thet<<","<<phi<<"=>"<<MO_Fourier_transform_grad(i,0,kp,thet,phi,nucl_spher_pos[0],nucl_basis_func,contraction_number,contraction_coeff,contraction_zeta,angular_mom_numbers,MO_coeff_neutral[0],basis_size)<<" - "<<MO_Fourier_transform_grad(i,1,kp,thet,phi,nucl_spher_pos[0],nucl_basis_func,contraction_number,contraction_coeff,contraction_zeta,angular_mom_numbers,MO_coeff_neutral[0],basis_size)<<" - "<<MO_Fourier_transform_grad(i,2,kp,thet,phi,nucl_spher_pos[0],nucl_basis_func,contraction_number,contraction_coeff,contraction_zeta,angular_mom_numbers,MO_coeff_neutral[0],basis_size)<<std::endl;
+                // df/dx = df/dk dk/dx + df/dthet dthet/dx + df/dphi dphi/dx 
+                // df/dy = df/dk dk/dy + df/dthet dthet/dy + df/dphi dphi/dy 
+                // df/dz = df/dk dk/dz + df/dthet dthet/dz + df/dphi dphi/dz 
+                
+                if(dyson_mo_basis_coeff[0][state_neut*n_states_cat*n_occ+0*n_occ+i] != 0)
+                {
+                   temp[0]-=std::complex<double>(0,1)*dyson_mo_basis_coeff[0][state_neut*n_states_cat*n_occ+0*n_occ+i]
+                      *(
+                         sin(thet) * cos(phi) * MO_Fourier_transform_grad(i,0,kp,thet,phi,nucl_spher_pos[0],nucl_basis_func,contraction_number,contraction_coeff,contraction_zeta,angular_mom_numbers,MO_coeff_neutral[0],basis_size)
+                         + cos(thet) * cos(phi) * MO_Fourier_transform_grad(i,1,kp,thet,phi,nucl_spher_pos[0],nucl_basis_func,contraction_number,contraction_coeff,contraction_zeta,angular_mom_numbers,MO_coeff_neutral[0],basis_size)
+                         - sin(phi) * MO_Fourier_transform_grad(i,2,kp,thet,phi,nucl_spher_pos[0],nucl_basis_func,contraction_number,contraction_coeff,contraction_zeta,angular_mom_numbers,MO_coeff_neutral[0],basis_size)
+                      );
+/*                   std::cout<<kp<<","<<thet<<","<<phi<<" ; "<<i<<":"<<std::endl<<
+                   "dyson "<<dyson_mo_basis_coeff[0][state_neut*n_states_cat*n_occ+0*n_occ+i]<<std::endl<<
+                   "1: "<<std::complex<double>(0,1)*sin(thet) * cos(phi) * MO_Fourier_transform_grad(i,0,kp,thet,phi,nucl_spher_pos[0],nucl_basis_func,contraction_number,contraction_coeff,contraction_zeta,angular_mom_numbers,MO_coeff_neutral[0],basis_size)<<std::endl<<
+                   "2: "<<std::complex<double>(0,1)*cos(thet) * cos(phi) * MO_Fourier_transform_grad(i,1,kp,thet,phi,nucl_spher_pos[0],nucl_basis_func,contraction_number,contraction_coeff,contraction_zeta,angular_mom_numbers,MO_coeff_neutral[0],basis_size)<<std::endl<<
+                   "3: "<<- std::complex<double>(0,1)*sin(phi) * MO_Fourier_transform_grad(i,2,kp,thet,phi,nucl_spher_pos[0],nucl_basis_func,contraction_number,contraction_coeff,contraction_zeta,angular_mom_numbers,MO_coeff_neutral[0],basis_size)<<std::endl<<std::endl;
+  */              
+                   temp[1]-=std::complex<double>(0,1)*dyson_mo_basis_coeff[0][state_neut*n_states_cat*n_occ+0*n_occ+i]
+                      *(
+                         sin(thet) * sin(phi) * MO_Fourier_transform_grad(i,0,kp,thet,phi,nucl_spher_pos[0],nucl_basis_func,contraction_number,contraction_coeff,contraction_zeta,angular_mom_numbers,MO_coeff_neutral[0],basis_size)
+                       + cos(thet) * sin(phi) * MO_Fourier_transform_grad(i,1,kp,thet,phi,nucl_spher_pos[0],nucl_basis_func,contraction_number,contraction_coeff,contraction_zeta,angular_mom_numbers,MO_coeff_neutral[0],basis_size)
+                       + cos(phi) * MO_Fourier_transform_grad(i,2,kp,thet,phi,nucl_spher_pos[0],nucl_basis_func,contraction_number,contraction_coeff,contraction_zeta,angular_mom_numbers,MO_coeff_neutral[0],basis_size)
+                       );
+
+                   temp[2]-=std::complex<double>(0,1)*dyson_mo_basis_coeff[0][state_neut*n_states_cat*n_occ+0*n_occ+i]
+                      *(
+                         cos(thet) * MO_Fourier_transform_grad(i,0,kp,thet,phi,nucl_spher_pos[0],nucl_basis_func,contraction_number,contraction_coeff,contraction_zeta,angular_mom_numbers,MO_coeff_neutral[0],basis_size)
+                       - sin(thet) * MO_Fourier_transform_grad(i,1,kp,thet,phi,nucl_spher_pos[0],nucl_basis_func,contraction_number,contraction_coeff,contraction_zeta,angular_mom_numbers,MO_coeff_neutral[0],basis_size)
+                       );
+                }
+   /*              
                  temp-=std::complex<double>(0,1)*dyson_mo_basis_coeff[0][state_neut*n_states_cat*n_occ+0*n_occ+i]
                           *(
                                 efield[0]*(
@@ -523,17 +558,18 @@ exit(EXIT_SUCCESS);
                  }
  //            */
              }
+             std::cout<<kp<<"    "<<thet<<"    "<<phi<<"    "<<real(temp[0])<<"   "<<imag(temp[0])<<"  "<<real(temp[1])<<"  "<<imag(temp[1])<<"   "<<real(temp[2])<<"  "<<imag(temp[2])<<std::endl;
 //             std::cout<<thet<<","<<phi<<","<<pow(abs(temp),2)*pow(kp,2)*sin(thet)*(acos(-1)/n_theta)*(2*acos(-1)/n_phi)<<std::endl;
              
 
-             int_cs+=pow(kp,2)*(kmax/nk)*sin(thet)*(acos(-1)/n_theta)*(2*acos(-1)/n_phi)*abs(temp)*abs(temp);
+            // int_cs+=pow(kp,1)*sin(thet)*(acos(-1)/n_theta)*(2*acos(-1)/n_phi)*abs(temp)*abs(temp);
          //std::cout<<kp<<" , "<<thet<<" , "<<phi<<" , "<<temp<<std::endl;
 //             std::cout<<"small loop "<<p<<std::endl;
-          }//std::cout<<std::endl;
+          }std::cout<<std::endl;
 //             std::cout<<"LARGE loop "<<t<<std::endl<<"##################################################################"<<std::endl;
        }
        
-          std::cout<<kp*kp*27.211/2<<","<<int_cs<<std::endl;
+//          std::cout<<kp*kp*27.211/2<<","<<int_cs<<std::endl;
           
     }
 
