@@ -30,3 +30,13 @@
 *.exe
 *.out
 *.app
+
+
+#Other files
+*.txt
+*.swp
+*.vX011
+*.vX001
+*.in
+*.h5
+*.log

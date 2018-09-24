@@ -107,7 +107,7 @@ bool cube_header(double *dyson_MO_basis_coeff,int n_occ,int n_states_neut,int n_
            {
               for(int k=0;k!=nz;k++)
               {
-                Dyson_cube<<scientific<<setw(16)<<sqrt(2)*dyson_cube[i*ny*nz+j*nz+k];
+                Dyson_cube<<scientific<<setw(16)<<dyson_cube[i*ny*nz+j*nz+k];
                 index++;
                 index2++;
                 if (index2%6==0)

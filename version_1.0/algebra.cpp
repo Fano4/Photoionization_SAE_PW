@@ -125,7 +125,7 @@ long int factorial(int n)
 double vector_prod(double vector1[],double vector2[],int gsize)
 {
     double sum(0.);
-#pragma omp parallel for
+//#pragma omp parallel for
         for (int j=0; j<gsize; j++)
         {
             sum+=vector1[j]*vector2[j];
@@ -180,10 +180,12 @@ double cube_dot_product(double *cube1,double *cube2,int nx,int ny, int nz,double
    int num(nx*ny*nz);
    int inc(1);
    const MKL_INT lda(num);
+   int i(0);
+   int j(0);
 
    //cblas_dgemv (CblasRowMajor, CblasNoTrans, angle_vec_size, num, dx*dy*dz ,cube1,lda, cube2, 1, 0,  output, 1);
-   #pragma omp parallel for 
-   for(int i=0;i<angle_vec_size;i++)
+  // #pragma omp parallel for private(i,j,sum) shared(angle_vec_size,nx,ny,nz,cube1,cube2,output,dx,dy,dz)
+ /*  for(int i=0;i<angle_vec_size;i++)
    {
       output[i]=0;
       sum=0;
@@ -195,8 +197,9 @@ double cube_dot_product(double *cube1,double *cube2,int nx,int ny, int nz,double
       //      sum+=cube1[i]*cube2[i]*dx*dy*dz;
       //output[i]= ddot(&num,&cube1[i*nx*ny*nz],&inc,cube2,&inc)*dx*dy*dz;
       // std::cout<<cube1[i*ny*nz+j*nz+k]<<" ; "<<cube2[i*ny*nz+j*nz+k]<<" ; "<<sum<<std::endl;
-   }
+   }*/
    //std::cout<<sum<<" is the result of vector prod"<<std::endl;
-   return 0;
-   //return ddot(&num,cube1,&inc,cube2,&inc)*dx*dy*dz;
+   //return 0;
+   *output= ddot(&num,cube1,&inc,cube2,&inc)*dx*dy*dz;
+   return *output;
 }

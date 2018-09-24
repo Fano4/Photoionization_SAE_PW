@@ -3,7 +3,7 @@
 int main(int argc,char* argv[])
 {
    int photoion_comp(int argc, char* argv[]);
-   omp_set_num_threads(16); 
+   omp_set_num_threads(8); 
 
    photoion_comp(argc,argv);
 
@@ -17,9 +17,9 @@ int photoion_comp(int argc, char* argv[])
     double temp_norm(0);
     const int n_sym(4);
     int n_states_neut(0);
-    int n_states_neutral_sym[n_sym]={10,8,8,5};
+    int n_states_neutral_sym[n_sym]={10,4,4,1};
     int n_states_cat(0);
-    int n_states_cat_sym[n_sym]={1,0,0,0};//{2,1,1,0}
+    int n_states_cat_sym[n_sym]={4,1,1,0};//{2,1,1,0}
     int n_occ(0);
     int *n_occs;
     int n_closed(0);
@@ -50,25 +50,25 @@ int photoion_comp(int argc, char* argv[])
 
     //TEMPORARY VARIABLES
     double kmin(0.0);
-    double Emax(2.756238286);
-    double kmax(sqrt(2*Emax));
-    int nk(150);
-    int ntheta(90);
-    int nphi(120);
-    double xmin(-27.401029);
-    double xmax(27.842971);
-    double ymin(-27.401029);
-    double ymax(27.842971);
-    double zmin(-27.010679);
-    double zmax(28.233321);
-    int nx(125);
-    int ny(125);
-    int nz(125);
+    double Emax(200/27.211);
+    double kmax(sqrt(2*Emax)/4);
+    int nk(50);
+    int ntheta(20);
+    int nphi(40);
+    double xmin(-62.5);
+    double xmax(62.5);
+    double ymin(-62.5);
+    double ymax(62.5);
+    double zmin(-62.5);
+    double zmax(62.5);
+    int nx(180);
+    int ny(180);
+    int nz(180);
     double x;
     double y;
     double z;
-    int n_points_sphere(128);
-    int continuum_matrix_cols(128);
+    int n_points_sphere(ntheta*nphi);
+    int continuum_matrix_cols(1);
     double Redip_mom[3];
     double Imdip_mom[3];
     double *Reinput;
@@ -103,8 +103,8 @@ int photoion_comp(int argc, char* argv[])
     Improduct_vector[1]=new double[continuum_matrix_cols];
     Improduct_vector[2]=new double[continuum_matrix_cols];
 
-    string MO_cube_loc("/data2/stephan/LiH_pice_astrid/lih_neut_orbital_");
-    string dyson_cube_loc("/data2/stephan/LiH_pice_astrid/lih_dyson_orbital_");
+    string MO_cube_loc("/data1/home/stephan/LiH_gridtest_+++custom_MO_1.6125/lih_neut_orbital_");
+    string dyson_cube_loc("/data1/home/stephan/LiH_gridtest_+++custom_MO_1.6125/dyson_mo_bruteforce");
     stringstream ss_cross_section;
     string s_cross_section;
     stringstream ss_PICE;
@@ -145,6 +145,7 @@ int photoion_comp(int argc, char* argv[])
         //GET THE NUMBER OF ELECTRONIC STATES AND THE SIZE OF THE ACTIVE SPACE
 //    n_states_reader(&n_states_neut,&n_states_cat,&n_elec_neut,molpro_output_path);
 
+       std::cout<<molpro_output_path<<std::endl;
    if(symmetry)
    {
     size_query(n_occs,n_closeds,&basis_size, molpro_output_path,n_sym);
@@ -243,7 +244,7 @@ int photoion_comp(int argc, char* argv[])
    {
       for(int k=0;k!=n_occs[l];k++)
       {
-         std::cout<<"probe cube "<<l+1<<"."<<k+1<<" => "<<temp_int+1<<std::endl;//DEBOGAGE 
+         std::cout<<"probe cube "<<k+1<<"."<<l+1<<" => "<<temp_int+1<<std::endl;//DEBOGAGE 
          cube_reader(k,l,nx,ny,nz,MO_cube_loc,neut_mo_cube_array[temp_int]);
          temp_int++;
       }
@@ -278,20 +279,30 @@ int photoion_comp(int argc, char* argv[])
     std::cout<<"DYSON COEFF ROUTINE ENDED WITHOUT ISSUE"<<std::endl;
 
     //BUILD THE CUBE OF THE DYSON ORBITALS
-    for(int i=0;i!=n_states_neut;i++)
+/*    for(int i=0;i!=n_states_neut;i++)
     {
         cube_header(dyson_mo_basis_coeff,n_occ,n_states_neut,n_states_cat,neut_mo_cube_array,dyson_cube_loc,i,0,num_of_nucl,nx,ny,nz,xmin,xmax,ymin,ymax,zmin,zmax,mo_cube_array); 
     }
       std::cout<<"DYSON ORBITAL CUBE CONSTRUCTED"<<std::endl;
-
+*/
 
 //*****************************COMPUTE IONIZATION MATRIX ELEMENTS IN THE ORTHOGONALIZED PLANE WAVE APPROX******************************
     sphere_dist[0]=new double[n_points_sphere];
     sphere_dist[1]=new double[n_points_sphere];
+    double thet(0);
+    double php(0);
+    for(int t=0;t!=ntheta;t++)
+    {
+       for(int f=0;f!=nphi;f++)
+       {
+          sphere_dist[0][t*nphi+f]=acos(-1)*t/ntheta;
+          sphere_dist[1][t*nphi+f]=2*acos(-1)*f/nphi;
+       }
+    }
        ofstream PICE;
-       ifstream sphere_dist_file;
-       sphere_dist_file.open("sphere_dist_file.txt");
-       if(!sphere_dist_file.is_open())
+//       ifstream sphere_dist_file;
+//       sphere_dist_file.open("sphere_dist_file.txt");
+/*       if(!sphere_dist_file.is_open())
        {
           std::cout<<"importing sphere distribution from previous comptutation"<<std::endl;
           ofstream write_sphere_dist_file;
@@ -330,14 +341,15 @@ int photoion_comp(int argc, char* argv[])
             sphere_dist_file>>sphere_dist[1][i];
           }
             sphere_dist_file.close();
-       }
-
-for(int m=0;m!=n_states_neut;m++)
+       }*/
+int m=11;
+int n=0;
+//for(int m=0;m!=n_states_neut;m++)
 {
-   for(int n=0;n!=n_states_cat;n++)
+//   for(int n=0;n!=n_states_cat;n++)
    {
        ss_PICE.str("");
-       ss_PICE<<"/data2/stephan/LiH_pice_astrid/LiH_PICE_astrid_"<<m<<"_"<<n<<".txt";
+       ss_PICE<<"/data2/stephan/LiH_PICE_bruteforce_"<<m<<"_"<<n<<".txt";
        s_PICE=ss_PICE.str();
 
        cube_header(dyson_mo_basis_coeff,n_occ,n_states_neut,n_states_cat,neut_mo_cube_array,dyson_cube_loc,m,n,num_of_nucl,nx,ny,nz,xmin,xmax,ymin,ymax,zmin,zmax,mo_cube_array); 
@@ -352,6 +364,7 @@ for(int m=0;m!=n_states_neut;m++)
        for(int e=1;e!=nk+1;e++)
        {
           kp=e*kmax/nk;
+  //        kp=0.3;
           sum=0;
 //   std::cout<<"The factor is "<<4*0.441*(xmax-xmin)*(ymax-ymin)*(zmax-zmin)*kp/(2*Pi*137)<<std::endl;
 
@@ -377,10 +390,10 @@ for(int m=0;m!=n_states_neut;m++)
              cube_dot_product(Iminput,moment_cube_array[2],nx,ny,nz,(xmax-xmin)/nx,(ymax-ymin)/ny,(zmax-zmin)/nz,continuum_matrix_cols,Improduct_vector[2]);
           for(int w=0;w!=continuum_matrix_cols;w++)
           {
-             PICE<<kp<<"    "<<theta[w]<<"    "<<phi[w]<<"    "<<sqrt(2)*Reproduct_vector[0][w]<<"   "<<sqrt(2)*Improduct_vector[0][w]<<"  "<<sqrt(2)*Reproduct_vector[1][w]<<"  "<<sqrt(2)*Improduct_vector[1][w]<<"   "<<sqrt(2)*Reproduct_vector[2][w]<<"  "<<sqrt(2)*Improduct_vector[2][w]<<std::endl;
+             PICE<<kp<<"    "<<theta[w]<<"    "<<phi[w]<<"    "<<Reproduct_vector[0][w]<<"   "<<Improduct_vector[0][w]<<"  "<<Reproduct_vector[1][w]<<"  "<<Improduct_vector[1][w]<<"   "<<Reproduct_vector[2][w]<<"  "<<Improduct_vector[2][w]<<std::endl;
              if((i*continuum_matrix_cols+w+1)%nphi==0)
              {
-                PICE<<std::endl;
+               PICE<<std::endl;
              }
           }
           }

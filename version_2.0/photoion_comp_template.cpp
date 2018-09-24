@@ -17,7 +17,7 @@ int photoion_comp(int argc, char* argv[])
     double temp_norm(0);
     const int n_sym(4);
     int n_states_neut(0);
-    int n_states_neutral_sym[n_sym]={8,3,3,1};//{8,3,3,1};
+    int n_states_neutral_sym[n_sym]={10,4,4,1};//{8,3,3,1};
     int n_states_cat(0);
     int n_states_cat_sym[n_sym]={2,1,1,0};//{2,1,1,0}
     int n_occ(0);
@@ -55,18 +55,18 @@ int photoion_comp(int argc, char* argv[])
     int nk(150);
     int ntheta(90);
     int nphi(120);
-    int nx(64);//125);
-    int ny(64);//125);
-    int nz(64);//125);
+    int nx(300);//125);
+    int ny(300);//125);
+    int nz(300);//125);
     int nkx(64);
     int nky(64);
     int nkz(64);
-    double xmin(-64.0);//-27.401029);
-    double xmax(-64.0+nx*2);//27.842971);
-    double ymin(-64.0);//-27.401029);
-    double ymax(-64.0+ny*2);//27.842971);
-    double zmin(-64.0);//-27.010679);
-    double zmax(-64.0+nz*2);//28.233321);
+    double xmin(-75);//-27.401029);
+    double xmax(-75.0+nx*0.5);//27.842971);
+    double ymin(-75.0);//-27.401029);
+    double ymax(-75.0+ny*0.5);//27.842971);
+    double zmin(-75.0);//-27.010679);
+    double zmax(-75.0+nz*0.5);//28.233321);
     double x;
     double y;
     double z;
@@ -100,8 +100,8 @@ int photoion_comp(int argc, char* argv[])
     double temp(0);
     int temp_int(0);
 
-    string MO_cube_loc("MO_CUBE_LOC");
-    string dyson_cube_loc("DYSON_CUBE_LOC");
+    string MO_cube_loc("/data1/home/stephan/LiH_gridtest_+++custom_MO_1.6125/lih_neut_orbital_");//"MO_CUBE_LOC");
+    string dyson_cube_loc("/data1/home/stephan/LiH_gridtest_+++custom_MO_1.6125/dyson_mo_");//"DYSON_CUBE_LOC");
     stringstream ss_cross_section;
     string s_cross_section;
     stringstream ss_PICE;
@@ -304,9 +304,10 @@ DFTI_DESCRIPTOR_HANDLE cube_ft_desc;
           dtemp+=dyson_mo_basis_coeff[a*n_states_cat*n_occ+0*n_occ+k]*dyson_mo_basis_coeff[a*n_states_cat*n_occ+0*n_occ+k];
        }
        std::cout<<"Norm of Dyson orbital "<<a<<"_"<<0<<" = "<<dtemp<<std::endl;
-//cube_header(dyson_mo_basis_coeff,n_occ,n_states_neut,n_states_cat,neut_mo_cube_array,dyson_cube_loc.c_str(),a,0,2,nx,ny,nz,xmin,xmax,ymin,ymax,zmin,zmax,mo_cube_array);
+       cube_header(dyson_mo_basis_coeff,n_occ,n_states_neut,n_states_cat,neut_mo_cube_array,dyson_cube_loc.c_str(),a,0,2,nx,ny,nz,xmin,xmax,ymin,ymax,zmin,zmax,mo_cube_array);
     }
 
+    exit(EXIT_SUCCESS);
     //BUILD THE CUBE OF THE DYSON ORBITALS
     //
 std::cout<<"BEGINNING COMPUTATION OF PICE"<<std::endl;

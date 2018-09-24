@@ -23,22 +23,25 @@ bool pw_builder(double *Reinput,double *Iminput,double k,double *theta,double *p
 
    using namespace std;
 
-
-#pragma omp parallel for
-   for( int i=0;i<angle_vec_size;i++)
+int i(0);
+int m(0);
+int n(0);
+int o(0);
+//   for( i=0;i<angle_vec_size;i++)
    {
-            for( int m=0;m<nx;m++)
+#pragma omp parallel for private(m,n,o,x,y,z,pw_value) shared(angle_vec_size,nx,ny,nz,xmin,xmax,ymin,ymax,zmin,zmax,k,theta,phi,Reinput,Iminput)
+            for( m=0;m<nx;m++)
             {
                x=xmin+m*(xmax-xmin)/nx;
-               for( int n=0;n<ny;n++)
+               for( n=0;n<ny;n++)
                {
                   y=ymin+n*(ymax-ymin)/ny;
-                  for( int o=0;o<nz;o++)
+                  for( o=0;o<nz;o++)
                   {
                      z=zmin+o*(zmax-zmin)/nz;
                      eikr(pw_value, k,theta[i], phi[i], x, y, z);
-                     Reinput[i*nx*ny*nz+m*ny*nz+n*nz+o]=pw_value[0]/sqrt((xmax-xmin)*(ymax-ymin)*(zmax-zmin));
-                     Iminput[i*nx*ny*nz+m*ny*nz+n*nz+o]=pw_value[1]/sqrt((xmax-xmin)*(ymax-ymin)*(zmax-zmin));
+                     Reinput[i*nx*ny*nz+m*ny*nz+n*nz+o]=pw_value[0]/pow(2*acos(-1),1.5);
+                     Iminput[i*nx*ny*nz+m*ny*nz+n*nz+o]=pw_value[1]/pow(2*acos(-1),1.5);
                   }
                }
             }
@@ -52,7 +55,7 @@ bool pw_builder(double *Reinput,double *Iminput,double k,double *theta,double *p
       cube_dot_product(Iminput,&Iminput[i*nx*ny*nz],nx,ny,nz,(xmax-xmin)/nx,(ymax-ymin)/ny,(zmax-zmin)/nz,angle_vec_size,Imtemp);
       std::cout<<"vector "<<i<<" =>"<<Retemp[i]+Imtemp[i]<<std::endl; 
    }*/
-            pw_orthogonalizer(Reinput,Iminput,angle_vec_size,nx,ny,nz,(xmax-xmin)/nx,(ymax-ymin)/ny,(zmax-zmin)/nz,n_occ,neut_mo_cube_array);
+     //       pw_orthogonalizer(Reinput,Iminput,angle_vec_size,nx,ny,nz,(xmax-xmin)/nx,(ymax-ymin)/ny,(zmax-zmin)/nz,n_occ,neut_mo_cube_array);
 
 
             return 1;
@@ -67,6 +70,8 @@ bool pw_orthogonalizer(double *Reinput,double *Iminput,int angle_vec_size,int nx
    const double coeff(1);
    double Redot[angle_vec_size];
    double Imdot[angle_vec_size];
+int i(0);
+int m(0);
 
    std::cout<<"orthogonalizing..."<<std::endl;
 
@@ -81,14 +86,13 @@ bool pw_orthogonalizer(double *Reinput,double *Iminput,int angle_vec_size,int nx
 
       std::cout<<"updating basis..."<<std::endl;
 
-
-#pragma omp parallel for
-      for(int i=0;i<angle_vec_size;i++)
+      for(i=0;i<angle_vec_size;i++)
       {
-         for( int m=0;m!=nx*ny*nz;m++)
+#pragma omp parallel for private(m) shared(neut_mo_cube_array,Reinput,Iminput,k,Redot,Imdot)
+         for(m=0;m<nx*ny*nz;m++)
          {
                Reinput[i*nx*ny*nz+m]-=Redot[i]*neut_mo_cube_array[k][m];
-               Iminput[i*nx*ny*nz+m]-=Imdot[i]*neut_mo_cube_array[k][m];
+               Iminput[i*nx*ny*nz+m]+=Imdot[i]*neut_mo_cube_array[k][m];
          }
         // Redot[i]=-Redot[i];
         // Imdot[i]=-Imdot[i];
@@ -130,7 +134,7 @@ bool projector_lz(double *Reinput,double *Iminput,int angle_vec_size,int nx,int 
    double *Imoutput=new double[nx*ny*nz];
    std::complex<double> output;
 
-#pragma omp parallel for
+//#pragma omp parallel for
    for(int n=0;n<angle_vec_size;n++)
    {
      for(int k=0;k!=nz;k++)

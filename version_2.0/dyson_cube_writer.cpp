@@ -101,13 +101,15 @@ bool cube_header(double *dyson_MO_basis_coeff,int n_occ,int n_states_neut,int n_
               }
            }
         }
+        temp_norm=0;
         for(int i=0;i!=nx;i++)
         {
            for(int j=0;j!=ny;j++)
            {
               for(int k=0;k!=nz;k++)
               {
-                Dyson_cube<<scientific<<setw(16)<<sqrt(2)*dyson_cube[i*ny*nz+j*nz+k];
+                Dyson_cube<<scientific<<setw(16)<<dyson_cube[i*ny*nz+j*nz+k];
+                temp_norm+=dyson_cube[i*ny*nz+j*nz+k]*dyson_cube[i*ny*nz+j*nz+k]*((xmax-xmin)/nx)*((ymax-ymin)/ny)*((zmax-zmin)/nz);
                 index++;
                 index2++;
                 if (index2%6==0)
@@ -122,6 +124,7 @@ bool cube_header(double *dyson_MO_basis_coeff,int n_occ,int n_states_neut,int n_
               }
            }
         }
+        std::cout<<"Dyson_norm is "<<temp_norm<<std::endl;
         
         Dyson_cube.close();
     
@@ -158,11 +161,12 @@ bool cube_reader(int mo_index1,int mo_index2,int nx,int ny,int nz,std::string MO
          for(int i=0;i!=15+fabs(num_of_nucl)*5+2;i++)
          {
             MO_cube_out>>temp;
-            //std::cout<<temp<<std::endl;
+//            std::cout<<temp<<std::endl;
          }
 
         for(int i=0;i!=nx*ny*nz;i++)
         {
+           cube_array[i]=0;
             MO_cube_out>>cube_array[i];
         }
         MO_cube_out.close();

@@ -204,6 +204,7 @@ int overlap_MO(double matrix[],int* n_occ,int* basis_size,std::string molpro_out
        n_occ_tot+=n_occ[k];
     } 
     std::cout<<n_occ_tot<<std::endl;
+    std::cout<<"basis size is "<<*basis_size<<std::endl;
     using namespace std;
     
     string tmp_str;
@@ -276,6 +277,7 @@ int overlap_MO(double matrix[],int* n_occ,int* basis_size,std::string molpro_out
           break;
     }
 
+    std::cout<<"AO S MATRIX READ IN MOLPRO OUTPUT WITHOUT ERROR"<<std::endl;
     position=0;
     
     MO_coeff_neutral=new double[n_occ_tot**basis_size];
@@ -293,7 +295,7 @@ int overlap_MO(double matrix[],int* n_occ,int* basis_size,std::string molpro_out
    }
        molpro_file.open(molpro_out_path.c_str());
        molpro_file.seekg(position);
-           for(int i=0;i!=7;i++)
+           while(tmp_str != "Coefficients")
            {
               molpro_file>>tmp_str;
            }
@@ -325,6 +327,7 @@ int overlap_MO(double matrix[],int* n_occ,int* basis_size,std::string molpro_out
            }
            position=molpro_file.tellg();
            molpro_file.close();
+    std::cout<<"MO COEFF NEUTRAL READ IN MOLPRO OUTPUT WITHOUT ERROR"<<std::endl;
 
    if(!search(&position, molpro_out_path,position, "NATURAL", 0, "ORBITALS"))
    {
@@ -333,7 +336,7 @@ int overlap_MO(double matrix[],int* n_occ,int* basis_size,std::string molpro_out
    }
        molpro_file.open(molpro_out_path.c_str());
        molpro_file.seekg(position);
-           for(int i=0;i!=7;i++)
+           while(tmp_str != "Coefficients")
            {
               molpro_file>>tmp_str;
            }
@@ -362,6 +365,7 @@ int overlap_MO(double matrix[],int* n_occ,int* basis_size,std::string molpro_out
         }
     
         molpro_file.close();
+    std::cout<<"MO COEFF CATION READ IN MOLPRO OUTPUT WITHOUT ERROR"<<std::endl;
    
 /*
     
@@ -528,20 +532,20 @@ int num_of_ci_reader(int *n_states_neut,int *n_states_cat,int *n_ci_neut,int *n_
           }
           molpro_output>>tmp_str;
     
-          //std::cout<<"before neutral "<<tmp_str<<std::endl;//DEBOGAGE
-          while(tmp_str!="TOTAL")
+  //        std::cout<<"before neutral "<<tmp_str<<std::endl;//DEBOGAGE
+          while(tmp_str!="TOTAL" && tmp_str!="CI" && tmp_str !="**********************************************************************************************************************************" )
           {
               molpro_output>>tmp_str;
               counter++;
           }
-          molpro_output>>tmp_str;
+/*          molpro_output>>tmp_str;
           for(int j=0;j!=n_states_neut[i];j++)
           {
              molpro_output>>tmp_str;
           }
+          molpro_output>>tmp_str;*/
           molpro_output>>tmp_str;
-          molpro_output>>tmp_str;
-          //std::cout<<"after neutral "<<tmp_str<<std::endl;//DEBOGAGE
+  //        std::cout<<"after neutral "<<tmp_str<<std::endl;//DEBOGAGE
     
           n_ci_neut[i]=(counter-1)/(n_states_neut[i]+n_symocc);
        }
@@ -577,7 +581,7 @@ int num_of_ci_reader(int *n_states_neut,int *n_states_cat,int *n_ci_neut,int *n_
        }
        molpro_output>>tmp_str;
     
-       while(tmp_str!="TOTAL")
+       while(tmp_str!="TOTAL" && tmp_str!="CI" && tmp_str !="**********************************************************************************************************************************" )
        {
            molpro_output>>tmp_str;
            counter++;
@@ -605,22 +609,22 @@ int num_of_ci_reader(int *n_states_neut,int *n_states_cat,int *n_ci_neut,int *n_
          
              //std::cout<<"PROBE LOOP CI VECTOR"<<std::endl;//DEBOGAGE
 
-             //std::cout<<"before cation "<<tmp_str<<std::endl;//DEBOGAGE
-             while(tmp_str!="TOTAL")
+//             std::cout<<"before cation "<<tmp_str<<std::endl;//DEBOGAGE
+             while(tmp_str!="TOTAL" && tmp_str!="CI" && tmp_str !="**********************************************************************************************************************************" )
              {
                molpro_output>>tmp_str;
                counter++;
              }
              molpro_output>>tmp_str;
              //std::cout<<tmp_str<<std::endl;//DEBOGAGE
-             for(int j=0;j!=n_states_cat[i];j++)
+            /* for(int j=0;j!=n_states_cat[i];j++)
              {
                 molpro_output>>tmp_str;
                 //std::cout<<tmp_str<<std::endl;//DEBOGAGE
              }
              molpro_output>>tmp_str;
              // std::cout<<tmp_str<<std::endl;//DEBOGAGE
-             molpro_output>>tmp_str;
+             molpro_output>>tmp_str;*/
              // std::cout<<tmp_str<<std::endl;//DEBOGAGE
              //std::cout<<"after cation "<<tmp_str<<std::endl;//DEBOGAGE
     
@@ -659,11 +663,11 @@ int ci_vec_reader(int *n_states_neut_s,int *n_states_cat_s,int *n_occ,int *n_clo
 
     if(n_sym==1)
     {
-    if(!search(&position, file_address,position, "CI", 0, "vector"))
-    {
-        std::cout<<"CI VECTORS NOT FOUND IN MOLPRO OUPTUT FILE"<<std::endl;
-        return 1;
-    }
+       if(!search(&position, file_address,position, "CI", 0, "vector"))
+       {
+           std::cout<<"CI VECTORS NOT FOUND IN MOLPRO OUPTUT FILE"<<std::endl;
+           return 1;
+       }
     
     
     molpro_output.open(file_address.c_str());
@@ -674,7 +678,6 @@ int ci_vec_reader(int *n_states_neut_s,int *n_states_cat_s,int *n_occ,int *n_clo
 
     for (int i=0; i!=*ci_size_neut; i++)
     {
-        molpro_output>>tmp_str;
 
         if(*n_closed!=0 && elec_index<2**n_closed)
         {
@@ -916,13 +919,25 @@ int ci_vec_reader(int *n_states_neut_s,int *n_states_cat_s,int *n_occ,int *n_clo
         }
       
         molpro_output>>tmp_str;
-        molpro_output>>tmp_str;
+        if(tmp_str == "TOTAL")
+        {
+           molpro_output>>tmp_str;
+           for(int w=0;w!=n_states_neut_s[s];w++)
+           {
+              molpro_output>>tmp_str;
+           }
+           molpro_output>>tmp_str;
+           molpro_output>>tmp_str;
+        }
+        else
+           molpro_output>>tmp_str;
+/*        molpro_output>>tmp_str;
         for(int w=0;w!=n_states_neut_s[s];w++)
         {
            molpro_output>>tmp_str;
         }
         molpro_output>>tmp_str;
-        molpro_output>>tmp_str;
+        molpro_output>>tmp_str;*/
     }
     }
     position=molpro_output.tellg();
@@ -1032,13 +1047,25 @@ int ci_vec_reader(int *n_states_neut_s,int *n_states_cat_s,int *n_occ,int *n_clo
          ci_index++;
         }
         molpro_output>>tmp_str;
-        molpro_output>>tmp_str;
+        if(tmp_str == "TOTAL")
+        {
+           molpro_output>>tmp_str;
+           for(int w=0;w!=n_states_neut_s[s];w++)
+           {
+              molpro_output>>tmp_str;
+           }
+           molpro_output>>tmp_str;
+           molpro_output>>tmp_str;
+        }
+        else
+           molpro_output>>tmp_str;
+    /*    molpro_output>>tmp_str;
         for(int w=0;w!=n_states_cat_s[s];w++)
         {
            molpro_output>>tmp_str;
         }
         molpro_output>>tmp_str;
-        molpro_output>>tmp_str;
+        molpro_output>>tmp_str;*/
    }
     }
 }

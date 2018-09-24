@@ -13,4 +13,4 @@ fi
 
 echo "$DIRECTORY"
 icpp=/opt/intel/composer_xe_2015.3.187/bin/intel64/icpc
-${icpp} -openmp  -I/${MKLROOT}include -I/${MKLROOT}include/fftw  -L/${MKLROOT}lib/intel64 -mkl -liomp5 -lpthread -ldl  ${SOURCE}/photoion_comp.cpp -o ${DIRECTORY}/photoionization_comp.exe
+${icpp} -openmp  -I/${MKLROOT}include -I/${MKLROOT}include/fftw  -L/${MKLROOT}lib/intel64 -mkl -liomp5 -lpthread -ldl  ${SOURCE}/photoion_comp.cpp -o ${DIRECTORY}/PICE_2PI.exe

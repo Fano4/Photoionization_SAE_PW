@@ -77,7 +77,7 @@ double determinant(double *A,int dim)
     */
     delete [] ipiv;
     delete [] B;
-    return det_val;
+    return sign*det_val;
 }
 
 void matrix_product(double *C,double *A,double *B,int dim1,int dim2,int dim3)

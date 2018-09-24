@@ -152,9 +152,12 @@ int size_query(int* n_occ,int *n_closed,int* basis_size,std::string molpro_out_p
         molpro_file.seekg(position);
         for(int i=0;i!=n_sym;i++)
         {
-           molpro_file>>integer;
+           molpro_file>>tmp_str;
+//           std::cout<<tmp_str.c_str()<<std::endl;;
+           integer=atoi(tmp_str.c_str());
            n_closed[i]=integer;
            molpro_file>>tmp_str;
+//           std::cout<<tmp_str.c_str()<<std::endl;;
            std::cout<<"closed "<<n_closed[i]<<std::endl;
         }
            molpro_file.close();
@@ -255,6 +258,7 @@ int overlap_MO(double matrix[],int* n_occ,int* basis_size,std::string molpro_out
        if(tmp_str=="**********************************************************************************************************************************")
           test2=1;
        count[k]--;
+       std::cout<<k<<"=>"<<count[k]<<std::endl;
 
        molpro_file.seekg(position);
   //     std::cout<<"$$$"<<std::endl;
@@ -275,6 +279,9 @@ int overlap_MO(double matrix[],int* n_occ,int* basis_size,std::string molpro_out
        if(test2)
           break;
     }
+    std::cout<<"AO OVERLAP MATRIX READ"<<std::endl;
+
+    std::cout<<"n_occ_tt; basis size "<<n_occ_tot<<";"<<*basis_size<<std::endl;
 
     position=0;
     
@@ -293,20 +300,39 @@ int overlap_MO(double matrix[],int* n_occ,int* basis_size,std::string molpro_out
    }
        molpro_file.open(molpro_out_path.c_str());
        molpro_file.seekg(position);
-           for(int i=0;i!=7;i++)
+       molpro_file>>tmp_str;
+       molpro_file>>tmp_str;
+       molpro_file>>tmp_str;
+       molpro_file>>tmp_str;
+//       std::cout<<"====>"<<tmp_str<<std::endl;
+
+       if(tmp_str == "Some")
+       {
+//          std::cout<<"YES!"<<std::endl;
+           for(int i=0;i!=9;i++)
            {
               molpro_file>>tmp_str;
            }
+       }
+       else
+       {
+           for(int i=0;i!=3;i++)
+           {
+              molpro_file>>tmp_str;
+           }
+       }
+       position=molpro_file.tellg();
            total=0;
            total2=0;
            for(int s=0;s!=n_sym;s++)
            {
-            //cout<<"Coefficients of the neutral"<<endl;//DEBOGAGE
+//            cout<<"Coefficients of the neutral"<<endl;//DEBOGAGE
             for (int i=0; i!=2*sqrt(count[s]); i++)
             {
                 molpro_file>>tmp_str;
-                //cout<<tmp_str<<endl;//DEBOGAGE
+//                cout<<tmp_str<<"   ";//DEBOGAGE
             }
+//            std::cout<<"==="<<std::endl;
             
             for (int j=total; j!=n_occ[s]+total; j++)
             {
@@ -317,15 +343,18 @@ int overlap_MO(double matrix[],int* n_occ,int* basis_size,std::string molpro_out
                 {
                     molpro_file>>floating;
                     MO_coeff_neutral[j**basis_size+k]=floating;
-                    //cout<<MO_coeff_neutral[j**basis_size+k]<<"     ";//DEBOGAGE
+//                    cout<<MO_coeff_neutral[j**basis_size+k]<<"     ";//DEBOGAGE
                 }//std::cout<<endl;//DEBOGAGE
             }//cout<<endl;
             total2+=sqrt(count[s]);
             total+=n_occ[s];
            }
            position=molpro_file.tellg();
-           molpro_file.close();
 
+           molpro_file.close();
+           std::cout<<"NEUTRAL LCAO COEFFICIENTS READ"<<std::endl;
+
+           //std::cout<<"position "<<position<<std::endl;
    if(!search(&position, molpro_out_path,position, "NATURAL", 0, "ORBITALS"))
    {
       std::cout<<"LCAO COEFFICIENTS NOT FOUND IN MOLPRO OUTPUT"<<std::endl;
@@ -333,15 +362,33 @@ int overlap_MO(double matrix[],int* n_occ,int* basis_size,std::string molpro_out
    }
        molpro_file.open(molpro_out_path.c_str());
        molpro_file.seekg(position);
-           for(int i=0;i!=7;i++)
+       molpro_file>>tmp_str;
+       molpro_file>>tmp_str;
+       molpro_file>>tmp_str;
+       molpro_file>>tmp_str;
+//       std::cout<<"====>"<<tmp_str<<std::endl;
+       if(tmp_str == "Some")
+       {
+//          std::cout<<"YES!"<<std::endl;
+           for(int i=0;i!=9;i++)
            {
               molpro_file>>tmp_str;
            }
+       }
+       else
+       {
+           for(int i=0;i!=3;i++)
+           {
+              molpro_file>>tmp_str;
+           }
+       }
+//       std::cout<<tmp_str<<std::endl;
+//       exit(EXIT_SUCCESS);
            total=0;
            total2=0;
            for(int s=0;s!=n_sym;s++)
            {
-            //cout<<"Coefficients of the cation"<<endl;//DEBOGAGE
+            cout<<"Coefficients of the cation"<<endl;//DEBOGAGE
             for (int i=0; i!=2*sqrt(count[s]); i++)
             {
                 molpro_file>>tmp_str;
@@ -362,6 +409,7 @@ int overlap_MO(double matrix[],int* n_occ,int* basis_size,std::string molpro_out
         }
     
         molpro_file.close();
+std::cout<<"CATION LCAO COEFFICIENTS READ"<<std::endl;
    
 /*
     
@@ -389,6 +437,7 @@ int overlap_MO(double matrix[],int* n_occ,int* basis_size,std::string molpro_out
         std::cout<<"#########################################################"<<std::endl;
      //DEBOGAGE
 */
+std::cout<<"DOING THE BORING MATHS"<<std::endl;
     temp=new double[*basis_size*n_occ_tot];
     temp2=new double[*basis_size*n_occ_tot];
     for(int i=0;i!=*basis_size*n_occ_tot;i++)
@@ -506,7 +555,7 @@ int num_of_ci_reader(int *n_states_neut,int *n_states_cat,int *n_ci_neut,int *n_
     {
        n_symocc+=bool(n_occ[i]);
     }
-   //    std::cout<<"n_symocc= "<<n_symocc<<std::endl;
+//       std::cout<<"n_symocc= "<<n_symocc<<std::endl;
 
        int neut_states_sym=0;
        for(int i=0;i!=n_sym;i++)
@@ -528,25 +577,25 @@ int num_of_ci_reader(int *n_states_neut,int *n_states_cat,int *n_ci_neut,int *n_
           }
           molpro_output>>tmp_str;
     
-          //std::cout<<"before neutral "<<tmp_str<<std::endl;//DEBOGAGE
-          while(tmp_str!="TOTAL")
+//          std::cout<<"before neutral "<<tmp_str<<std::endl;//DEBOGAGE
+          while(tmp_str!="TOTAL" && tmp_str!="CI" && tmp_str!="**********************************************************************************************************************************")
           {
               molpro_output>>tmp_str;
               counter++;
           }
           molpro_output>>tmp_str;
-          for(int j=0;j!=n_states_neut[i];j++)
+/*          for(int j=0;j!=n_states_neut[i];j++)
           {
              molpro_output>>tmp_str;
           }
           molpro_output>>tmp_str;
-          molpro_output>>tmp_str;
-          //std::cout<<"after neutral "<<tmp_str<<std::endl;//DEBOGAGE
+          molpro_output>>tmp_str;*/
+//          std::cout<<"after neutral "<<tmp_str<<std::endl;//DEBOGAGE
     
           n_ci_neut[i]=(counter-1)/(n_states_neut[i]+n_symocc);
        }
     }
-  //  std::cout<<"PROBE 2 GETTING CI VECTOR SIZE FROM MOLPRO OUTPUT"<<std::endl;//DEBOGAGE
+//    std::cout<<"PROBE 2 GETTING CI VECTOR SIZE FROM MOLPRO OUTPUT"<<std::endl;//DEBOGAGE
     
     position=molpro_output.tellg();
     molpro_output.close();
@@ -581,28 +630,26 @@ int num_of_ci_reader(int *n_states_neut,int *n_states_cat,int *n_ci_neut,int *n_
           }
           molpro_output>>tmp_str;
          
-          //std::cout<<"PROBE LOOP CI VECTOR"<<std::endl;//DEBOGAGE
-
-          //std::cout<<"before cation "<<tmp_str<<std::endl;//DEBOGAGE
-          while(tmp_str!="TOTAL")
+//          std::cout<<"before cation "<<tmp_str<<std::endl;//DEBOGAGE
+          while(tmp_str!="TOTAL" && tmp_str!="CI" && tmp_str!="**********************************************************************************************************************************")
           {
             molpro_output>>tmp_str;
             counter++;
           }
           molpro_output>>tmp_str;
           //std::cout<<tmp_str<<std::endl;//DEBOGAGE
-          for(int j=0;j!=n_states_cat[i];j++)
-          {
-             molpro_output>>tmp_str;
+//          for(int j=0;j!=n_states_cat[i];j++)
+//          {
+//             molpro_output>>tmp_str;
              //std::cout<<tmp_str<<std::endl;//DEBOGAGE
-          }
-          molpro_output>>tmp_str;
+//          }
+//          molpro_output>>tmp_str;
           // std::cout<<tmp_str<<std::endl;//DEBOGAGE
-          molpro_output>>tmp_str;
+//          molpro_output>>tmp_str;
           // std::cout<<tmp_str<<std::endl;//DEBOGAGE
           //std::cout<<"after cation "<<tmp_str<<std::endl;//DEBOGAGE
     
-          //std::cout<<"counter is "<<counter<<" n_ci_cat is "<<(counter-1)/(n_states_cat[i]+n_symocc)<<std::endl;
+          std::cout<<"counter is "<<counter<<" n_ci_cat is "<<(counter-1)/(n_states_cat[i]+n_symocc)<<std::endl;
           n_ci_cat[i]=(counter-1)/(n_states_cat[i]+n_symocc);
 
        }
@@ -627,156 +674,158 @@ int ci_vec_reader(int *n_states_neut_s,int *n_states_cat_s,int *n_occ,int *n_clo
     int n_states_cat(0);
     int n_symocc(0);
     
+    std::cout<<"PROBE Reading CI Vector "<<std::endl;
     for(int i=0;i!=n_sym;i++)
     {
        n_states_neut+=n_states_neut_s[i];
        n_states_cat+=n_states_cat_s[i];
     }
+
     std::ifstream molpro_output;
 
     if(n_sym==1)
     {
-    if(!search(&position, file_address,position, "CI", 0, "vector"))
-    {
-        std::cout<<"CI VECTORS NOT FOUND IN MOLPRO OUPTUT FILE"<<std::endl;
-        return 1;
-    }
+       if(!search(&position, file_address,position, "CI", 0, "vector"))
+       {
+           std::cout<<"CI VECTORS NOT FOUND IN MOLPRO OUPTUT FILE"<<std::endl;
+           return 1;
+       }
     
     
-    molpro_output.open(file_address.c_str());
+       molpro_output.open(file_address.c_str());
     
-    molpro_output.seekg(position);
+       molpro_output.seekg(position);
     
-    molpro_output>>tmp_str;
+       molpro_output>>tmp_str;
 
-    for (int i=0; i!=*ci_size_neut; i++)
-    {
-        molpro_output>>tmp_str;
+       for (int i=0; i!=*ci_size_neut; i++)
+       {
+           molpro_output>>tmp_str;
 
-        if(*n_closed!=0 && elec_index<2**n_closed)
-        {
-           for(int j=0;j!=*n_closed;j++)
+           if(*n_closed!=0 && elec_index<2**n_closed)
            {
-              ci_vector_neut[0][(n_elec_neut+n_states_neut)*i+elec_index]=j;
-              ci_vector_neut[1][(n_elec_neut)*i+elec_index]=0;
-              elec_index++;
-              ci_vector_neut[0][(n_elec_neut+n_states_neut)*i+elec_index]=j;
-              ci_vector_neut[1][(n_elec_neut)*i+elec_index]=1;
-              elec_index++;
+              for(int j=0;j!=*n_closed;j++)
+              {
+                 ci_vector_neut[0][(n_elec_neut+n_states_neut)*i+elec_index]=j;
+                 ci_vector_neut[1][(n_elec_neut)*i+elec_index]=0;
+                 elec_index++;
+                 ci_vector_neut[0][(n_elec_neut+n_states_neut)*i+elec_index]=j;
+                 ci_vector_neut[1][(n_elec_neut)*i+elec_index]=1;
+                 elec_index++;
 
+              }
            }
-        }
-        for (int j=*n_closed; j!=*n_occ; j++)
-        {
-            if(tmp_str.at(j-*n_closed)=='0')
+           for (int j=*n_closed; j!=*n_occ; j++)
+           {
+              if(tmp_str.at(j-*n_closed)=='0')
+                 continue;
+            
+               else if(tmp_str.at(j-*n_closed)=='2')
+               {
+                  ci_vector_neut[0][(n_elec_neut+n_states_neut)*i+elec_index]=j;
+                  ci_vector_neut[1][(n_elec_neut)*i+elec_index]=0;
+                  elec_index++;
+                  ci_vector_neut[0][(n_elec_neut+n_states_neut)*i+elec_index]=j;
+                  ci_vector_neut[1][(n_elec_neut)*i+elec_index]=1;
+               }
+            
+               else if(tmp_str.at(j-*n_closed)=='a')
+               {
+                  ci_vector_neut[0][(n_elec_neut+n_states_neut)*i+elec_index]=j;
+                  ci_vector_neut[1][(n_elec_neut)*i+elec_index]=0;
+               }
+            
+               else if(tmp_str.at(j-*n_closed)=='b')
+               {
+                  ci_vector_neut[0][(n_elec_neut+n_states_neut)*i+elec_index]=j;
+                  ci_vector_neut[1][(n_elec_neut)*i+elec_index]=1;
+               }
+            
+               elec_index++;
+            
+           }
+        
+           elec_index=0;
+        
+           for (int j=0; j!=n_states_neut; j++)
+           {
+               molpro_output>>floating;
+               ci_vector_neut[0][(n_elec_neut+n_states_neut)*i+n_elec_neut+j]=floating;
+            
+           }
+       }
+       position=molpro_output.tellg();
+       molpro_output.close();
+
+       if(!search(&position, file_address,position, "CI", 0, "vector"))
+       {
+           std::cout<<"CI VECTORS NOT FOUND IN MOLPRO OUPTUT FILE"<<std::endl;
+           return 1;
+       }
+    
+    
+       molpro_output.open(file_address.c_str());
+    
+       molpro_output.seekg(position);
+    
+       molpro_output>>tmp_str;
+
+       for (int i=0; i!=*ci_size_cat; i++)
+       {
+           molpro_output>>tmp_str;
+
+           if(*n_closed!=0 && elec_index<2**n_closed)
+           {
+              for(int j=0;j!=*n_closed;j++)
+              {
+                 ci_vector_cat[0][(n_elec_neut-1+n_states_cat)*i+elec_index]=j;
+                 ci_vector_cat[1][(n_elec_neut-1)*i+elec_index]=0;
+                 elec_index++;
+                 ci_vector_cat[0][(n_elec_neut-1+n_states_cat)*i+elec_index]=j;
+                 ci_vector_cat[1][(n_elec_neut-1)*i+elec_index]=1;
+                 elec_index++;
+
+              }
+           }
+           for (int j=*n_closed; j!=*n_occ; j++)
+           {
+              if(tmp_str.at(j-*n_closed)=='0')
                 continue;
             
-            else if(tmp_str.at(j-*n_closed)=='2')
-            {
-                ci_vector_neut[0][(n_elec_neut+n_states_neut)*i+elec_index]=j;
-                ci_vector_neut[1][(n_elec_neut)*i+elec_index]=0;
-                elec_index++;
-                ci_vector_neut[0][(n_elec_neut+n_states_neut)*i+elec_index]=j;
-                ci_vector_neut[1][(n_elec_neut)*i+elec_index]=1;
-            }
+              else if(tmp_str.at(j-*n_closed)=='2')
+              {
+                  ci_vector_cat[0][(n_elec_neut-1+n_states_cat)*i+elec_index]=j;
+                  ci_vector_cat[1][(n_elec_neut-1)*i+elec_index]=0;
+                  elec_index++;
+                  ci_vector_cat[0][(n_elec_neut-1+n_states_cat)*i+elec_index]=j;
+                  ci_vector_cat[1][(n_elec_neut-1)*i+elec_index]=1;
+              }
             
-            else if(tmp_str.at(j-*n_closed)=='a')
-            {
-                ci_vector_neut[0][(n_elec_neut+n_states_neut)*i+elec_index]=j;
-                ci_vector_neut[1][(n_elec_neut)*i+elec_index]=0;
-            }
+              else if(tmp_str.at(j-*n_closed)=='a')
+              {
+                  ci_vector_cat[0][(n_elec_neut-1+n_states_cat)*i+elec_index]=j;
+                  ci_vector_cat[1][(n_elec_neut-1)*i+elec_index]=0;
+              }
             
-            else if(tmp_str.at(j-*n_closed)=='b')
-            {
-                ci_vector_neut[0][(n_elec_neut+n_states_neut)*i+elec_index]=j;
-                ci_vector_neut[1][(n_elec_neut)*i+elec_index]=1;
-            }
+              else if(tmp_str.at(j-*n_closed)=='b')
+              {
+                 ci_vector_cat[0][(n_elec_neut-1+n_states_cat)*i+elec_index]=j;
+                 ci_vector_cat[1][(n_elec_neut-1)*i+elec_index]=1;
+              }
             
-            elec_index++;
-            
-        }
-        
-        elec_index=0;
-        
-        for (int j=0; j!=n_states_neut; j++)
-        {
-            molpro_output>>floating;
-            ci_vector_neut[0][(n_elec_neut+n_states_neut)*i+n_elec_neut+j]=floating;
-            
-        }
-    }
-    position=molpro_output.tellg();
-    molpro_output.close();
-
-    if(!search(&position, file_address,position, "CI", 0, "vector"))
-    {
-        std::cout<<"CI VECTORS NOT FOUND IN MOLPRO OUPTUT FILE"<<std::endl;
-        return 1;
-    }
-    
-    
-    molpro_output.open(file_address.c_str());
-    
-    molpro_output.seekg(position);
-    
-    molpro_output>>tmp_str;
-
-    for (int i=0; i!=*ci_size_cat; i++)
-    {
-        molpro_output>>tmp_str;
-
-        if(*n_closed!=0 && elec_index<2**n_closed)
-        {
-           for(int j=0;j!=*n_closed;j++)
-           {
-              ci_vector_cat[0][(n_elec_neut-1+n_states_cat)*i+elec_index]=j;
-              ci_vector_cat[1][(n_elec_neut-1)*i+elec_index]=0;
               elec_index++;
-              ci_vector_cat[0][(n_elec_neut-1+n_states_cat)*i+elec_index]=j;
-              ci_vector_cat[1][(n_elec_neut-1)*i+elec_index]=1;
-              elec_index++;
-
+            
            }
-        }
-        for (int j=*n_closed; j!=*n_occ; j++)
-        {
-            if(tmp_str.at(j-*n_closed)=='0')
-                continue;
-            
-            else if(tmp_str.at(j-*n_closed)=='2')
-            {
-                ci_vector_cat[0][(n_elec_neut-1+n_states_cat)*i+elec_index]=j;
-                ci_vector_cat[1][(n_elec_neut-1)*i+elec_index]=0;
-                elec_index++;
-                ci_vector_cat[0][(n_elec_neut-1+n_states_cat)*i+elec_index]=j;
-                ci_vector_cat[1][(n_elec_neut-1)*i+elec_index]=1;
-            }
-            
-            else if(tmp_str.at(j-*n_closed)=='a')
-            {
-                ci_vector_cat[0][(n_elec_neut-1+n_states_cat)*i+elec_index]=j;
-                ci_vector_cat[1][(n_elec_neut-1)*i+elec_index]=0;
-            }
-            
-            else if(tmp_str.at(j-*n_closed)=='b')
-            {
-                ci_vector_cat[0][(n_elec_neut-1+n_states_cat)*i+elec_index]=j;
-                ci_vector_cat[1][(n_elec_neut-1)*i+elec_index]=1;
-            }
-            
-            elec_index++;
-            
-        }
         
-        elec_index=0;
+           elec_index=0;
         
-        for (int j=0; j!=n_states_cat; j++)
-        {
-            molpro_output>>floating;
-            ci_vector_cat[0][(n_elec_neut-1+n_states_cat)*i+n_elec_neut-1+j]=floating;
-            
-        }
-    }
+           for (int j=0; j!=n_states_cat; j++)
+           {
+              molpro_output>>floating;
+              ci_vector_cat[0][(n_elec_neut-1+n_states_cat)*i+n_elec_neut-1+j]=floating;
+              
+           }
+       }
     }
 
 
@@ -816,6 +865,7 @@ int ci_vec_reader(int *n_states_neut_s,int *n_states_cat_s,int *n_occ,int *n_clo
              molpro_output>>tmp_str;
             }
             molpro_output>>tmp_str;
+//            std::cout<<tmp_str<<std::endl;
 
             for (int i=0; i!=ci_size_neut[s]; i++)
             {
@@ -893,12 +943,12 @@ int ci_vec_reader(int *n_states_neut_s,int *n_states_cat_s,int *n_occ,int *n_clo
       
         molpro_output>>tmp_str;
         molpro_output>>tmp_str;
-        for(int w=0;w!=n_states_neut_s[s];w++)
-        {
-           molpro_output>>tmp_str;
-        }
-        molpro_output>>tmp_str;
-        molpro_output>>tmp_str;
+//        for(int w=0;w!=n_states_neut_s[s];w++)
+//        {
+//           molpro_output>>tmp_str;
+//        }
+//        molpro_output>>tmp_str;
+//        molpro_output>>tmp_str;
     }
     }
     position=molpro_output.tellg();
@@ -1018,12 +1068,12 @@ int ci_vec_reader(int *n_states_neut_s,int *n_states_cat_s,int *n_occ,int *n_clo
         }
         molpro_output>>tmp_str;
         molpro_output>>tmp_str;
-        for(int w=0;w!=n_states_cat_s[s];w++)
-        {
-           molpro_output>>tmp_str;
-        }
-        molpro_output>>tmp_str;
-        molpro_output>>tmp_str;
+//        for(int w=0;w!=n_states_cat_s[s];w++)
+//       {
+//           molpro_output>>tmp_str;
+//        }
+//        molpro_output>>tmp_str;
+//        molpro_output>>tmp_str;
         std::cout<<"probe loop sym"<<std::endl;//DEBOGAGE
    }
     }
@@ -1060,12 +1110,12 @@ bool search(int *match_loc,std::string file_address,int research_from,std::strin
                 
                 molpro_output>>tmp_str;
                 
-                if(molpro_output.eof())
+                if(molpro_output.eof() || tmp_str == "")
                 {
                     molpro_output.close();
-                    return 0;
+                    exit(EXIT_FAILURE);
                 }
-                //std::cout<<tmp_str<<" (1) = "<<pattern1<<std::endl;//DEBOGAGE
+//                std::cout<<tmp_str.c_str()<<" (1) = "<<pattern1<<std::endl;//DEBOGAGE
             }
             
             if(pattern2!="")
@@ -1079,7 +1129,7 @@ bool search(int *match_loc,std::string file_address,int research_from,std::strin
                 }while(count<=num_of_entry_between_patterns12);
                 count=0;
                 
-                //std::cout<<tmp_str.toStdString()<<" (2) = "<<pattern2<<std::endl;//DEBOGAGE
+//                std::cout<<tmp_str.c_str()<<" (2) = "<<pattern2<<std::endl;//DEBOGAGE
                 
                 if (tmp_str==pattern2)
                 {
@@ -1102,7 +1152,7 @@ bool search(int *match_loc,std::string file_address,int research_from,std::strin
 
                        if (tmp_str==pattern3)
                        {
-                          //std::cout<<"position = "<<filestream.pos()<<std::endl;//DEBOGAGE
+ //                         std::cout<<"position = "<<molpro_output.tellg()<<std::endl;//DEBOGAGE
                           *match_loc=int(molpro_output.tellg());
                           molpro_output.close();
                           test=1;
