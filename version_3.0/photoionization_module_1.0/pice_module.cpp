@@ -192,6 +192,8 @@ bool pice_set::fill_pice(std::complex<double> *pice_x,std::complex<double> *pice
    for( int i=0;i!=*this->m_n_occ;i++)
    {
 //      std::cout<<"here, "<<this->m_dyson_mo_coeff[grid_index][neut_st_index**this->m_n_states_cat**this->m_n_occ+cat_st_index**this->m_n_occ+i]<<std::endl;
+      if(this->m_dyson_mo_coeff[grid_index][neut_st_index**this->m_n_states_cat**this->m_n_occ+cat_st_index**this->m_n_occ+i] != 0)
+      {
        *pice_x-=std::complex<double>(0,1)*this->m_dyson_mo_coeff[grid_index][neut_st_index**this->m_n_states_cat**this->m_n_occ+cat_st_index**this->m_n_occ+i]
          *(
                   stp*cpp*MO_Fourier_transform_grad(i,0,kpp,thetp,phip,this->m_nucl_spher_pos[grid_index],this->m_nucl_basis_func,this->m_contraction_number,this->m_contraction_coeff,this->m_contraction_zeta,this->m_basis_func_type,this->m_MO_coeff_neutral[grid_index],*this->m_basis_size)
@@ -208,7 +210,7 @@ bool pice_set::fill_pice(std::complex<double> *pice_x,std::complex<double> *pice
                *(
                   ctp*MO_Fourier_transform_grad(i,0,kpp,thetp,phip,this->m_nucl_spher_pos[grid_index],this->m_nucl_basis_func,this->m_contraction_number,this->m_contraction_coeff,this->m_contraction_zeta,this->m_basis_func_type,this->m_MO_coeff_neutral[grid_index],*this->m_basis_size)
                   -stp*MO_Fourier_transform_grad(i,1,kpp,thetp,phip,this->m_nucl_spher_pos[grid_index],this->m_nucl_basis_func,this->m_contraction_number,this->m_contraction_coeff,this->m_contraction_zeta,this->m_basis_func_type,this->m_MO_coeff_neutral[grid_index],*this->m_basis_size));
-          
+         
       /*          for(int j=0;j!=n_occ;j++)
                 {
                 
@@ -216,6 +218,6 @@ bool pice_set::fill_pice(std::complex<double> *pice_x,std::complex<double> *pice
                       *MO_Fourier_transform(j,kp,thet,phi,nucl_spher_pos,nucl_basis_func,contraction_number,contraction_coeff,contraction_zeta,basis_func_type,MO_coeff_neutral,basis_size)*(mo_dipole[0][i*n_occ+j]*efield[0]+mo_dipole[1][i*n_occ+j]*efield[1]+mo_dipole[2][i*n_occ+j]*efield[2]);
                  }*/
  //            std::cout<<temp<<std::endl;
- //            
+      }
    }
 }

@@ -80,7 +80,7 @@ bool dyson_mo_coeff_comp(int n_states_neut,int n_states_cat,int n_occ,int ci_siz
                         if(test2)
                         {
                         Dyson_MO_basis_coeff[n_occ*n_states_cat*i+n_occ*j+k]+=(ci_vec_neut[0][(n_elec_neut+n_states_neut)*n+n_elec_neut+i]*ci_vec_cat[0][(n_elec_neut-1+n_states_cat)*l+n_elec_neut-1+j]*determinant(temp,(n_elec_neut-1)));
-                           //std::cout<<" sum is "<<Dyson_MO_basis_coeff[n_occ*n_states_cat*i+n_occ*j+k]<<std::endl;
+   //                        std::cout<<" sum is "<<Dyson_MO_basis_coeff[n_occ*n_states_cat*i+n_occ*j+k]<<std::endl;
                         }
 
                         
@@ -92,11 +92,11 @@ bool dyson_mo_coeff_comp(int n_states_neut,int n_states_cat,int n_occ,int ci_siz
                 if(!test)
                 {
                     Dyson_MO_basis_coeff[n_occ*n_states_cat*i+n_occ*j+k]=0;
-//                    std::cout<<std::endl<<"states "<<i<<"  and  "<<j<<"    "<<Dyson_MO_basis_coeff[n_occ*n_states_cat*i+n_occ*j+k]<<"   MO  "<<k<<std::endl<<"====================================="<<std::endl<<std::endl;
+                    std::cout<<std::endl<<"states "<<i<<"  and  "<<j<<"    "<<Dyson_MO_basis_coeff[n_occ*n_states_cat*i+n_occ*j+k]<<"   MO  "<<k<<std::endl<<"====================================="<<std::endl<<std::endl;
                 }
                 else
                 {
-//                    std::cout<<std::endl<<"states "<<i<<"  and  "<<j<<"    "<<Dyson_MO_basis_coeff[n_occ*n_states_cat*i+n_occ*j+k]<<"   MO  "<<k<<std::endl<<"====================================="<<std::endl<<std::endl;
+                    std::cout<<std::endl<<"states "<<i<<"  and  "<<j<<"    "<<Dyson_MO_basis_coeff[n_occ*n_states_cat*i+n_occ*j+k]<<"   MO  "<<k<<std::endl<<"====================================="<<std::endl<<std::endl;
                 }
                     
             }
@@ -108,27 +108,28 @@ bool dyson_mo_coeff_comp(int n_states_neut,int n_states_cat,int n_occ,int ci_siz
     return 1;
 }
 
-std::complex<double> MO_Fourier_transform_grad( int mo_index,int comp, double k, double thet, double phi,double **nucl_spher_pos,int *nucl_basis_func,int* contraction_number,double **contraction_coeff,double **contraction_zeta,std::string *basis_func_type,double *MO_neut_basis_coeff,int basis_size)
+std::complex<double> MO_Fourier_transform_grad( int mo_index,int comp, double k, double thet, double phi,double **nucl_spher_pos,int *nucl_basis_func,int* contraction_number,double **contraction_coeff,double **contraction_zeta,int **angular_mom_numbers,double *MO_neut_basis_coeff,int basis_size)
 {
    std::complex<double> value(0);
+//      std::cout<<MO_neut_basis_coeff[mo_index*basis_size+i]<<","<<nucl_basis_func[i]-1<<std::endl;
    for(int i=0;i!=basis_size;i++)
    {
-//      std::cout<<MO_neut_basis_coeff[mo_index*basis_size+i]<<","<<nucl_basis_func[i]-1<<std::endl;
-          value+=MO_neut_basis_coeff[mo_index*basis_size+i]*AO_FT_grad(i,comp,k,thet,phi,contraction_number,nucl_spher_pos[nucl_basis_func[i]-1],contraction_coeff,contraction_zeta,basis_func_type);
+      if(MO_neut_basis_coeff[mo_index*basis_size+i] != 0)
+          value+=MO_neut_basis_coeff[mo_index*basis_size+i]*AO_FT_grad(i,comp,k,thet,phi,contraction_number,nucl_spher_pos[nucl_basis_func[i]-1],contraction_coeff,contraction_zeta,angular_mom_numbers[i]);
    }
 //   std::cout<<value<<"=="<<std::endl;
    return value;
 }
-std::complex<double> AO_FT_grad(int ao_index,int comp,double k, double thet, double phi,int *contraction_number,double *nucl_spher_pos,double **contraction_coeff,double **contraction_zeta,std::string *basis_func_type)
+std::complex<double> AO_FT_grad(int ao_index,int comp,double k, double thet, double phi,int *contraction_number,double *nucl_spher_pos,double **contraction_coeff,double **contraction_zeta,int* angular_mom_numbers)
 {
    std::complex<double> value(0,0);
    switch(comp)
    {
       case 0:
-       //  std::cout<<contraction_number[ao_index]<<std::endl;//DEBOGAGE
        for(int i=0;i!=contraction_number[ao_index];i++)
        {
-             value+=contraction_coeff[ao_index][i]*contraction_FT_grad_k(k,thet,phi,nucl_spher_pos,contraction_zeta[ao_index][i],basis_func_type[ao_index]);
+          if(contraction_coeff[ao_index][i]!=0)
+             value+=contraction_coeff[ao_index][i]*contraction_FT_grad_k(k,thet,phi,nucl_spher_pos,contraction_zeta[ao_index][i],angular_mom_numbers);
 //           std::cout<<k<<","<<thet<<","<<phi<<","<<nucl_spher_pos[0]<<","<<contraction_zeta[ao_index][i]<<","<<basis_func_type[ao_index]<<" ::: "<<contraction_coeff[ao_index][i]<<std::endl;
 //         std::cout<<" => "<<contraction_FT_grad_k(k,thet,phi,nucl_spher_pos,contraction_zeta[ao_index][i],basis_func_type[ao_index])<<std::endl;
        }
@@ -136,13 +137,15 @@ std::complex<double> AO_FT_grad(int ao_index,int comp,double k, double thet, dou
       case 1:
        for(int i=0;i!=contraction_number[ao_index];i++)
        {
-            value+=contraction_coeff[ao_index][i]*contraction_FT_grad_thet(k,thet,phi,nucl_spher_pos,contraction_zeta[ao_index][i],basis_func_type[ao_index]);
+          if(contraction_coeff[ao_index][i]!=0)
+            value+=contraction_coeff[ao_index][i]*contraction_FT_grad_thet(k,thet,phi,nucl_spher_pos,contraction_zeta[ao_index][i],angular_mom_numbers);
        }
        break;
       case 2:
        for(int i=0;i!=contraction_number[ao_index];i++)
        {
-             value+=contraction_coeff[ao_index][i]*contraction_FT_grad_phi(k,thet,phi,nucl_spher_pos,contraction_zeta[ao_index][i],basis_func_type[ao_index]);
+          if(contraction_coeff[ao_index][i]!=0)
+             value+=contraction_coeff[ao_index][i]*contraction_FT_grad_phi(k,thet,phi,nucl_spher_pos,contraction_zeta[ao_index][i],angular_mom_numbers);
        }
        break;
       default:
@@ -154,448 +157,635 @@ std::complex<double> AO_FT_grad(int ao_index,int comp,double k, double thet, dou
    return value;
 
 }
-std::complex<double> MO_Fourier_transform( int mo_index, double k, double thet, double phi,double **nucl_spher_pos,int *nucl_basis_func,int* contraction_number,double **contraction_coeff,double **contraction_zeta,std::string *basis_func_type,double *MO_neut_basis_coeff,int basis_size)
+std::complex<double> MO_Fourier_transform( int mo_index, double k, double thet, double phi,double **nucl_spher_pos,int *nucl_basis_func,int* contraction_number,double **contraction_coeff,double **contraction_zeta,int **angular_mom_numbers,double *MO_neut_basis_coeff,int basis_size)
 {
    std::complex<double> value(0);
    for(int i=0;i!=basis_size;i++)
    {
-      value+=MO_neut_basis_coeff[mo_index*basis_size+i]*AO_FT(i,k,thet,phi,contraction_number,nucl_spher_pos[nucl_basis_func[i]-1],contraction_coeff,contraction_zeta,basis_func_type);
+      value+=MO_neut_basis_coeff[mo_index*basis_size+i]*AO_FT(i,k,thet,phi,contraction_number,nucl_spher_pos[nucl_basis_func[i]-1],contraction_coeff,contraction_zeta,angular_mom_numbers[i]);
 //      std::cout<<nucl_basis_func[i]-1<<"!!"<<nucl_spher_pos[nucl_basis_func[i]-1][0]<<","<<nucl_spher_pos[nucl_basis_func[i]-1][1]<<","<<nucl_spher_pos[nucl_basis_func[i]-1][2]<<std::endl;
    }
 //   exit(EXIT_SUCCESS);
    return value;
 }
-std::complex<double> AO_FT(int ao_index,double k, double thet, double phi,int *contraction_number,double *nucl_spher_pos,double **contraction_coeff,double **contraction_zeta,std::string *basis_func_type)
+std::complex<double> AO_FT(int ao_index,double k, double thet, double phi,int *contraction_number,double *nucl_spher_pos,double **contraction_coeff,double **contraction_zeta,int* angular_mom_numbers)
 {
    std::complex<double> value(0);
    for(int i=0;i!=contraction_number[ao_index];i++)
    {
-         value+=contraction_coeff[ao_index][i]*contraction_FT(k,thet,phi,nucl_spher_pos,contraction_zeta[ao_index][i],basis_func_type[ao_index]);
+         value+=contraction_coeff[ao_index][i]*contraction_FT(k,thet,phi,nucl_spher_pos,contraction_zeta[ao_index][i],angular_mom_numbers);
    }
    return value;
 
 }
-std::complex<double> contraction_FT( double k, double thet, double phi,double* nucl_spher_pos,double contraction_zeta,std::string basis_func_type)
+std::complex<double> contraction_FT( double k, double thet, double phi,double* nucl_spher_pos,double contraction_zeta,int* angular_mom_numbers)
 {
    using namespace std;
 
-   double temp(0);
+   int l(angular_mom_numbers[0]);
+   int ml(angular_mom_numbers[1]);
+   std::complex<double> value;
    complex<double> f(sin(thet)*sin(nucl_spher_pos[1])*cos(phi-nucl_spher_pos[2])+cos(thet)*cos(nucl_spher_pos[1]));
    complex<double> phase_factor(exp(std::complex<double>(0,-1)*k*nucl_spher_pos[0]*f));
-   complex<double> k_part_s(0);
-   complex<double> k_part_p(0);
-   complex<double> k_part_d(0);
-   complex<double> k_part_f(0);
 
-  /* 
-      std::cout<<"PROOOOOOOOOOOOOOOOBE#########################"<<std::endl;
-      std::complex<double> value;
-      contraction_zeta=0.05;
-      nucl_spher_pos[0]=0;
-   //for(int i=0;i!=1024;i++)
-   //{
-    //  k=1e-05+i*2.71/1024;
-//      thet=acos(-1);
-      //k=2.71*(i+1.)/1024;
-//      phi=acos(-1)/2;
-   //   phase_factor=sin(thet)*sin(nucl_spher_pos[1])*cos(phi-nucl_spher_pos[2])+cos(thet)*cos(nucl_spher_pos[1]);
-   //   dfdt=cos(thet)*sin(nucl_spher_pos[1])*cos(phi-nucl_spher_pos[2])-sin(thet)*cos(nucl_spher_pos[1]);
-      //dfdf=(-sin(thet)*sin(nucl_spher_pos[1])*sin(phi-nucl_spher_pos[2]));
-      //dfdf2=(-sin(nucl_spher_pos[1])*sin(phi-nucl_spher_pos[2]));
-             //std::cout<<k*k*27.211/2<<","<<real(value)<<","<<imag(value)<<std::endl;
-      for(int i=0;i!=100;i++)
-      {
-         for(int j=0;j!=50;j++)
-         {
-            thet=acos(-1)*i/100;
-            phi=2*acos(-1)*j/50;
-
-            value=0.5*sqrt(15./acos(-1))*sin(thet)*sin(2.*phi);
-             std::cout<<thet<<"    "<<phi<<"    "<<real(value)<<"    "<<imag(value)<<std::endl;
-         }std::cout<<std::endl;
-   }
-   exit(EXIT_SUCCESS);
-
-*/
-   if(basis_func_type=="1s")
+   if(ml<0)
    {
-      k_part_s=(exp(-k*k/(4*contraction_zeta))/(2*pow(contraction_zeta,1.5)));
-      return 0.5*(1/sqrt(acos(-1)))*phase_factor*k_part_s;
+   value=
+      (pow(-1,ml)*sqrt(2)*gsl_sf_legendre_sphPlm(l,-ml,cos(thet))*sin(-ml*phi)) // Real spherical harmonics
+      *((pow(std::complex<double>(0,-k),l)*exp(-pow(k,2)/(4*contraction_zeta)))/(pow(2*contraction_zeta,1.5+l))) // Radial part
+      *phase_factor // phase factor
+      ;
    }
-   else if(basis_func_type=="2px")
+   else if(ml>0)
    {
-      k_part_p=std::complex<double>(0,1)*sqrt(2.)*(k-(1./3.)*(k+pow(k,3)/(2*contraction_zeta))*gsl_sf_hyperg_1F1(1,2.5,-k*k/(4*contraction_zeta)))/(4.*sqrt(acos(-1))*pow(contraction_zeta,2));
-      return sqrt(3./(4.*acos(-1)))*phase_factor*sin(thet)*cos(phi)*k_part_p;
-   }
-   else if(basis_func_type=="2py")
-   {
-      k_part_p=std::complex<double>(0,1)*sqrt(2.)*(k-(1./3.)*(k+pow(k,3)/(2*contraction_zeta))*gsl_sf_hyperg_1F1(1,2.5,-k*k/(4*contraction_zeta)))/(4.*sqrt(acos(-1))*pow(contraction_zeta,2));
-      return sqrt(3./(4.*acos(-1)))*phase_factor*sin(thet)*sin(phi)*k_part_p;
-   }
-   else if(basis_func_type=="2pz")
-   {
-      k_part_p=std::complex<double>(0,1)*sqrt(2.)*(k-(1./3.)*(k+pow(k,3)/(2*contraction_zeta))*gsl_sf_hyperg_1F1(1,2.5,-k*k/(4*contraction_zeta)))/(4.*sqrt(acos(-1))*pow(contraction_zeta,2));
-      return sqrt(3./(4.*acos(-1)))*phase_factor*cos(thet)*k_part_p;
-   }
-   else if(basis_func_type=="3d2-")
-   {
-      k_part_d=-sqrt(2.)*(pow(k,2)*exp(-pow(k,2)/(4.*contraction_zeta))*gsl_sf_hyperg_1F1(1,3.5,k*k/(4*contraction_zeta)))/(40.*pow(contraction_zeta,2.5));
-      return 0.25*sqrt(15./acos(-1))*pow(sin(thet),2)*sin(2.*phi)*phase_factor*k_part_d;
-   }
-   else if(basis_func_type=="3d1-")
-   {
-      k_part_d=-sqrt(2.)*(pow(k,2)*exp(-pow(k,2)/(4.*contraction_zeta))*gsl_sf_hyperg_1F1(1,3.5,k*k/(4*contraction_zeta)))/(40.*pow(contraction_zeta,2.5));
-      return 0.25*sqrt(15./acos(-1))*sin(2*thet)*sin(phi)*phase_factor*k_part_d;
-   }
-   else if(basis_func_type=="3d0")
-   {
-      k_part_d=-sqrt(2.)*(pow(k,2)*exp(-pow(k,2)/(4.*contraction_zeta))*gsl_sf_hyperg_1F1(1,3.5,k*k/(4*contraction_zeta)))/(40.*pow(contraction_zeta,2.5));
-      return 0.25*sqrt(5./acos(-1))*(2*pow(cos(thet),2)-pow(sin(thet),2))*phase_factor*k_part_d;
-   }
-   else if(basis_func_type=="3d1+")
-   {
-      k_part_d=-sqrt(2.)*(pow(k,2)*exp(-pow(k,2)/(4.*contraction_zeta))*gsl_sf_hyperg_1F1(1,3.5,k*k/(4*contraction_zeta)))/(40.*pow(contraction_zeta,2.5));
-      return 0.25*sqrt(15./acos(-1))*sin(2.*thet)*cos(phi)*phase_factor*k_part_d;
-   }
-   else if(basis_func_type=="3d2+")
-   {
-      k_part_d=-sqrt(2.)*(pow(k,2)*exp(-pow(k,2)/(4.*contraction_zeta))*gsl_sf_hyperg_1F1(1,3.5,k*k/(4*contraction_zeta)))/(40.*pow(contraction_zeta,2.5));
-      return 0.25*sqrt(15./acos(-1))*cos(2*phi)*pow(sin(thet),2)*phase_factor*k_part_d;
-   }
-   else if(basis_func_type=="4f3-")
-   {
-      k_part_f=std::complex<double>(0,-1)*sqrt(2.)*(pow(k,3)/(24.*pow(contraction_zeta,3))+k/(4.*pow(contraction_zeta,2))-(pow(k,5)/(240.*pow(contraction_zeta,4))+pow(k,3)/(20.*pow(contraction_zeta,3))+k/(4.*pow(contraction_zeta,2)))*gsl_sf_hyperg_1F1(1,3.5,-k*k/(4*contraction_zeta)))/(sqrt(acos(-1)));
-      return 0.25*sqrt(35/(2*acos(-1)))*(3*pow(sin(thet),2)*pow(cos(phi),2)-pow(sin(thet),2)*pow(sin(phi),2))*sin(thet)*sin(phi)*phase_factor*k_part_f;
-   }
-   else if(basis_func_type=="4f2-")
-   {
-      k_part_f=std::complex<double>(0,-1)*sqrt(2.)*(pow(k,3)/(24.*pow(contraction_zeta,3))+k/(4.*pow(contraction_zeta,2))-(pow(k,5)/(240.*pow(contraction_zeta,4))+pow(k,3)/(20.*pow(contraction_zeta,3))+k/(4.*pow(contraction_zeta,2)))*gsl_sf_hyperg_1F1(1,3.5,-k*k/(4*contraction_zeta)))/(sqrt(acos(-1)));
-      return 0.25*sqrt(105./acos(-1))*pow(sin(thet),2)*cos(thet)*sin(2.*phi)*phase_factor*k_part_f;
-   }
-   else if(basis_func_type=="4f1-")
-   {
-      k_part_f=std::complex<double>(0,-1)*sqrt(2.)*(pow(k,3)/(24.*pow(contraction_zeta,3))+k/(4.*pow(contraction_zeta,2))-(pow(k,5)/(240.*pow(contraction_zeta,4))+pow(k,3)/(20.*pow(contraction_zeta,3))+k/(4.*pow(contraction_zeta,2)))*gsl_sf_hyperg_1F1(1,3.5,-k*k/(4*contraction_zeta)))/(sqrt(acos(-1)));
-      return 0.25*sqrt(21./(2*acos(-1)))*sin(thet)*sin(phi)*(4*pow(cos(thet),2)-pow(sin(thet),2))*phase_factor*k_part_f;
-   }
-   else if(basis_func_type=="4f0")
-   {
-      k_part_f=std::complex<double>(0,-1)*sqrt(2.)*(pow(k,3)/(24.*pow(contraction_zeta,3))+k/(4.*pow(contraction_zeta,2))-(pow(k,5)/(240.*pow(contraction_zeta,4))+pow(k,3)/(20.*pow(contraction_zeta,3))+k/(4.*pow(contraction_zeta,2)))*gsl_sf_hyperg_1F1(1,3.5,-k*k/(4*contraction_zeta)))/(sqrt(acos(-1)));
-      return 0.25*sqrt(7./acos(-1))*cos(thet)*(2*cos(thet)-3*pow(sin(thet),2))*phase_factor*k_part_f;
-   }
-   else if(basis_func_type=="4f1+")
-   {
-      k_part_f=std::complex<double>(0,-1)*sqrt(2.)*(pow(k,3)/(24.*pow(contraction_zeta,3))+k/(4.*pow(contraction_zeta,2))-(pow(k,5)/(240.*pow(contraction_zeta,4))+pow(k,3)/(20.*pow(contraction_zeta,3))+k/(4.*pow(contraction_zeta,2)))*gsl_sf_hyperg_1F1(1,3.5,-k*k/(4*contraction_zeta)))/(sqrt(acos(-1)));
-      return 0.25*sqrt(21./(2*acos(-1)))*sin(thet)*cos(phi)*(4*pow(cos(thet),2)-pow(sin(thet),2))*phase_factor*k_part_f;
-   }
-   else if(basis_func_type=="4f2+")
-   {
-      k_part_f=std::complex<double>(0,-1)*sqrt(2.)*(pow(k,3)/(24.*pow(contraction_zeta,3))+k/(4.*pow(contraction_zeta,2))-(pow(k,5)/(240.*pow(contraction_zeta,4))+pow(k,3)/(20.*pow(contraction_zeta,3))+k/(4.*pow(contraction_zeta,2)))*gsl_sf_hyperg_1F1(1,3.5,-k*k/(4*contraction_zeta)))/(sqrt(acos(-1)));
-      return 0.5*sqrt(105./acos(-1))*pow(sin(thet),2)*cos(thet)*cos(2*phi)*phase_factor*k_part_f;
-   }
-   else if(basis_func_type=="4f3+")
-   {
-      k_part_f=std::complex<double>(0,-1)*sqrt(2.)*(pow(k,3)/(24.*pow(contraction_zeta,3))+k/(4.*pow(contraction_zeta,2))-(pow(k,5)/(240.*pow(contraction_zeta,4))+pow(k,3)/(20.*pow(contraction_zeta,3))+k/(4.*pow(contraction_zeta,2)))*gsl_sf_hyperg_1F1(1,3.5,-k*k/(4*contraction_zeta)))/(sqrt(acos(-1)));
-      return 0.25*sqrt(35/(2*acos(-1)))*(pow(sin(thet),2)*pow(cos(phi),2)-3.*pow(sin(thet),2)*pow(sin(phi),2))*sin(thet)*cos(phi)*phase_factor*k_part_f;
+   value=
+      (pow(-1,ml)*sqrt(2)*gsl_sf_legendre_sphPlm(l,ml,cos(thet))*cos(ml*phi)) // Real spherical harmonics
+      *((pow(std::complex<double>(0,-k),l)*exp(-pow(k,2)/(4*contraction_zeta)))/(pow(2*contraction_zeta,1.5+l))) // Radial part
+      *phase_factor // phase factor
+      ;
+      //std::cout<<thet<<";"<<phi<<" : probe! => "<<value<<std::endl;
    }
    else
    {
-      std::cout<<"Spherical harmonics not recognized in basis function : "<<basis_func_type.c_str()<<std::endl;
-      exit(EXIT_FAILURE);
+   value=
+      (pow(-1,ml)*gsl_sf_legendre_sphPlm(l,0,cos(thet))) // Real spherical harmonics
+      *((pow(std::complex<double>(0,-k),l)*exp(-pow(k,2)/(4*contraction_zeta)))/(pow(2*contraction_zeta,1.5+l))) // Radial part
+      *phase_factor // phase factor
+      ;
    }
+
+   return value;
+
 }
-std::complex<double> contraction_FT_grad_k( double k, double thet, double phi,double* nucl_spher_pos,double contraction_zeta,std::string basis_func_type)
+std::complex<double> contraction_FT_grad_k( double k, double thet, double phi,double* nucl_spher_pos,double contraction_zeta,int* angular_mom_numbers)
 {
    using namespace std;
 
+   int l(angular_mom_numbers[0]);
+   int ml(angular_mom_numbers[1]);
+   std::complex<double> value;
    complex<double> f(sin(thet)*sin(nucl_spher_pos[1])*cos(phi-nucl_spher_pos[2])+cos(thet)*cos(nucl_spher_pos[1]));
    complex<double> phase_factor(exp(-std::complex<double>(0,1)*k*nucl_spher_pos[0]*f));
-   complex<double> k_part_s(0);
-   complex<double> k_part_p(0);
-   complex<double> k_part_d(0);
-   complex<double> k_part_f(0);
-   double temp(0);
+   double *legendre_val=new double[gsl_sf_legendre_array_n(l)];
+   gsl_sf_legendre_array_e(GSL_SF_LEGENDRE_SPHARM,l,cos(thet),-1,legendre_val);
 
 
-   if(basis_func_type=="1s")
+   // ⎷(2) * P( l , |m| ) * (cos( m * phi )) * DK(k)/dk * exp( - I k r0 )  m > 0
+   // ⎷(2) * P( l , |m| ) * (sin( |m| * phi )) * DK(k)/dk * exp( - I k r0 )  m < 0 
+
+
+   if(ml!=0)
    {
-       k_part_s=(exp(-k*k/(4*contraction_zeta))*(-std::complex<double>(0,1)*nucl_spher_pos[0]*f/pow(2*contraction_zeta,1.5)-k/(8*sqrt(2)*pow(contraction_zeta,2.5))));
-      return 0.5*(1/sqrt(acos(-1)))*phase_factor*k_part_s;
-   }
-   else if(basis_func_type=="2px")
-   {
-      k_part_p=sqrt(2/acos(-1))*(1./(4*pow(contraction_zeta,2)))*(nucl_spher_pos[0]*f*(k-(1./3.)*(k+pow(k,3)/(2*contraction_zeta))*gsl_sf_hyperg_1F1(1,2.5,-k*k/(4*contraction_zeta)))+std::complex<double>(0,1)*(1-(1./3.)*(1+3*pow(k,2)/(2*contraction_zeta))*gsl_sf_hyperg_1F1(1,2.5,-k*k/(4*contraction_zeta))+(k/(15*contraction_zeta))*(k+pow(k,3)/(2*contraction_zeta))*gsl_sf_hyperg_1F1(2,3.5,-k*k/(4*contraction_zeta))));
-      return sqrt(3./(4.*acos(-1)))*phase_factor*sin(thet)*cos(phi)*k_part_p;
-   }
-   else if(basis_func_type=="2py")
-   {
-      k_part_p=sqrt(2/acos(-1))*(1./(4*pow(contraction_zeta,2)))*(nucl_spher_pos[0]*f*(k-(1./3.)*(k+pow(k,3)/(2*contraction_zeta))*gsl_sf_hyperg_1F1(1,2.5,-k*k/(4*contraction_zeta)))+std::complex<double>(0,1)*(1-(1./3.)*(1+3*pow(k,2)/(2*contraction_zeta))*gsl_sf_hyperg_1F1(1,2.5,-k*k/(4*contraction_zeta))+(k/(15*contraction_zeta))*(k+pow(k,3)/(2*contraction_zeta))*gsl_sf_hyperg_1F1(2,3.5,-k*k/(4*contraction_zeta))));
-      return sqrt(3./(4.*acos(-1)))*phase_factor*sin(thet)*sin(phi)*k_part_p;
-   }
-   else if(basis_func_type=="2pz")
-   {
-      k_part_p=sqrt(2/acos(-1))*(1./(4*pow(contraction_zeta,2)))*(nucl_spher_pos[0]*f*(k-(1./3.)*(k+pow(k,3)/(2*contraction_zeta))*gsl_sf_hyperg_1F1(1,2.5,-k*k/(4*contraction_zeta)))+std::complex<double>(0,1)*(1-(1./3.)*(1+3*pow(k,2)/(2*contraction_zeta))*gsl_sf_hyperg_1F1(1,2.5,-k*k/(4*contraction_zeta))+(k/(15*contraction_zeta))*(k+pow(k,3)/(2*contraction_zeta))*gsl_sf_hyperg_1F1(2,3.5,-k*k/(4*contraction_zeta))));
-      return sqrt(3./(4.*acos(-1)))*phase_factor*cos(thet)*k_part_p;
-   }
-   else if(basis_func_type=="3d2-")
-   {
-      k_part_d=(sqrt(2)/(40.*pow(contraction_zeta,2.5)))*(std::complex<double>(0,1)*nucl_spher_pos[0]*f*(pow(k,2)*gsl_sf_hyperg_1F1(1,3.5,k*k/(4*contraction_zeta)))-2*k*gsl_sf_hyperg_1F1(1,3.5,k*k/(4*contraction_zeta))+(2*pow(k,3)/(4*contraction_zeta))*gsl_sf_hyperg_1F1(1,3.5,k*k/(4*contraction_zeta))-(pow(k,3)/(7*contraction_zeta))*gsl_sf_hyperg_1F1(2,4.5,k*k/(4*contraction_zeta)))*exp(-k*k/(4*contraction_zeta));
-      return 0.25*sqrt(15./acos(-1))*pow(sin(thet),2)*sin(2.*phi)*phase_factor*k_part_d;
-   }
-   else if(basis_func_type=="3d1-")
-   {
-      k_part_d=(sqrt(2)/(40.*pow(contraction_zeta,2.5)))*(std::complex<double>(0,1)*nucl_spher_pos[0]*f*(pow(k,2)*gsl_sf_hyperg_1F1(1,3.5,k*k/(4*contraction_zeta)))-2*k*gsl_sf_hyperg_1F1(1,3.5,k*k/(4*contraction_zeta))+(2*pow(k,3)/(4*contraction_zeta))*gsl_sf_hyperg_1F1(1,3.5,k*k/(4*contraction_zeta))-(pow(k,3)/(7*contraction_zeta))*gsl_sf_hyperg_1F1(2,4.5,k*k/(4*contraction_zeta)))*exp(-k*k/(4*contraction_zeta));
-      return 0.25*sqrt(15./acos(-1))*sin(2*thet)*sin(phi)*phase_factor*k_part_d;
-   }
-   else if(basis_func_type=="3d0")
-   {
-      k_part_d=(sqrt(2)/(40.*pow(contraction_zeta,2.5)))*(std::complex<double>(0,1)*nucl_spher_pos[0]*f*(pow(k,2)*gsl_sf_hyperg_1F1(1,3.5,k*k/(4*contraction_zeta)))-2*k*gsl_sf_hyperg_1F1(1,3.5,k*k/(4*contraction_zeta))+(2*pow(k,3)/(4*contraction_zeta))*gsl_sf_hyperg_1F1(1,3.5,k*k/(4*contraction_zeta))-(pow(k,3)/(7*contraction_zeta))*gsl_sf_hyperg_1F1(2,4.5,k*k/(4*contraction_zeta)))*exp(-k*k/(4*contraction_zeta));
-      return 0.25*sqrt(5./acos(-1))*(2*pow(cos(thet),2)-pow(sin(thet),2))*phase_factor*k_part_d;
-   }
-   else if(basis_func_type=="3d1+")
-   {
-      k_part_d=(sqrt(2)/(40.*pow(contraction_zeta,2.5)))*(std::complex<double>(0,1)*nucl_spher_pos[0]*f*(pow(k,2)*gsl_sf_hyperg_1F1(1,3.5,k*k/(4*contraction_zeta)))-2*k*gsl_sf_hyperg_1F1(1,3.5,k*k/(4*contraction_zeta))+(2*pow(k,3)/(4*contraction_zeta))*gsl_sf_hyperg_1F1(1,3.5,k*k/(4*contraction_zeta))-(pow(k,3)/(7*contraction_zeta))*gsl_sf_hyperg_1F1(2,4.5,k*k/(4*contraction_zeta)))*exp(-k*k/(4*contraction_zeta));
-      return 0.25*sqrt(15./acos(-1))*sin(2.*thet)*cos(phi)*phase_factor*k_part_d;
-   }
-   else if(basis_func_type=="3d2+")
-   {
-      k_part_d=(sqrt(2)/(40.*pow(contraction_zeta,2.5)))*(std::complex<double>(0,1)*nucl_spher_pos[0]*f*(pow(k,2)*gsl_sf_hyperg_1F1(1,3.5,k*k/(4*contraction_zeta)))-2*k*gsl_sf_hyperg_1F1(1,3.5,k*k/(4*contraction_zeta))+(2*pow(k,3)/(4*contraction_zeta))*gsl_sf_hyperg_1F1(1,3.5,k*k/(4*contraction_zeta))-(pow(k,3)/(7*contraction_zeta))*gsl_sf_hyperg_1F1(2,4.5,k*k/(4*contraction_zeta)))*exp(-k*k/(4*contraction_zeta));
-      return 0.25*sqrt(15./acos(-1))*cos(2*phi)*pow(sin(thet),2)*phase_factor*k_part_d;
-   }
-   else if(basis_func_type=="4f3-")
-   {
-        k_part_f=std::complex<double>(0,-1)*sqrt(2./acos(-1))*(std::complex<double>(0,-1)*nucl_spher_pos[0]*f*(pow(k,3)/(24*pow(contraction_zeta,3))+k/(4*pow(contraction_zeta,2))-(pow(k,5)/(240*pow(contraction_zeta,4))+pow(k,3)/(20*pow(contraction_zeta,3))+k/(4*contraction_zeta*contraction_zeta))*gsl_sf_hyperg_1F1(1,3.5,-k*k/(4*contraction_zeta)))+(pow(k,2)/(8*pow(contraction_zeta,3))+1/(4*pow(contraction_zeta,2))-(pow(k,4)/(48*pow(contraction_zeta,4))+3*pow(k,2)/(20*pow(contraction_zeta,3))+1/(4*pow(contraction_zeta,2)))*gsl_sf_hyperg_1F1(1,3.5,-k*k/(4*contraction_zeta))+(pow(k,6)/(1680*pow(contraction_zeta,5))+pow(k,4)/(140*pow(contraction_zeta,4))+pow(k,2)/(28*pow(contraction_zeta,3)))*gsl_sf_hyperg_1F1(2,4.5,-k*k/(4*contraction_zeta))));
-      return 0.25*sqrt(35/(2*acos(-1)))*(3*pow(sin(thet),2)*pow(cos(phi),2)-pow(sin(thet),2)*pow(sin(phi),2))*sin(thet)*sin(phi)*phase_factor*k_part_f;
-   }
-   else if(basis_func_type=="4f2-")
-   {
-        k_part_f=std::complex<double>(0,-1)*sqrt(2./acos(-1))*(std::complex<double>(0,-1)*nucl_spher_pos[0]*f*(pow(k,3)/(24*pow(contraction_zeta,3))+k/(4*pow(contraction_zeta,2))-(pow(k,5)/(240*pow(contraction_zeta,4))+pow(k,3)/(20*pow(contraction_zeta,3))+k/(4*contraction_zeta*contraction_zeta))*gsl_sf_hyperg_1F1(1,3.5,-k*k/(4*contraction_zeta)))+(pow(k,2)/(8*pow(contraction_zeta,3))+1/(4*pow(contraction_zeta,2))-(pow(k,4)/(48*pow(contraction_zeta,4))+3*pow(k,2)/(20*pow(contraction_zeta,3))+1/(4*pow(contraction_zeta,2)))*gsl_sf_hyperg_1F1(1,3.5,-k*k/(4*contraction_zeta))+(pow(k,6)/(1680*pow(contraction_zeta,5))+pow(k,4)/(140*pow(contraction_zeta,4))+pow(k,2)/(28*pow(contraction_zeta,3)))*gsl_sf_hyperg_1F1(2,4.5,-k*k/(4*contraction_zeta))));
-      return 0.25*sqrt(105./acos(-1))*pow(sin(thet),2)*cos(thet)*sin(2.*phi)*phase_factor*k_part_f;
-   }
-   else if(basis_func_type=="4f1-")
-   {
-        k_part_f=std::complex<double>(0,-1)*sqrt(2./acos(-1))*(std::complex<double>(0,-1)*nucl_spher_pos[0]*f*(pow(k,3)/(24*pow(contraction_zeta,3))+k/(4*pow(contraction_zeta,2))-(pow(k,5)/(240*pow(contraction_zeta,4))+pow(k,3)/(20*pow(contraction_zeta,3))+k/(4*contraction_zeta*contraction_zeta))*gsl_sf_hyperg_1F1(1,3.5,-k*k/(4*contraction_zeta)))+(pow(k,2)/(8*pow(contraction_zeta,3))+1/(4*pow(contraction_zeta,2))-(pow(k,4)/(48*pow(contraction_zeta,4))+3*pow(k,2)/(20*pow(contraction_zeta,3))+1/(4*pow(contraction_zeta,2)))*gsl_sf_hyperg_1F1(1,3.5,-k*k/(4*contraction_zeta))+(pow(k,6)/(1680*pow(contraction_zeta,5))+pow(k,4)/(140*pow(contraction_zeta,4))+pow(k,2)/(28*pow(contraction_zeta,3)))*gsl_sf_hyperg_1F1(2,4.5,-k*k/(4*contraction_zeta))));
-      return 0.25*sqrt(21./(2*acos(-1)))*sin(thet)*sin(phi)*(4*pow(cos(thet),2)-pow(sin(thet),2))*phase_factor*k_part_f;
-   }
-   else if(basis_func_type=="4f0")
-   {
-        k_part_f=std::complex<double>(0,-1)*sqrt(2./acos(-1))*(std::complex<double>(0,-1)*nucl_spher_pos[0]*f*(pow(k,3)/(24*pow(contraction_zeta,3))+k/(4*pow(contraction_zeta,2))-(pow(k,5)/(240*pow(contraction_zeta,4))+pow(k,3)/(20*pow(contraction_zeta,3))+k/(4*contraction_zeta*contraction_zeta))*gsl_sf_hyperg_1F1(1,3.5,-k*k/(4*contraction_zeta)))+(pow(k,2)/(8*pow(contraction_zeta,3))+1/(4*pow(contraction_zeta,2))-(pow(k,4)/(48*pow(contraction_zeta,4))+3*pow(k,2)/(20*pow(contraction_zeta,3))+1/(4*pow(contraction_zeta,2)))*gsl_sf_hyperg_1F1(1,3.5,-k*k/(4*contraction_zeta))+(pow(k,6)/(1680*pow(contraction_zeta,5))+pow(k,4)/(140*pow(contraction_zeta,4))+pow(k,2)/(28*pow(contraction_zeta,3)))*gsl_sf_hyperg_1F1(2,4.5,-k*k/(4*contraction_zeta))));
-      return 0.25*sqrt(7./acos(-1))*cos(thet)*(2*pow(cos(thet),2)-3*pow(sin(thet),2))*phase_factor*k_part_f;
-   }
-   else if(basis_func_type=="4f1+")
-   {
-        k_part_f=std::complex<double>(0,-1)*sqrt(2./acos(-1))*(std::complex<double>(0,-1)*nucl_spher_pos[0]*f*(pow(k,3)/(24*pow(contraction_zeta,3))+k/(4*pow(contraction_zeta,2))-(pow(k,5)/(240*pow(contraction_zeta,4))+pow(k,3)/(20*pow(contraction_zeta,3))+k/(4*contraction_zeta*contraction_zeta))*gsl_sf_hyperg_1F1(1,3.5,-k*k/(4*contraction_zeta)))+(pow(k,2)/(8*pow(contraction_zeta,3))+1/(4*pow(contraction_zeta,2))-(pow(k,4)/(48*pow(contraction_zeta,4))+3*pow(k,2)/(20*pow(contraction_zeta,3))+1/(4*pow(contraction_zeta,2)))*gsl_sf_hyperg_1F1(1,3.5,-k*k/(4*contraction_zeta))+(pow(k,6)/(1680*pow(contraction_zeta,5))+pow(k,4)/(140*pow(contraction_zeta,4))+pow(k,2)/(28*pow(contraction_zeta,3)))*gsl_sf_hyperg_1F1(2,4.5,-k*k/(4*contraction_zeta))));
-      return 0.25*sqrt(21./(2*acos(-1)))*sin(thet)*cos(phi)*(4*pow(cos(thet),2)-pow(sin(thet),2))*phase_factor*k_part_f;
-   }
-   else if(basis_func_type=="4f2+")
-   {
-        k_part_f=std::complex<double>(0,-1)*sqrt(2./acos(-1))*(std::complex<double>(0,-1)*nucl_spher_pos[0]*f*(pow(k,3)/(24*pow(contraction_zeta,3))+k/(4*pow(contraction_zeta,2))-(pow(k,5)/(240*pow(contraction_zeta,4))+pow(k,3)/(20*pow(contraction_zeta,3))+k/(4*contraction_zeta*contraction_zeta))*gsl_sf_hyperg_1F1(1,3.5,-k*k/(4*contraction_zeta)))+(pow(k,2)/(8*pow(contraction_zeta,3))+1/(4*pow(contraction_zeta,2))-(pow(k,4)/(48*pow(contraction_zeta,4))+3*pow(k,2)/(20*pow(contraction_zeta,3))+1/(4*pow(contraction_zeta,2)))*gsl_sf_hyperg_1F1(1,3.5,-k*k/(4*contraction_zeta))+(pow(k,6)/(1680*pow(contraction_zeta,5))+pow(k,4)/(140*pow(contraction_zeta,4))+pow(k,2)/(28*pow(contraction_zeta,3)))*gsl_sf_hyperg_1F1(2,4.5,-k*k/(4*contraction_zeta))));
-      return 0.5*sqrt(105./acos(-1))*pow(sin(thet),2)*cos(thet)*cos(2*phi)*phase_factor*k_part_f;
-   }
-   else if(basis_func_type=="4f3+")
-   {
-        k_part_f=std::complex<double>(0,-1)*sqrt(2./acos(-1))*(std::complex<double>(0,-1)*nucl_spher_pos[0]*f*(pow(k,3)/(24*pow(contraction_zeta,3))+k/(4*pow(contraction_zeta,2))-(pow(k,5)/(240*pow(contraction_zeta,4))+pow(k,3)/(20*pow(contraction_zeta,3))+k/(4*contraction_zeta*contraction_zeta))*gsl_sf_hyperg_1F1(1,3.5,-k*k/(4*contraction_zeta)))+(pow(k,2)/(8*pow(contraction_zeta,3))+1/(4*pow(contraction_zeta,2))-(pow(k,4)/(48*pow(contraction_zeta,4))+3*pow(k,2)/(20*pow(contraction_zeta,3))+1/(4*pow(contraction_zeta,2)))*gsl_sf_hyperg_1F1(1,3.5,-k*k/(4*contraction_zeta))+(pow(k,6)/(1680*pow(contraction_zeta,5))+pow(k,4)/(140*pow(contraction_zeta,4))+pow(k,2)/(28*pow(contraction_zeta,3)))*gsl_sf_hyperg_1F1(2,4.5,-k*k/(4*contraction_zeta))));
-      return 0.25*sqrt(35/(2*acos(-1)))*(pow(sin(thet),2)*pow(cos(phi),2)-3.*pow(sin(thet),2)*pow(sin(phi),2))*sin(thet)*cos(phi)*phase_factor*k_part_f;
+//      std::cout<<ml<<"=>"<<int((fabs(ml)+ml)/(2*ml))<<";"<<1-int((fabs(ml)+ml)/(2*fabs(ml)))<<std::endl;
+//
+      value=
+            sqrt(2)*
+            (
+              legendre_val[gsl_sf_legendre_array_index(l,fabs(ml))]
+            ) // Associated Legendre
+ 
+           *(
+              bool(ml>0) * cos(ml * phi) + bool(ml<0) * sin(fabs(ml) * phi)
+            ) // ml sign dependent phi part
+
+            *(
+               double(l) - k * ( k / (2*contraction_zeta) + std::complex<double>(0,1) * nucl_spher_pos[0] * f ) 
+             )
+            
+            *(
+               pow(std::complex<double>(0,-1),l) * pow(k,l-1) * exp( -pow(k,2) / (4*contraction_zeta) ) / pow(2*contraction_zeta,1.5+l)
+             )
+             
+            *phase_factor // phase factor
+      ;
+    //  std::cout<<"ddk : "<<value<<std::endl;
    }
    else
    {
-      std::cout<<"Spherical harmonics not recognized in basis function : "<<basis_func_type.c_str()<<std::endl;
-      exit(EXIT_FAILURE);
+      value=
+            (
+              legendre_val[gsl_sf_legendre_array_index(l,fabs(ml))]
+            ) // Real spherical harmonics
+      
+            *(
+               std::complex<double>(l,0) - k * ( k / (2*contraction_zeta) + std::complex<double>(0,1) * nucl_spher_pos[0] * f)
+             )
+
+            *(
+               pow(std::complex<double>(0,-1),l) * pow(k,l-1) * exp( -pow(k,2) / (4*contraction_zeta) ) / pow(2*contraction_zeta,1.5+l)
+             )
+      
+            *phase_factor // phase factor
+      ;
    }
+   /*
+   if(ml<0)
+   {
+   value=
+      (pow(-1,ml)*sqrt(2)*(factorial(l-ml)/factorial(l+ml))*gsl_sf_legendre_sphPlm(l,-ml,cos(thet))*sin(-ml*phi)) // Real spherical harmonics
+      *(std::complex<double>(l,0)-k*(k/(2*contraction_zeta)+std::complex<double>(0,1)*nucl_spher_pos[0]*f))*(pow(std::complex<double>(0,-1),l)*pow(k,l-1)*exp(-pow(k,2)/(4*contraction_zeta))/pow(2*contraction_zeta,1.5+l))
+      *phase_factor // phase factor
+      ;
+   }
+   else if(angular_mom_numbers[1]>0)
+   {
+   value=
+      (pow(-1,ml)*sqrt(2)*gsl_sf_legendre_sphPlm(l,ml,cos(thet))*cos(ml*phi)) // Real spherical harmonics
+      *(std::complex<double>(l,0)-k*(k/(2*contraction_zeta)+std::complex<double>(0,1)*nucl_spher_pos[0]*f))*(pow(std::complex<double>(0,-1),l)*pow(k,l-1)*exp(-pow(k,2)/(4*contraction_zeta))/pow(2*contraction_zeta,1.5+l))
+      *phase_factor // phase factor
+      ;
+   }
+   else
+   {
+   value=
+      (gsl_sf_legendre_sphPlm(l,0,cos(thet))) // Real spherical harmonics
+      *(std::complex<double>(l,0)-k*(k/(2*contraction_zeta)+std::complex<double>(0,1)*nucl_spher_pos[0]*f))*(pow(std::complex<double>(0,-1),l)*pow(k,l-1)*exp(-pow(k,2)/(4*contraction_zeta))/pow(2*contraction_zeta,1.5+l))
+      *phase_factor // phase factor
+      ;
+   }
+   */
+//   std::cout<<"dk:"<<l<<","<<ml<<","<<thet<<","<<phi<<","<<contraction_zeta<<","<<value<<std::endl;
+
+   return value;
+
 }
-std::complex<double> contraction_FT_grad_thet( double k, double thet, double phi,double* nucl_spher_pos,double contraction_zeta,std::string basis_func_type)
+std::complex<double> contraction_FT_grad_thet( double k, double thet, double phi,double* nucl_spher_pos,double contraction_zeta,int* angular_mom_numbers)
 {
    using namespace std;
 
+   int l(angular_mom_numbers[0]);
+   int ml(angular_mom_numbers[1]);
+   std::complex<double> value;
    complex<double> f(sin(thet)*sin(nucl_spher_pos[1])*cos(phi-nucl_spher_pos[2])+cos(thet)*cos(nucl_spher_pos[1]));
    complex<double> dfdt(cos(thet)*sin(nucl_spher_pos[1])*cos(phi-nucl_spher_pos[2])-sin(thet)*cos(nucl_spher_pos[1]));
    complex<double> phase_factor(exp(-std::complex<double>(0,1)*k*nucl_spher_pos[0]*f));
-   complex<double> k_part_s(0);
-   complex<double> k_part_p(0);
-   complex<double> k_part_d(0);
-   complex<double> k_part_f(0);
-   double temp(0);
-   if(basis_func_type=="1s")
+   double *legendre_val=new double[gsl_sf_legendre_array_n(l)];
+   double *legendre_der_val=new double[gsl_sf_legendre_array_n(l)];
+
+//   exit(EXIT_SUCCESS);
+
+   if(thet!=0)
    {
-      k_part_s=(exp(-k*k/(4*contraction_zeta))/(2*pow(contraction_zeta,1.5)));
-      return std::complex<double>(0,-1)*nucl_spher_pos[0]*dfdt*0.5*(1/sqrt(acos(-1)))*phase_factor*k_part_s;
-   }
-   else if(basis_func_type=="2px")
-   {
-      k_part_p=std::complex<double>(0,1)*sqrt(2.)*(1-(1./3.)*(1+pow(k,2)/(2*contraction_zeta))*gsl_sf_hyperg_1F1(1,2.5,-k*k/(4*contraction_zeta)))/(4.*sqrt(acos(-1))*pow(contraction_zeta,2));
-      return (std::complex<double>(0,-1)*k*nucl_spher_pos[0]*dfdt*(sqrt(3./(4.*acos(-1)))*sin(thet)*cos(phi))+sqrt(3./(4.*acos(-1)))*cos(thet)*cos(phi))*phase_factor*k_part_p;
-   }
-   else if(basis_func_type=="2py")
-   {
-      k_part_p=std::complex<double>(0,1)*sqrt(2.)*(1-(1./3.)*(1+pow(k,2)/(2*contraction_zeta))*gsl_sf_hyperg_1F1(1,2.5,-k*k/(4*contraction_zeta)))/(4.*sqrt(acos(-1))*pow(contraction_zeta,2));
-      return (std::complex<double>(0,-1)*k*nucl_spher_pos[0]*dfdt*(sqrt(3./(4.*acos(-1)))*sin(thet)*sin(phi))+sqrt(3./(4.*acos(-1)))*cos(thet)*sin(phi))*phase_factor*k_part_p;
-   }
-   else if(basis_func_type=="2pz")
-   {
-      k_part_p=std::complex<double>(0,1)*sqrt(2.)*(1-(1./3.)*(1+pow(k,2)/(2*contraction_zeta))*gsl_sf_hyperg_1F1(1,2.5,-k*k/(4*contraction_zeta)))/(4.*sqrt(acos(-1))*pow(contraction_zeta,2));
-      return (std::complex<double>(0,-1)*k*nucl_spher_pos[0]*dfdt*(sqrt(3./(4.*acos(-1)))*cos(thet))-sqrt(3./(4.*acos(-1)))*sin(thet))*phase_factor*k_part_p;
-   }
-   else if(basis_func_type=="3d2-")
-   {
-      k_part_d=-sqrt(2.)*(k*exp(-pow(k,2)/(4.*contraction_zeta))*gsl_sf_hyperg_1F1(1,3.5,k*k/(4*contraction_zeta)))/(40.*pow(contraction_zeta,2.5));
-      return (std::complex<double>(0,-1)*k*nucl_spher_pos[0]*dfdt*(0.25*sqrt(15./acos(-1))*pow(sin(thet),2)*sin(2.*phi))+0.25*sqrt(15./acos(-1))*sin(2*thet)*sin(2.*phi))*phase_factor*k_part_d;
-   }
-   else if(basis_func_type=="3d1-")
-   {
-      k_part_d=-sqrt(2.)*(k*exp(-pow(k,2)/(4.*contraction_zeta))*gsl_sf_hyperg_1F1(1,3.5,k*k/(4*contraction_zeta)))/(40.*pow(contraction_zeta,2.5));
-      return (std::complex<double>(0,-1)*k*nucl_spher_pos[0]*dfdt*(0.25*sqrt(15./acos(-1))*sin(2*thet)*sin(phi))+0.5*sqrt(15./acos(-1))*cos(2*thet)*sin(phi))*phase_factor*k_part_d;
-   }
-   else if(basis_func_type=="3d0")
-   {
-      k_part_d=-sqrt(2.)*(k*exp(-pow(k,2)/(4.*contraction_zeta))*gsl_sf_hyperg_1F1(1,3.5,k*k/(4*contraction_zeta)))/(40.*pow(contraction_zeta,2.5));
-      return (std::complex<double>(0,-1)*k*nucl_spher_pos[0]*dfdt*(0.25*sqrt(5./acos(-1))*(2*pow(cos(thet),2)-pow(sin(thet),2)))-0.75*sqrt(5./acos(-1))*(sin(2*thet)))*phase_factor*k_part_d;
-   }
-   else if(basis_func_type=="3d1+")
-   {
-      k_part_d=-sqrt(2.)*(k*exp(-pow(k,2)/(4.*contraction_zeta))*gsl_sf_hyperg_1F1(1,3.5,k*k/(4*contraction_zeta)))/(40.*pow(contraction_zeta,2.5));
-      return (std::complex<double>(0,-1)*k*nucl_spher_pos[0]*dfdt*(0.25*sqrt(15./acos(-1))*sin(2.*thet)*cos(phi))+0.5*sqrt(15./acos(-1))*cos(2*thet)*cos(phi))*phase_factor*k_part_d;
-   }
-   else if(basis_func_type=="3d2+")
-   {
-      k_part_d=-sqrt(2.)*(k*exp(-pow(k,2)/(4.*contraction_zeta))*gsl_sf_hyperg_1F1(1,3.5,k*k/(4*contraction_zeta)))/(40.*pow(contraction_zeta,2.5));
-      return (std::complex<double>(0,-1)*k*nucl_spher_pos[0]*dfdt*(0.25*sqrt(15./acos(-1))*cos(2*phi)*pow(sin(thet),2))+0.25*sqrt(15./acos(-1))*sin(2*thet)*cos(2.*phi))*phase_factor*k_part_d;
-   }
-   else if(basis_func_type=="4f3-")
-   {
-      k_part_f=std::complex<double>(0,-1)*sqrt(2.)*(pow(k,2)/(24.*pow(contraction_zeta,3))+1/(4.*pow(contraction_zeta,2))-(pow(k,4)/(240.*pow(contraction_zeta,4))+pow(k,2)/(20.*pow(contraction_zeta,3))+(1/4.*pow(contraction_zeta,2)))*gsl_sf_hyperg_1F1(1,3.5,-k*k/(4*contraction_zeta)))/(sqrt(acos(-1)));
-      return (std::complex<double>(0,-1)*k*nucl_spher_pos[0]*dfdt*(0.25*sqrt(35/(2*acos(-1)))*(3*pow(sin(thet),2)*pow(cos(phi),2)-pow(sin(thet),2)*pow(sin(phi),2)))+0.75*sqrt(35/(2*acos(-1)))*pow(sin(thet),2)*cos(thet)*(3*pow(cos(phi),2)-pow(sin(phi),2))*sin(phi))*phase_factor*k_part_f;
-   }
-   else if(basis_func_type=="4f2-")
-   {
-      k_part_f=std::complex<double>(0,-1)*sqrt(2.)*(pow(k,2)/(24.*pow(contraction_zeta,3))+1/(4.*pow(contraction_zeta,2))-(pow(k,4)/(240.*pow(contraction_zeta,4))+pow(k,2)/(20.*pow(contraction_zeta,3))+(1/4.*pow(contraction_zeta,2)))*gsl_sf_hyperg_1F1(1,3.5,-k*k/(4*contraction_zeta)))/(sqrt(acos(-1)));
-      return (std::complex<double>(0,-1)*k*nucl_spher_pos[0]*dfdt*(0.25*sqrt(105./acos(-1))*pow(sin(thet),2)*cos(thet)*sin(2.*phi))+0.25*sqrt(105./acos(-1))*(2.*sin(thet)*pow(cos(thet),2)-pow(sin(thet),3))*sin(2.*phi))*phase_factor*k_part_f;
-   }
-   else if(basis_func_type=="4f1-")
-   {
-      k_part_f=std::complex<double>(0,-1)*sqrt(2.)*(pow(k,2)/(24.*pow(contraction_zeta,3))+1/(4.*pow(contraction_zeta,2))-(pow(k,4)/(240.*pow(contraction_zeta,4))+pow(k,2)/(20.*pow(contraction_zeta,3))+(1/4.*pow(contraction_zeta,2)))*gsl_sf_hyperg_1F1(1,3.5,-k*k/(4*contraction_zeta)))/(sqrt(acos(-1)));
-      return (std::complex<double>(0,-1)*k*nucl_spher_pos[0]*dfdt*(0.25*sqrt(21./(2*acos(-1)))*sin(thet)*sin(phi)*(4*pow(cos(thet),2)-pow(sin(thet),2)))+0.25*sqrt(21./(2*acos(-1)))*sin(phi)*(4*pow(cos(thet),3)-11.*pow(sin(thet),2)*cos(thet)))*phase_factor*k_part_f;
-   }
-   else if(basis_func_type=="4f0")
-   {
-      k_part_f=std::complex<double>(0,-1)*sqrt(2.)*(pow(k,2)/(24.*pow(contraction_zeta,3))+1/(4.*pow(contraction_zeta,2))-(pow(k,4)/(240.*pow(contraction_zeta,4))+pow(k,2)/(20.*pow(contraction_zeta,3))+(1/4.*pow(contraction_zeta,2)))*gsl_sf_hyperg_1F1(1,3.5,-k*k/(4*contraction_zeta)))/(sqrt(acos(-1)));
-      return (std::complex<double>(0,-1)*k*nucl_spher_pos[0]*dfdt*(0.25*sqrt(7./acos(-1))*cos(thet)*(2*pow(cos(thet),2)-3*pow(sin(thet),2)))-0.75*sqrt(7./acos(-1))*(2*sin(2*thet)*cos(thet)-pow(sin(thet),3)))*phase_factor*k_part_f;
-   }
-   else if(basis_func_type=="4f1+")
-   {
-      k_part_f=std::complex<double>(0,-1)*sqrt(2.)*(pow(k,2)/(24.*pow(contraction_zeta,3))+1/(4.*pow(contraction_zeta,2))-(pow(k,4)/(240.*pow(contraction_zeta,4))+pow(k,2)/(20.*pow(contraction_zeta,3))+(1/4.*pow(contraction_zeta,2)))*gsl_sf_hyperg_1F1(1,3.5,-k*k/(4*contraction_zeta)))/(sqrt(acos(-1)));
-      return (std::complex<double>(0,-1)*k*nucl_spher_pos[0]*dfdt*(0.25*sqrt(21./(2*acos(-1)))*sin(thet)*cos(phi)*(4*pow(cos(thet),2)-pow(sin(thet),2)))+0.25*sqrt(21./(2*acos(-1)))*cos(phi)*(4*pow(cos(thet),3)-11*pow(sin(thet),2)*cos(thet)))*phase_factor*k_part_f;
-   }
-   else if(basis_func_type=="4f2+")
-   {
-      k_part_f=std::complex<double>(0,-1)*sqrt(2.)*(pow(k,2)/(24.*pow(contraction_zeta,3))+1/(4.*pow(contraction_zeta,2))-(pow(k,4)/(240.*pow(contraction_zeta,4))+pow(k,2)/(20.*pow(contraction_zeta,3))+(1/4.*pow(contraction_zeta,2)))*gsl_sf_hyperg_1F1(1,3.5,-k*k/(4*contraction_zeta)))/(sqrt(acos(-1)));
-      return (std::complex<double>(0,-1)*k*nucl_spher_pos[0]*dfdt*(0.5*sqrt(105./acos(-1))*pow(sin(thet),2)*cos(thet)*cos(2*phi))+0.5*sqrt(105./acos(-1))*(2*sin(thet)*pow(cos(thet),2)-pow(sin(thet),3))*cos(2.*phi))*phase_factor*k_part_f;
-   }
-   else if(basis_func_type=="4f3+")
-   {
-      k_part_f=std::complex<double>(0,-1)*sqrt(2.)*(pow(k,2)/(24.*pow(contraction_zeta,3))+1/(4.*pow(contraction_zeta,2))-(pow(k,4)/(240.*pow(contraction_zeta,4))+pow(k,2)/(20.*pow(contraction_zeta,3))+(1/4.*pow(contraction_zeta,2)))*gsl_sf_hyperg_1F1(1,3.5,-k*k/(4*contraction_zeta)))/(sqrt(acos(-1)));
-      return (std::complex<double>(0,-1)*k*nucl_spher_pos[0]*dfdt*(0.25*sqrt(35/(2*acos(-1)))*(pow(sin(thet),2)*pow(cos(phi),2)-3.*pow(sin(thet),2)*pow(sin(phi),2))*sin(thet)*cos(phi))+0.75*sqrt(35/(2*acos(-1)))*pow(sin(thet),2)*cos(thet)*(pow(cos(phi),2)-3*pow(sin(phi),2))*cos(phi))*phase_factor*k_part_f;
+      gsl_sf_legendre_deriv_alt_array_e(GSL_SF_LEGENDRE_SPHARM,l,cos(thet),-1,legendre_val,legendre_der_val);
+//      std::cout<<l<<","<<ml<<" => "<<sqrt(3/(4*acos(-1)))*sin(thet)<<" | "<<legendre_val[gsl_sf_legendre_array_index(l,fabs(ml))]<<" d/dt = "<<legendre_der_val[gsl_sf_legendre_array_index(l,fabs(ml))]<<" - thet = "<<thet<<std::endl;
    }
    else
    {
-      std::cout<<"Spherical harmonics not recognized in basis function : "<<basis_func_type.c_str()<<std::endl;
-      exit(EXIT_FAILURE);
+      gsl_sf_legendre_array_e(GSL_SF_LEGENDRE_SPHARM,l,cos(thet),-1,legendre_val);
+      for(int i=0;i!=gsl_sf_legendre_array_n(l);i++)
+         legendre_der_val[i]=0;
    }
+   
+   // ⎷(2) * P( l , |m| ) * (cos( m * phi )) * DK(k)/dk * exp( - I * k * r0 * f)  m > 0
+   // ⎷(2) * P( l , |m| ) * (sin( |m| * phi )) * DK(k)/dk * exp( - I * k * r0 * f)  m < 0
+
+
+   if(ml!=0)
+   {
+
+      value=
+         sqrt(2)*
+         (
+
+            std::complex<double>(0,-1) * k * nucl_spher_pos[0] * dfdt * legendre_val[gsl_sf_legendre_array_index(l,fabs(ml))] //Associated Legendre polynomial
+
+            +  legendre_der_val[gsl_sf_legendre_array_index(l,fabs(ml))] 
+         ) // Derivative of the associated Legendre polynomial. Theta dependent parts
+ 
+         *( 
+               bool(ml>0) * cos(ml * phi) + bool(ml<0) * sin(fabs(ml) * phi) 
+          ) // ml sign dependent phi part
+
+         *( 
+               (pow(std::complex<double>(0,-1),l) * pow(k,l-1) * exp( -pow(k,2) / (4*contraction_zeta))) / (pow(2*contraction_zeta,1.5+l)) 
+          ) // Radial part
+
+          *phase_factor // phase factor
+         ;
+//      std::cout<<"ddt : "<<value<<std::endl;
+   }
+   else
+   {
+      value=
+         (std::complex<double>(0,-1) * k * nucl_spher_pos[0] * dfdt * legendre_val[gsl_sf_legendre_array_index(l,0)] //Associated Legendre polynomial
+            +legendre_der_val[gsl_sf_legendre_array_index(l,0)]) // Derivative of the associated Legendre polynomial. Theta dependent parts
+         *((pow(std::complex<double>(0,-1),l)*pow(k,l-1)*exp(-pow(k,2)/(4*contraction_zeta)))/(pow(2*contraction_zeta,1.5+l))) // Radial part
+         *phase_factor // phase factor
+         ;
+   }
+//std::cout<<"dt:"<<l<<","<<ml<<","<<thet<<","<<phi<<","<<contraction_zeta<<","<<value<<std::endl;
+   /*
+   if(ml<0)
+   {
+//      std::cout<<"probe 1 t : l = "<<l<<" ; ml = "<<ml<<std::endl;
+      if(thet!=0)
+      {
+         value=
+         ( std::complex<double>(0,-1)*k*nucl_spher_pos[0]*dfdt*(pow(-1,ml)*sqrt(2)*(factorial(l-ml)/factorial(l+ml))*gsl_sf_legendre_sphPlm(l,-ml,cos(thet))*sin(-ml*phi)))
+//         +(pow(-1,ml)*sqrt(2)*(factorial(l-ml)/factorial(l+ml))*(sin(-ml*phi)/sin(thet))*(cos(thet)*l*gsl_sf_legendre_sphPlm(l,-ml,cos(thet))-(l-ml)*sqrt((2*l+1)*(l+ml)/((2*l-1)*(l-ml)))*gsl_sf_legendre_sphPlm(l-1,bool(l+ml>0)*(-ml),cos(thet))*bool(l+ml>0))))// Real spherical harmonics
+         *((pow(std::complex<double>(0,-1),l)*pow(k,l-1)*exp(-pow(k,2)/(4*contraction_zeta)))/(pow(2*contraction_zeta,1.5+l))) // Radial part
+         *phase_factor // phase factor
+         ;
+      }
+      else
+      {
+         value=
+         ( std::complex<double>(0,-1)*k*nucl_spher_pos[0]*dfdt*(pow(-1,ml)*sqrt(2)*(factorial(l-ml)/factorial(l+ml))*gsl_sf_legendre_sphPlm(l,-ml,cos(thet))*sin(-ml*phi)))
+         *((pow(std::complex<double>(0,-1),l)*pow(k,l-1)*exp(-pow(k,2)/(4*contraction_zeta)))/(pow(2*contraction_zeta,1.5+l))) // Radial part
+         *phase_factor // phase factor
+         ;
+      }
+   }
+   else if(ml>0)
+   {
+//      std::cout<<"probe 2 t : l = "<<l<<" ; ml = "<<ml<<std::endl;
+      if(thet!=0)
+      {
+         value=
+           ( std::complex<double>(0,-1)*k*nucl_spher_pos[0]*dfdt*(pow(-1,ml)*sqrt(2)*gsl_sf_legendre_sphPlm(l,ml,cos(thet))*cos(ml*phi))
+           +(pow(-1,ml)*sqrt(2)*(cos(ml*phi)/sin(thet))*(cos(thet)*l*gsl_sf_legendre_sphPlm(l,ml,cos(thet))-(l+ml)*sqrt((2*l+1)*(l-ml)/((2*l-1)*(l+ml)))*gsl_sf_legendre_sphPlm(l-1,bool(l-ml>0)*(ml),cos(thet))*(bool(l-ml>0)))))// Real spherical harmonics
+           *((pow(std::complex<double>(0,-1),l)*pow(k,l-1)*exp(-pow(k,2)/(4*contraction_zeta)))/(pow(2*contraction_zeta,1.5+l))) // Radial part
+           *phase_factor // phase factor
+           ;
+      }
+      else
+      {
+         value=
+           ( std::complex<double>(0,-1)*k*nucl_spher_pos[0]*dfdt*(pow(-1,ml)*sqrt(2)*gsl_sf_legendre_sphPlm(l,ml,cos(thet))*cos(ml*phi)))
+           *((pow(std::complex<double>(0,-1),l)*pow(k,l)*exp(-pow(k,2)/(4*contraction_zeta)))/(pow(2*contraction_zeta,1.5+l))) // Radial part
+           *phase_factor // phase factor
+           ;
+      }
+   }
+   else
+   {
+//      std::cout<<"probe 3 t : l = "<<l<<" ; ml = "<<ml<<std::endl;
+      if(thet!=0)
+      {
+         value=
+          (std::complex<double>(0,-1)*k*nucl_spher_pos[0]*gsl_sf_legendre_sphPlm(l,0,cos(thet))*dfdt
+          + (l/sin(thet))*(cos(thet)*gsl_sf_legendre_sphPlm(l,0,cos(thet))+gsl_sf_legendre_sphPlm(bool(l-1>=0)*(l-1),0,cos(thet))))// Real spherical harmonics
+          *((pow(std::complex<double>(0,-1),l)*pow(k,l)*exp(-pow(k,2)/(4*contraction_zeta)))/(pow(2*contraction_zeta,1.5+l))) // Radial part
+          *phase_factor // phase factor
+          ;
+      }
+      else
+      {
+         value=
+          (std::complex<double>(0,-1)*k*nucl_spher_pos[0]*sqrt(2)*gsl_sf_legendre_sphPlm(l,0,cos(thet))*dfdt)
+          *((pow(std::complex<double>(0,-1),l)*pow(k,l)*exp(-pow(k,2)/(4*contraction_zeta)))/(pow(2*contraction_zeta,1.5+l))) // Radial part
+          *phase_factor // phase factor
+          ;
+      }
+   }
+*/
+   return value;
 }
-std::complex<double> contraction_FT_grad_phi( double k, double thet, double phi,double* nucl_spher_pos,double contraction_zeta,std::string basis_func_type)
+std::complex<double> contraction_FT_grad_phi( double k, double thet, double phi,double* nucl_spher_pos,double contraction_zeta,int* angular_mom_numbers)
 {
    using namespace std;
 
+   int l(angular_mom_numbers[0]);
+   int ml(angular_mom_numbers[1]);
+   std::complex<double> value;
    complex<double> f(sin(thet)*sin(nucl_spher_pos[1])*cos(phi-nucl_spher_pos[2])+cos(thet)*cos(nucl_spher_pos[1]));
    complex<double> dfdf(-sin(thet)*sin(nucl_spher_pos[1])*sin(phi-nucl_spher_pos[2]));
    complex<double> dfdf2(-sin(nucl_spher_pos[1])*sin(phi-nucl_spher_pos[2]));
    complex<double> phase_factor(exp(-std::complex<double>(0,1)*k*nucl_spher_pos[0]*f));
-   complex<double> k_part_s(0);
-   complex<double> k_part_p(0);
-   complex<double> k_part_d(0);
-   complex<double> k_part_f(0);
+
+   double *legendre_val=new double[gsl_sf_legendre_array_n(l+1)];
+   double *legendre_val_NN=new double[gsl_sf_legendre_array_n(l+1)];
+
+      gsl_sf_legendre_array_e(GSL_SF_LEGENDRE_NONE,l+1,cos(thet),-1,legendre_val);
+      gsl_sf_legendre_array_e(GSL_SF_LEGENDRE_SPHARM,l+1,cos(thet),-1,legendre_val_NN);
+
+//      std::cout<<k<<" , "<<thet<<" , "<<phi<<" ; "<<contraction_zeta<<" , "<<l<<" , "<<ml<<","<<nucl_spher_pos[0]<<","<<nucl_spher_pos[1]<<","<<nucl_spher_pos[2]<<std::endl;
+   if(ml!=0)
+   {
+/*      std::cout<<"l="<<l<<" ml="<<ml<<" ; "<<thet<<" *** "<<
+            (1/(2*fabs(ml)))*sqrt(((2*l+1)*factorial(l-fabs(ml)))/((4*acos(-1))*(factorial(l+fabs(ml))))) 
+            *(
+               legendre_val[gsl_sf_legendre_array_index(l+1,fabs(ml)+1)] + (l-fabs(ml)+1) * (l-fabs(ml)+2) * legendre_val[gsl_sf_legendre_array_index(l+1,fabs(ml)-1)]
+             )
+            <<std::endl;*/
+      value=
+         sqrt(2)*
+         ( 
+            (1/(2*fabs(ml)))*sqrt(((2*l+1)*factorial(l-fabs(ml)))/((4*acos(-1))*(factorial(l+fabs(ml))))) 
+            *(
+               legendre_val[gsl_sf_legendre_array_index(l+1,fabs(ml)+1)] + (l-fabs(ml)+1) * (l-fabs(ml)+2) * legendre_val[gsl_sf_legendre_array_index(l+1,fabs(ml)-1)]
+             )
+
+            *(
+
+               fabs(ml) * bool(ml>0) * sin(ml * phi) - fabs(ml) * bool(ml<0) * cos(ml * phi)
+
+               -std::complex<double>(0,-1) * k * nucl_spher_pos[0] * dfdf // Real spherical harmonics 
+              
+               *(
+                  bool(ml>0) * cos(ml * phi) + bool(ml<0) * sin(fabs(ml) * phi)
+                )
+             )
+          ) // ml sign dependent phi part
+
+         *(
+             pow(std::complex<double>(0,-1),l) * pow(k,l-1) * exp(-pow(k,2) / (4*contraction_zeta))  / (pow(2*contraction_zeta,1.5+l))
+          ) // Radial part
+
+         *phase_factor // phase factor
+         ;
+      
+   }
+   else
+   {
+      value=
+            (
+               (
+                  std::complex<double>(0,-1) * k *nucl_spher_pos[0] * legendre_val_NN[gsl_sf_legendre_array_index(l,0)] * dfdf2
+               ) // Real spherical harmonics
+              *(
+                 (pow(std::complex<double>(0,-1),l) * pow(k,l-1) * exp(-pow(k,2) / (4*contraction_zeta)) ) / (pow( 2 * contraction_zeta,1.5 + l)) 
+               )
+            ) // Radial part
+            *phase_factor // phase factor
+         ;
+   }
+//   std::cout<<"df:"<<l<<","<<ml<<","<<thet<<","<<phi<<","<<contraction_zeta<<","<<value<<std::endl;
+/*
+   if(ml<0)
+   {
+//      std::cout<<"probe 1 f : l = "<<l<<" ; ml = "<<ml<<std::endl;
+//      std::cout<<"test! thet = "<<thet<<" => "<<gsl_sf_legendre_sphPlm(l,-ml,cos(thet))<<","<<sin(thet)<<std::endl;
+      if(thet!=0)
+      {
+         value=
+            (-ml*(pow(-1,ml)*sqrt(2)*gsl_sf_legendre_sphPlm(l,-ml,cos(thet))*cos(-ml*phi))
+              +(std::complex<double>(0,-1)*k*nucl_spher_pos[0]*pow(-1,ml)*sqrt(2)*gsl_sf_legendre_sphPlm(l,-ml,cos(thet))*sin(-ml*phi)*dfdf)) // Real spherical harmonics
+            *((pow(std::complex<double>(0,-1),l)*pow(k,l-1)*exp(-pow(k,2)/(4*contraction_zeta)))/(pow(2*contraction_zeta,1.5+l))) // Radial part
+      *phase_factor // phase factor
+      ;
+      }
+      else
+      {
+         value=
+            ((std::complex<double>(0,-1)*k*nucl_spher_pos[0]*pow(-1,ml)*sqrt(2)*gsl_sf_legendre_sphPlm(l,-ml,cos(thet))*sin(-ml*phi)*dfdf)) // Real spherical harmonics
+            *((pow(std::complex<double>(0,-1),l)*pow(k,l-1)*exp(-pow(k,2)/(4*contraction_zeta)))/(pow(2*contraction_zeta,1.5+l))) // Radial part
+      *phase_factor // phase factor
+      ;
+      }
+
+   }
+   else if(ml>0)
+   {
+//      std::cout<<"probe 2 f : l = "<<l<<" ; ml = "<<ml<<std::endl;
+      if(thet!=0)
+      {
+         value=
+            (-ml*(pow(-1,ml)*sqrt(2)*gsl_sf_legendre_sphPlm(l,ml,cos(thet))*sin(ml*phi))
+            + (std::complex<double>(0,-1)*k*nucl_spher_pos[0]*pow(-1,ml)*sqrt(2)*gsl_sf_legendre_sphPlm(l,ml,cos(thet))*cos(ml*phi)*dfdf)) // Real spherical harmonics
+            *((pow(std::complex<double>(0,-1),l)*pow(k,l)*exp(-pow(k,2)/(4*contraction_zeta)))/(pow(2*contraction_zeta,1.5+l))) // Radial part
+            *phase_factor // phase factor
+      ;
+      }
+      else
+      {
+         value=
+            ( (std::complex<double>(0,-1)*k*nucl_spher_pos[0]*pow(-1,ml)*sqrt(2)*gsl_sf_legendre_sphPlm(l,ml,cos(thet))*cos(ml*phi)*dfdf)) // Real spherical harmonics
+            *((pow(std::complex<double>(0,-1),l)*pow(k,l)*exp(-pow(k,2)/(4*contraction_zeta)))/(pow(2*contraction_zeta,1.5+l))) // Radial part
+            *phase_factor // phase factor
+            ;
+      }
+   }
+   else
+   {
+//      std::cout<<"probe 3 f : l = "<<l<<" ; ml = "<<ml<<std::endl;
+   value=
+      (std::complex<double>(0,-1)*k*nucl_spher_pos[0]*pow(-1,ml)*gsl_sf_legendre_sphPlm(l,ml,cos(thet))*dfdf) // Real spherical harmonics
+      *((pow(std::complex<double>(0,-1),l)*pow(k,l)*exp(-pow(k,2)/(4*contraction_zeta)))/(pow(2*contraction_zeta,1.5+l))) // Radial part
+      *phase_factor // phase factor
+      ;
+   }
+*/
+   return value;
+}
+
+double MO_value( int mo_index, double x, double y, double z,double **nucl_spher_pos,int *nucl_basis_func,int* contraction_number,double **contraction_coeff,double **contraction_zeta,std::string *basis_func_type,double *MO_neut_basis_coeff,int basis_size,int **angular_mom_numbers)
+{
+   double value(0);
+   double xp(0);
+   double yp(0);
+   double zp(0);
+   double r(0);
+   double thet(0);
+   double phi(0);
+
+   for(int i=0;i!=basis_size;i++)
+   {
+      xp=x-nucl_spher_pos[nucl_basis_func[i]-1][0]*sin(nucl_spher_pos[nucl_basis_func[i]-1][1])*cos(nucl_spher_pos[nucl_basis_func[i]-1][2]);
+      yp=y-nucl_spher_pos[nucl_basis_func[i]-1][0]*sin(nucl_spher_pos[nucl_basis_func[i]-1][1])*sin(nucl_spher_pos[nucl_basis_func[i]-1][2]);
+      zp=z-nucl_spher_pos[nucl_basis_func[i]-1][0]*cos(nucl_spher_pos[nucl_basis_func[i]-1][1]);
+      r=sqrt(pow(xp,2)+pow(yp,2)+pow(zp,2));
+      if(r==0)
+      {
+          thet=acos(-1)/2;
+          phi=0;
+      }
+      else
+      {
+          thet=acos(zp/r);
+      if( xp == 0 && yp >= 0 )
+      {
+         phi=acos(-1)/2;
+      }
+      else if(xp == 0 && yp < 0)
+      {
+         phi=3.*acos(-1)/2; 
+      }
+      else if(xp < 0 && yp == 0)
+      {
+         phi=acos(-1); 
+      }
+      else
+      {
+         phi=atan2(yp,xp);
+      }
+   }
+      value+=MO_neut_basis_coeff[mo_index*basis_size+i]*AO_value(i,r,thet,phi,contraction_number,nucl_spher_pos[nucl_basis_func[i]-1],contraction_coeff,contraction_zeta,basis_func_type,angular_mom_numbers);
+//      std::cout<<"==>"<<MO_neut_basis_coeff[mo_index*basis_size+i]<<"*"<<AO_value(i,r,thet,phi,contraction_number,nucl_spher_pos[nucl_basis_func[i]-1],contraction_coeff,contraction_zeta,basis_func_type,angular_mom_numbers)<<std::endl;
+   }
+   return value;
+}
+double AO_value(int ao_index,double r, double thet, double phi,int *contraction_number,double *nucl_spher_pos,double **contraction_coeff,double **contraction_zeta,std::string *basis_func_type,int **angular_mom_numbers)
+{
+
+   double value(0);
+   double norm(0);
+   for(int i=0;i!=contraction_number[ao_index];i++)
+   {
+         value+=contraction_coeff[ao_index][i]*contraction_value(r,thet,phi,nucl_spher_pos,contraction_zeta[ao_index][i],basis_func_type[ao_index],angular_mom_numbers[ao_index]);
+//         if(value>=1)
+//            std::cout<<"==>==>"<<contraction_coeff[ao_index][i]<<" * "<<contraction_value(r,thet,phi,nucl_spher_pos,contraction_zeta[ao_index][i],basis_func_type[ao_index],angular_mom_numbers[ao_index])<<" = "<<contraction_coeff[ao_index][i]*contraction_value(r,thet,phi,nucl_spher_pos,contraction_zeta[ao_index][i],basis_func_type[ao_index],angular_mom_numbers[ao_index])<<std::endl;
+   }
+   return value;
+
+}
+double contraction_value( double r, double thet, double phi,double* nucl_spher_pos,double contraction_zeta,std::string basis_func_type,int* angular_mom_numbers)
+{
+   using namespace std;
+
+//   if(exp(-contraction_zeta*pow(r,2))*pow(r,2) > 1)
+//      std::cout<<"****"<<exp(-contraction_zeta*pow(r,2))<<","<<r<<std::endl<<"==>"<<exp(-contraction_zeta*pow(r,2))*pow(r,2)<<std::endl;
+
+//   std::cout<<basis_func_type.c_str()<<" - l = "<<angular_mom_numbers[0]<<" ; ml = "<<angular_mom_numbers[1]<<std::endl;
+
+   switch(angular_mom_numbers[0])
+   {
+      case 0:
+         return 0.5*(1/sqrt(acos(-1)))*exp(-contraction_zeta*pow(r,2));
+      case 1:
+         switch(angular_mom_numbers[1])
+         {
+            case -1:
+               return sqrt(3./(4.*acos(-1)))*sin(thet)*sin(phi)*exp(-contraction_zeta*pow(r,2))*r;
+            case 0:
+               return sqrt(3./(4.*acos(-1)))*cos(thet)*exp(-contraction_zeta*pow(r,2))*r;
+            case 1:
+               return sqrt(3./(4.*acos(-1)))*sin(thet)*cos(phi)*exp(-contraction_zeta*pow(r,2))*r;
+         }
+      case 2:
+         switch(angular_mom_numbers[1])
+         {
+            case -2:
+               return 0.25*sqrt(15./(acos(-1)))*pow(sin(thet),2)*sin(2.*phi)*exp(-contraction_zeta*pow(r,2))*pow(r,2);
+            case -1:
+               return 0.25*sqrt(15./(acos(-1)))*sin(2*thet)*sin(phi)*exp(-contraction_zeta*pow(r,2))*pow(r,2);
+            case 0:
+               return 0.25*sqrt(5./acos(-1))*(3*pow(cos(thet),2)-1)*exp(-contraction_zeta*pow(r,2))*pow(r,2);
+            case 1:
+               return 0.25*sqrt(15./(acos(-1)))*sin(2.*thet)*cos(phi)*exp(-contraction_zeta*pow(r,2))*pow(r,2);
+            case 2:
+               return 0.25*sqrt(15./(acos(-1)))*cos(2*phi)*pow(sin(thet),2)*exp(-contraction_zeta*pow(r,2))*pow(r,2);
+         }
+      case 3:
+         switch(angular_mom_numbers[1])
+         {
+            case -3:
+                return 0.25*sqrt(35/(2*acos(-1)))*(4*pow(cos(phi),2)-1)*pow(sin(thet),3)*sin(phi)*exp(-contraction_zeta*pow(r,2))*pow(r,3);
+            case -2:
+                return 0.25*sqrt(105./acos(-1))*pow(sin(thet),2)*cos(thet)*sin(2.*phi)*exp(-contraction_zeta*pow(r,2))*pow(r,3);
+            case -1:
+                return 0.25*sqrt(21./(2*acos(-1)))*sin(thet)*sin(phi)*(4*pow(cos(thet),2)-pow(sin(thet),2))*exp(-contraction_zeta*pow(r,2))*pow(r,3);
+            case 0:
+                return 0.25*sqrt(7./acos(-1))*cos(thet)*(2*pow(cos(thet),2)-3*pow(sin(thet),2))*exp(-contraction_zeta*pow(r,2))*pow(r,3);
+            case 1:
+                return 0.25*sqrt(21./(2*acos(-1)))*sin(thet)*cos(phi)*(4*pow(cos(thet),2)-pow(sin(thet),2))*exp(-contraction_zeta*pow(r,2))*pow(r,3);
+            case 2:
+                return 0.25*sqrt(105./acos(-1))*pow(sin(thet),2)*cos(thet)*cos(2*phi)*exp(-contraction_zeta*pow(r,2))*pow(r,3);
+            case 3:
+                return 0.25*sqrt(35/(2*acos(-1)))*(1-4.*pow(sin(phi),2))*pow(sin(thet),3)*cos(phi)*exp(-contraction_zeta*pow(r,2))*pow(r,3);
+         }
+   }
+/*
    double temp(0);
    if(basis_func_type=="1s")
    {
-      k_part_s=(exp(-k*k/(4*contraction_zeta))/(2*pow(contraction_zeta,1.5)));
-      return std::complex<double>(0,-1)*nucl_spher_pos[0]*dfdf2*0.5*(1/sqrt(acos(-1)))*phase_factor*k_part_s;
+      return 0.5*(1/sqrt(acos(-1)))*exp(-contraction_zeta*pow(r,2));
    }
    else if(basis_func_type=="2px")
    {
-      k_part_p=std::complex<double>(0,1)*sqrt(2.)*(1-(1./3.)*(1+pow(k,2)/(2*contraction_zeta))*gsl_sf_hyperg_1F1(1,2.5,-k*k/(4*contraction_zeta)))/(4.*sqrt(acos(-1))*pow(contraction_zeta,2));
-      return (std::complex<double>(0,-1)*k*nucl_spher_pos[0]*dfdf*(sqrt(3./(4.*acos(-1)))*cos(phi))-sqrt(3./(4.*acos(-1)))*sin(phi))*phase_factor*k_part_p;
+      return sqrt(3./(4.*acos(-1)))*sin(thet)*cos(phi)*exp(-contraction_zeta*pow(r,2))*r;
    }
    else if(basis_func_type=="2py")
    {
-      k_part_p=std::complex<double>(0,1)*sqrt(2.)*(1-(1./3.)*(1+pow(k,2)/(2*contraction_zeta))*gsl_sf_hyperg_1F1(1,2.5,-k*k/(4*contraction_zeta)))/(4.*sqrt(acos(-1))*pow(contraction_zeta,2));
-      return (std::complex<double>(0,-1)*k*nucl_spher_pos[0]*dfdf*(sqrt(3./(4.*acos(-1)))*sin(phi))+sqrt(3./(4.*acos(-1)))*cos(phi))*phase_factor*k_part_p;
+      return sqrt(3./(4.*acos(-1)))*sin(thet)*sin(phi)*exp(-contraction_zeta*pow(r,2))*r;
    }
    else if(basis_func_type=="2pz")
    {
-      k_part_p=std::complex<double>(0,1)*sqrt(2.)*(1-(1./3.)*(1+pow(k,2)/(2*contraction_zeta))*gsl_sf_hyperg_1F1(1,2.5,-k*k/(4*contraction_zeta)))/(4.*sqrt(acos(-1))*pow(contraction_zeta,2));
-      return std::complex<double>(0,-1)*nucl_spher_pos[0]*dfdf2*sqrt(3./(4.*acos(-1)))*cos(thet)*phase_factor*k_part_p;
+      return sqrt(3./(4.*acos(-1)))*cos(thet)*exp(-contraction_zeta*pow(r,2))*r;
    }
    else if(basis_func_type=="3d2-")
    {
-      k_part_d=-sqrt(2.)*(k*exp(-pow(k,2)/(4.*contraction_zeta))*gsl_sf_hyperg_1F1(1,3.5,k*k/(4*contraction_zeta)))/(40.*pow(contraction_zeta,2.5));
-      return (std::complex<double>(0,-1)*k*nucl_spher_pos[0]*dfdf*(0.25*sqrt(15./acos(-1))*sin(thet)*sin(2.*phi))+0.5*sqrt(15./acos(-1))*sin(thet)*cos(2.*phi))*phase_factor*k_part_d;
+      return 0.25*sqrt(15./(acos(-1)))*pow(sin(thet),2)*sin(2.*phi)*exp(-contraction_zeta*pow(r,2))*pow(r,2);
    }
    else if(basis_func_type=="3d1-")
    {
-      k_part_d=-sqrt(2.)*(k*exp(-pow(k,2)/(4.*contraction_zeta))*gsl_sf_hyperg_1F1(1,3.5,k*k/(4*contraction_zeta)))/(40.*pow(contraction_zeta,2.5));
-      return (std::complex<double>(0,-1)*k*nucl_spher_pos[0]*dfdf*(0.5*sqrt(15./acos(-1))*cos(thet)*sin(phi))+0.5*sqrt(15./acos(-1))*cos(thet)*cos(phi))*phase_factor*k_part_d;
+      return 0.25*sqrt(15./(acos(-1)))*sin(2*thet)*sin(phi)*exp(-contraction_zeta*pow(r,2))*pow(r,2);
    }
    else if(basis_func_type=="3d0")
    {
-      k_part_d=-sqrt(2.)*(k*exp(-pow(k,2)/(4.*contraction_zeta))*gsl_sf_hyperg_1F1(1,3.5,k*k/(4*contraction_zeta)))/(40.*pow(contraction_zeta,2.5));
-      return std::complex<double>(0,-1)*k*nucl_spher_pos[0]*dfdf2*(0.25*sqrt(5./acos(-1))*(2*pow(cos(thet),2)-pow(sin(thet),2))*phase_factor*k_part_d);
+      return 0.25*sqrt(5./acos(-1))*(3*pow(cos(thet),2)-1)*exp(-contraction_zeta*pow(r,2))*pow(r,2);
    }
    else if(basis_func_type=="3d1+")
    {
-      k_part_d=-sqrt(2.)*(k*exp(-pow(k,2)/(4.*contraction_zeta))*gsl_sf_hyperg_1F1(1,3.5,k*k/(4*contraction_zeta)))/(40.*pow(contraction_zeta,2.5));
-      return (std::complex<double>(0,-1)*k*nucl_spher_pos[0]*dfdf*(0.25*sqrt(15./acos(-1))*sin(2.*thet)*cos(phi))-0.5*sqrt(15./acos(-1))*cos(thet)*sin(phi))*phase_factor*k_part_d;
+      return 0.25*sqrt(15./(acos(-1)))*sin(2.*thet)*cos(phi)*exp(-contraction_zeta*pow(r,2))*pow(r,2);
    }
    else if(basis_func_type=="3d2+")
    {
-      k_part_d=-sqrt(2.)*(k*exp(-pow(k,2)/(4.*contraction_zeta))*gsl_sf_hyperg_1F1(1,3.5,k*k/(4*contraction_zeta)))/(40.*pow(contraction_zeta,2.5));
-      return (std::complex<double>(0,-1)*k*nucl_spher_pos[0]*dfdf*(0.25*sqrt(15./acos(-1))*cos(2*phi)*sin(thet))-0.5*sqrt(15./acos(-1))*sin(thet)*sin(2.*phi))*phase_factor*k_part_d;
+      return 0.25*sqrt(15./(acos(-1)))*cos(2*phi)*pow(sin(thet),2)*exp(-contraction_zeta*pow(r,2))*pow(r,2);
    }
    else if(basis_func_type=="4f3-")
    {
-      k_part_f=std::complex<double>(0,-1)*sqrt(2.)*(pow(k,2)/(24.*pow(contraction_zeta,3))+1/(4.*pow(contraction_zeta,2))-(pow(k,4)/(240.*pow(contraction_zeta,4))+pow(k,2)/(20.*pow(contraction_zeta,3))+(1/4.*pow(contraction_zeta,2)))*gsl_sf_hyperg_1F1(1,3.5,-k*k/(4*contraction_zeta)))/(sqrt(acos(-1)));
-      return (std::complex<double>(0,-1)*k*nucl_spher_pos[0]*dfdf*(0.25*sqrt(35/(2*acos(-1)))*(3*pow(sin(thet),2)*pow(cos(phi),2)-pow(sin(thet),2)*pow(sin(phi),2))*sin(phi))+0.75*sqrt(35/(2*acos(-1)))*pow(sin(thet),2)*(pow(cos(phi),3)-3*pow(sin(phi),2)*cos(phi)))*phase_factor*k_part_f;
+//      return 0.25*sqrt(35/(2*acos(-1)))*(3*pow(sin(thet),2)*pow(cos(phi),2)-pow(sin(thet),2)*pow(sin(phi),2))*sin(thet)*sin(phi)*exp(-contraction_zeta*pow(r,2))*pow(r,3);
+      return 0.25*sqrt(35/(2*acos(-1)))*(4*pow(cos(phi),2)-1)*pow(sin(thet),3)*sin(phi)*exp(-contraction_zeta*pow(r,2))*pow(r,3);
    }
    else if(basis_func_type=="4f2-")
    {
-      k_part_f=std::complex<double>(0,-1)*sqrt(2.)*(pow(k,2)/(24.*pow(contraction_zeta,3))+1/(4.*pow(contraction_zeta,2))-(pow(k,4)/(240.*pow(contraction_zeta,4))+pow(k,2)/(20.*pow(contraction_zeta,3))+(1/4.*pow(contraction_zeta,2)))*gsl_sf_hyperg_1F1(1,3.5,-k*k/(4*contraction_zeta)))/(sqrt(acos(-1)));
-      return (std::complex<double>(0,-1)*k*nucl_spher_pos[0]*dfdf*(0.25*sqrt(105./acos(-1))*sin(thet)*cos(thet)*sin(2.*phi))+0.5*sqrt(105./acos(-1))*sin(thet)*cos(thet)*cos(2.*phi))*phase_factor*k_part_f;
+      return 0.25*sqrt(105./acos(-1))*pow(sin(thet),2)*cos(thet)*sin(2.*phi)*exp(-contraction_zeta*pow(r,2))*pow(r,3);
    }
    else if(basis_func_type=="4f1-")
    {
-      k_part_f=std::complex<double>(0,-1)*sqrt(2.)*(pow(k,2)/(24.*pow(contraction_zeta,3))+1/(4.*pow(contraction_zeta,2))-(pow(k,4)/(240.*pow(contraction_zeta,4))+pow(k,2)/(20.*pow(contraction_zeta,3))+(1/4.*pow(contraction_zeta,2)))*gsl_sf_hyperg_1F1(1,3.5,-k*k/(4*contraction_zeta)))/(sqrt(acos(-1)));
-      return (std::complex<double>(0,-1)*k*nucl_spher_pos[0]*dfdf*(0.25*sqrt(21./(2*acos(-1)))*sin(phi)*(4*pow(cos(thet),2)-pow(sin(thet),2)))+0.25*sqrt(21./(2*acos(-1)))*cos(phi)*(4*pow(cos(thet),2)-pow(sin(thet),2)))*phase_factor*k_part_f;
+      return 0.25*sqrt(21./(2*acos(-1)))*sin(thet)*sin(phi)*(4*pow(cos(thet),2)-pow(sin(thet),2))*exp(-contraction_zeta*pow(r,2))*pow(r,3);
    }
    else if(basis_func_type=="4f0")
    {
-      k_part_f=std::complex<double>(0,-1)*sqrt(2.)*(pow(k,2)/(24.*pow(contraction_zeta,3))+1/(4.*pow(contraction_zeta,2))-(pow(k,4)/(240.*pow(contraction_zeta,4))+pow(k,2)/(20.*pow(contraction_zeta,3))+(1/4.*pow(contraction_zeta,2)))*gsl_sf_hyperg_1F1(1,3.5,-k*k/(4*contraction_zeta)))/(sqrt(acos(-1)));
-      return std::complex<double>(0,-1)*k*nucl_spher_pos[0]*dfdf2*(0.25*sqrt(7./acos(-1))*cos(thet)*(2*pow(cos(thet),2)-3*pow(sin(thet),2)))*phase_factor*k_part_f;
+      return 0.25*sqrt(7./acos(-1))*cos(thet)*(2*pow(cos(thet),2)-3*pow(sin(thet),2))*exp(-contraction_zeta*pow(r,2))*pow(r,3);
    }
    else if(basis_func_type=="4f1+")
    {
-      k_part_f=std::complex<double>(0,-1)*sqrt(2.)*(pow(k,2)/(24.*pow(contraction_zeta,3))+1/(4.*pow(contraction_zeta,2))-(pow(k,4)/(240.*pow(contraction_zeta,4))+pow(k,2)/(20.*pow(contraction_zeta,3))+(1/4.*pow(contraction_zeta,2)))*gsl_sf_hyperg_1F1(1,3.5,-k*k/(4*contraction_zeta)))/(sqrt(acos(-1)));
-      return (std::complex<double>(0,-1)*k*nucl_spher_pos[0]*dfdf*(0.25*sqrt(21./(2*acos(-1)))*cos(phi)*(4*pow(cos(thet),2)-pow(sin(thet),2)))-0.25*sqrt(21./(2*acos(-1)))*sin(phi)*(4*pow(cos(thet),2)-pow(sin(thet),2)))*phase_factor*k_part_f;
+      return 0.25*sqrt(21./(2*acos(-1)))*sin(thet)*cos(phi)*(4*pow(cos(thet),2)-pow(sin(thet),2))*exp(-contraction_zeta*pow(r,2))*pow(r,3);
    }
    else if(basis_func_type=="4f2+")
    {
-      k_part_f=std::complex<double>(0,-1)*sqrt(2.)*(pow(k,2)/(24.*pow(contraction_zeta,3))+1/(4.*pow(contraction_zeta,2))-(pow(k,4)/(240.*pow(contraction_zeta,4))+pow(k,2)/(20.*pow(contraction_zeta,3))+(1/4.*pow(contraction_zeta,2)))*gsl_sf_hyperg_1F1(1,3.5,-k*k/(4*contraction_zeta)))/(sqrt(acos(-1)));
-      return (std::complex<double>(0,-1)*k*nucl_spher_pos[0]*dfdf*(0.5*sqrt(105./acos(-1))*sin(thet)*cos(thet)*cos(2*phi))-sqrt(105./acos(-1))*sin(thet)*cos(thet)*sin(2.*phi))*phase_factor*k_part_f;
+      return 0.25*sqrt(105./acos(-1))*pow(sin(thet),2)*cos(thet)*cos(2*phi)*exp(-contraction_zeta*pow(r,2))*pow(r,3);
    }
    else if(basis_func_type=="4f3+")
    {
-      k_part_f=std::complex<double>(0,-1)*sqrt(2.)*(pow(k,2)/(24.*pow(contraction_zeta,3))+1/(4.*pow(contraction_zeta,2))-(pow(k,4)/(240.*pow(contraction_zeta,4))+pow(k,2)/(20.*pow(contraction_zeta,3))+(1/4.*pow(contraction_zeta,2)))*gsl_sf_hyperg_1F1(1,3.5,-k*k/(4*contraction_zeta)))/(sqrt(acos(-1)));
-      return (std::complex<double>(0,-1)*k*nucl_spher_pos[0]*dfdf*(0.25*sqrt(35/(2*acos(-1)))*(pow(sin(thet),2)*pow(cos(phi),2)-3.*pow(sin(thet),2)*pow(sin(phi),2))*cos(phi))+0.75*sqrt(35/(2*acos(-1)))*(pow(sin(phi),3)-3*sin(phi)*pow(cos(phi),2))*pow(sin(thet),2))*phase_factor*k_part_f;
+      return 0.25*sqrt(35/(2*acos(-1)))*(1-4.*pow(sin(phi),2))*pow(sin(thet),3)*cos(phi)*exp(-contraction_zeta*pow(r,2))*pow(r,3);
    }
    else
    {
       std::cout<<"Spherical harmonics not recognized in basis function : "<<basis_func_type.c_str()<<std::endl;
       exit(EXIT_FAILURE);
    }
+*/
+}
+bool build_ao_s(double* S,int *nucl_basis_func,int *contraction_number,double **nucl_spher_pos,double **contraction_coeff,double **contraction_zeta,std::string *basis_func_type,int basis_size)
+{
+   double val=0;
+   int l_val=0;
+   int l_valp=0;
+   
+   for(int i=0;i!=basis_size;i++)
+   {
+      l_val=l_number(basis_func_type[i].c_str());
+      for(int j=0;j!=basis_size;j++)
+      {
+         l_valp=l_number(basis_func_type[j].c_str());
+         if(nucl_basis_func[i]==nucl_basis_func[j])
+         {
+            std::cout<<"atom "<<nucl_basis_func[i]<<" - atom "<<nucl_basis_func[j]<<std::endl;
+            val=0;
+            for(int ip=0;ip!=contraction_number[i];ip++)
+            {
+               for(int jp=0;jp!=contraction_number[j];jp++)
+               {
+                  val+=0.5*(contraction_coeff[i][ip]*contraction_coeff[j][jp]*intplushalf_gamma(0.5*l_val+1.5))/(pow(contraction_zeta[i][ip]+contraction_zeta[j][jp],1.5+l_val))*kronecker_delta(l_val,l_valp);
+               }
+            }
+            std::cout<<"<"<<i+1<<"|"<<j+1<<"> = "<<val<<std::endl;
+         }
+      }
+   }
+   exit(EXIT_SUCCESS);
+   return 1;
 }
