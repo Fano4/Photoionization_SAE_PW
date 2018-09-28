@@ -1,6 +1,12 @@
+int l_number(std::string bas_func_type);
+int ml_number(std::string bas_func_type,int l);
+
 #include "/data1/home/stephan/Photoionization_SAE_PW/version_3.0/algebra.cpp"
 #include "/data1/home/stephan/Photoionization_SAE_PW/version_3.0/hf5_photoion.cpp"
 #include "/data1/home/stephan/Photoionization_SAE_PW/version_3.0/Computation.cpp"
+//#include "/data1/home/stephan/Photoionization_SAE_PW/version_3.0/photoionization_module_1.0/pice_module_comp.cpp"
+
+
 
 class pice_set {
    private:
@@ -22,6 +28,7 @@ class pice_set {
       double ***m_nucl_spher_pos;
       double ***m_mo_dipole;
       double **m_dyson_mo_coeff;
+      int **m_angular_mom_numbers;
       int* m_nucl_basis_func;
       std::string* m_basis_func_type;
 /*

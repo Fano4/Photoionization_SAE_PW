@@ -4,8 +4,7 @@ bool dyson_mo_coeff_comp(int n_states_neut,int n_states_cat,int n_occ,int ci_siz
    bool test(0);
    bool test2(0);
 
-   double *temp;
-   temp=new double[(n_elec_neut)*(n_elec_neut)];
+   double *temp=new double[(n_elec_neut)*(n_elec_neut)];
 
     for (int i=0; i!=n_states_neut; i++)//ELECTRONIC STATE N
     {
@@ -92,31 +91,37 @@ bool dyson_mo_coeff_comp(int n_states_neut,int n_states_cat,int n_occ,int ci_siz
                 if(!test)
                 {
                     Dyson_MO_basis_coeff[n_occ*n_states_cat*i+n_occ*j+k]=0;
-                    std::cout<<std::endl<<"states "<<i<<"  and  "<<j<<"    "<<Dyson_MO_basis_coeff[n_occ*n_states_cat*i+n_occ*j+k]<<"   MO  "<<k<<std::endl<<"====================================="<<std::endl<<std::endl;
+   //                 std::cout<<std::endl<<"states "<<i<<"  and  "<<j<<"    "<<Dyson_MO_basis_coeff[n_occ*n_states_cat*i+n_occ*j+k]<<"   MO  "<<k<<std::endl<<"====================================="<<std::endl<<std::endl;
                 }
                 else
                 {
-                    std::cout<<std::endl<<"states "<<i<<"  and  "<<j<<"    "<<Dyson_MO_basis_coeff[n_occ*n_states_cat*i+n_occ*j+k]<<"   MO  "<<k<<std::endl<<"====================================="<<std::endl<<std::endl;
+ //                   std::cout<<std::endl<<"states "<<i<<"  and  "<<j<<"    "<<Dyson_MO_basis_coeff[n_occ*n_states_cat*i+n_occ*j+k]<<"   MO  "<<k<<std::endl<<"====================================="<<std::endl<<std::endl;
                 }
                     
             }
         }
     }
 
+
     delete [] temp;
 
+//    std::cout<<" -- probe -- " <<std::endl;
     return 1;
 }
 
 std::complex<double> MO_Fourier_transform_grad( int mo_index,int comp, double k, double thet, double phi,double **nucl_spher_pos,int *nucl_basis_func,int* contraction_number,double **contraction_coeff,double **contraction_zeta,int **angular_mom_numbers,double *MO_neut_basis_coeff,int basis_size)
 {
+//   std::cout<<"MO_FT_GRAD :"<<mo_index<<","<<comp<<","<<k<<","<<thet<<","<<phi<<","<<basis_size<<std::endl;
    std::complex<double> value(0);
-//      std::cout<<MO_neut_basis_coeff[mo_index*basis_size+i]<<","<<nucl_basis_func[i]-1<<std::endl;
    for(int i=0;i!=basis_size;i++)
    {
       if(MO_neut_basis_coeff[mo_index*basis_size+i] != 0)
+      {
           value+=MO_neut_basis_coeff[mo_index*basis_size+i]*AO_FT_grad(i,comp,k,thet,phi,contraction_number,nucl_spher_pos[nucl_basis_func[i]-1],contraction_coeff,contraction_zeta,angular_mom_numbers[i]);
+//          std::cout<<" => "<<MO_neut_basis_coeff[mo_index*basis_size+i]<<","<<nucl_basis_func[i]-1<<": "<<value<<std::endl;
+      }
    }
+//      exit(EXIT_SUCCESS);
 //   std::cout<<value<<"=="<<std::endl;
    return value;
 }
@@ -128,24 +133,28 @@ std::complex<double> AO_FT_grad(int ao_index,int comp,double k, double thet, dou
       case 0:
        for(int i=0;i!=contraction_number[ao_index];i++)
        {
+//   std::cout<<k<<","<<thet<<","<<phi<<","<<nucl_spher_pos[0]<<","<<contraction_zeta[ao_index][i]<<","<<angular_mom_numbers[0]<<"-"<<angular_mom_numbers[1]<<" ::: "<<contraction_coeff[ao_index][i]<<std::endl;
           if(contraction_coeff[ao_index][i]!=0)
              value+=contraction_coeff[ao_index][i]*contraction_FT_grad_k(k,thet,phi,nucl_spher_pos,contraction_zeta[ao_index][i],angular_mom_numbers);
-//           std::cout<<k<<","<<thet<<","<<phi<<","<<nucl_spher_pos[0]<<","<<contraction_zeta[ao_index][i]<<","<<basis_func_type[ao_index]<<" ::: "<<contraction_coeff[ao_index][i]<<std::endl;
-//         std::cout<<" => "<<contraction_FT_grad_k(k,thet,phi,nucl_spher_pos,contraction_zeta[ao_index][i],basis_func_type[ao_index])<<std::endl;
+//         std::cout<<"k => "<<contraction_FT_grad_k(k,thet,phi,nucl_spher_pos,contraction_zeta[ao_index][i],angular_mom_numbers)<<std::endl;
        }
        break;
       case 1:
        for(int i=0;i!=contraction_number[ao_index];i++)
        {
+//   std::cout<<k<<","<<thet<<","<<phi<<","<<nucl_spher_pos[0]<<","<<contraction_zeta[ao_index][i]<<","<<angular_mom_numbers[0]<<"-"<<angular_mom_numbers[1]<<" ::: "<<contraction_coeff[ao_index][i]<<std::endl;
           if(contraction_coeff[ao_index][i]!=0)
             value+=contraction_coeff[ao_index][i]*contraction_FT_grad_thet(k,thet,phi,nucl_spher_pos,contraction_zeta[ao_index][i],angular_mom_numbers);
+//         std::cout<<"t => "<<contraction_FT_grad_thet(k,thet,phi,nucl_spher_pos,contraction_zeta[ao_index][i],angular_mom_numbers)<<std::endl;
        }
        break;
       case 2:
        for(int i=0;i!=contraction_number[ao_index];i++)
        {
+  // std::cout<<k<<","<<thet<<","<<phi<<","<<nucl_spher_pos[0]<<","<<contraction_zeta[ao_index][i]<<","<<angular_mom_numbers[0]<<"-"<<angular_mom_numbers[1]<<" ::: "<<contraction_coeff[ao_index][i]<<std::endl;
           if(contraction_coeff[ao_index][i]!=0)
              value+=contraction_coeff[ao_index][i]*contraction_FT_grad_phi(k,thet,phi,nucl_spher_pos,contraction_zeta[ao_index][i],angular_mom_numbers);
+//         std::cout<<"f => "<<contraction_FT_grad_phi(k,thet,phi,nucl_spher_pos,contraction_zeta[ao_index][i],angular_mom_numbers)<<std::endl;
        }
        break;
       default:
@@ -229,6 +238,7 @@ std::complex<double> contraction_FT_grad_k( double k, double thet, double phi,do
    double *legendre_val=new double[gsl_sf_legendre_array_n(l)];
    gsl_sf_legendre_array_e(GSL_SF_LEGENDRE_SPHARM,l,cos(thet),-1,legendre_val);
 
+//   std::cout<<"contraction_grad_k "<<nucl_spher_pos[0]<<";"<<contraction_zeta<<";"<<angular_mom_numbers[0]<<"-"<<angular_mom_numbers[1]<<std::endl;
 
    // ⎷(2) * P( l , |m| ) * (cos( m * phi )) * DK(k)/dk * exp( - I k r0 )  m > 0
    // ⎷(2) * P( l , |m| ) * (sin( |m| * phi )) * DK(k)/dk * exp( - I k r0 )  m < 0 

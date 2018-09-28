@@ -1,4 +1,4 @@
-#include "Computation.hpp"
+#include "/data1/home/stephan/Photoionization_SAE_PW/version_3.0/Computation.hpp"
 bool dyson_mo_coeff_comp(int n_states_neut,int n_states_cat,int n_occ,int ci_size_neut,int ci_size_cat,int n_elec_neut,double **ci_vec_neut,double **ci_vec_cat,double *overlap,double *Dyson_MO_basis_coeff)
 {
    bool test(0);
@@ -277,6 +277,7 @@ std::complex<double> contraction_FT_grad_k( double k, double thet, double phi,do
       
             *phase_factor // phase factor
       ;
+      //std::cout<<"value = "<<value<<std::endl;
    }
    /*
    if(ml<0)

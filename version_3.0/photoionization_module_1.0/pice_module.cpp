@@ -41,6 +41,8 @@ pice_set::pice_set(std::string file_address)
    int *contraction_number=new int[*this->m_basis_size];
    this->m_contraction_number=new int[*this->m_basis_size];
 
+   this->m_angular_mom_numbers=new int*[*this->m_basis_size];
+
    //Reading contraction number vector
    read_output(file_address,n_states_neut,n_states_cat,n_occ,n_closed,n_nucl_dim,grid_size,num_of_nucl,basis_size,contraction_number);
    //Saving contraction number vector anf infering max contraction number
@@ -77,6 +79,7 @@ pice_set::pice_set(std::string file_address)
    {
 //      contraction_coeff[i]=new double[*max_cont_num];
 //      contraction_zeta[i]=new double[*max_cont_num];
+      this->m_angular_mom_numbers[i]=new int[2];
       this->m_contraction_coeff[i]=new double[*max_cont_num];
       this->m_contraction_zeta[i]=new double[*max_cont_num];
    }
@@ -102,6 +105,14 @@ pice_set::pice_set(std::string file_address)
    }
 
    read_output(file_address,this->m_n_states_neut,this->m_n_states_cat,this->m_n_occ,this->m_n_closed,this->m_n_nucl_dim,this->m_grid_size,this->m_num_of_nucl,this->m_basis_size,this->m_contraction_number,this->m_nucl_coord,this->m_nucl_spher_pos,this->m_mo_dipole,this->m_MO_coeff_neutral,this->m_dyson_mo_coeff,this->m_contraction_coeff,this->m_contraction_zeta,this->m_nucl_basis_func,this->m_basis_func_type);
+
+   for(int i=0;i!=*this->m_basis_size;i++)
+   {
+       this->m_angular_mom_numbers[i][0]=l_number(this->m_basis_func_type[i]); 
+       this->m_angular_mom_numbers[i][1]=ml_number(this->m_basis_func_type[i],this->m_angular_mom_numbers[i][0]); 
+//      std::cout<<this->m_basis_func_type[i].c_str()<<" -> "<<this->m_angular_mom_numbers[i][0]<<","<<this->m_angular_mom_numbers[i][1]<<std::endl;
+   }
+   std::cout<<"READING OF HF5 FILE DONE"<<std::endl;
 /*
 //################################ BUILDING THE ARRAYS THAT WILL ALLOW TO COMPUTE THE PICE #####################################
       this->k_part_s=new std::complex<double>[this->m_contraction_zeta][nk];
@@ -137,79 +148,95 @@ bool pice_set::fill_pice(std::complex<double> *pice_x,std::complex<double> *pice
    double phip(0);
    double kpp(0);
    double *pot_vec=new double[3];
-   *pice_x=0;
-   *pice_y=0;
-   *pice_z=0;
+
+   double xp(0);
+   double yp(0);
+   double zp(0);
+
+
+ //  std::cout<<" !!!!! ANGLES AND RADII !!!! "<<kp<<" , "<<thet<<" , "<<phi<<std::endl;
+
    if(ppot_vec==NULL)
    {
       pot_vec[0]=0;
       pot_vec[1]=0;
       pot_vec[2]=0;
+
+      xp=kp*sin(thet)*cos(phi);
+      yp=kp*sin(thet)*sin(phi);
+      zp=kp*cos(thet);
    }
    else
    {
       pot_vec[0]=ppot_vec[0];
       pot_vec[1]=ppot_vec[1];
       pot_vec[2]=ppot_vec[2];
+
+      xp=kp*sin(thet)*cos(phi)-ppot_vec[0];
+      yp=kp*sin(thet)*sin(phi)-ppot_vec[1];
+      zp=kp*cos(thet)-ppot_vec[2];
    }
-   spher_pot_vec[0]=sqrt(pow(pot_vec[0],2)+pow(pot_vec[1],2)+pow(pot_vec[2],2));
-   if(spher_pot_vec[0]==0)
+   kpp=sqrt(pow(xp,2)+pow(yp,2)+pow(zp,2));
+   if(kpp==0)
    {
-      spher_pot_vec[1]=acos(-1)/2;
-      spher_pot_vec[2]=0;
+      thetp=0;
+      phip=0;
    }
    else
    {
-      spher_pot_vec[1]=acos(pot_vec[2]/spher_pot_vec[0]);
-      if( pot_vec[0] == 0 && pot_vec[1] >= 0 )
+      thetp=acos(zp/kpp);
+      if( xp == 0 && yp >= 0 )
       {
-         spher_pot_vec[2]=acos(-1)/2;
+         phip=acos(-1)/2;
       }
-      else if(pot_vec[0] == 0 && pot_vec[1] < 0)
+      else if(xp == 0 && yp < 0)
       {
-         spher_pot_vec[2]=3.*acos(-1)/2; 
+         phip=3.*acos(-1)/2; 
       }
-      else if(pot_vec[0] < 0 && pot_vec[1] == 0)
+      else if(xp < 0 && yp == 0)
       {
-         spher_pot_vec[2]=acos(-1); 
+         phip=acos(-1); 
       }
       else
       {
-         spher_pot_vec[2]=atan(pot_vec[1]/pot_vec[0]);
+         phip=atan2(yp,xp);
+         if(phip<0)
+            phip+=2*acos(-1);
       }
    }
-
-   kpp=sqrt(pow(spher_pot_vec[0],2)+pow(kp,2)-2*spher_pot_vec[0]*kp*(sin(thet)*sin(spher_pot_vec[1])*cos(phi-spher_pot_vec[2])+cos(thet)*cos(spher_pot_vec[1])));
-   thetp=acos((kp*cos(thet)-pot_vec[2])/kpp);
-   phip=atan((kp*sin(thet)*sin(phi)-pot_vec[1])/(kp*sin(thet)*cos(phi)-pot_vec[0]));
-
+//   std::cout<<" !!!!! ANGLES AND RADII NEW !!!! "<<kpp<<" , "<<thetp<<" , "<<phip <<" WITH pot vec ("<<pot_vec[0]<<","<<pot_vec[1]<<","<<pot_vec[2]<<std::endl;
+//   std::cout<<this->m_nucl_spher_pos[grid_index][0][0]<<std::endl<<this->m_nucl_spher_pos[grid_index][1][0]<<std::endl;
 
    double stp(sin(thetp));
-   double ctp(cos(phip));
+   double ctp(cos(thetp));
    double spp(sin(phip));
    double cpp(cos(phip));
 
+   *pice_x=0;
+   *pice_y=0;
+   *pice_z=0;
    for( int i=0;i!=*this->m_n_occ;i++)
    {
-//      std::cout<<"here, "<<this->m_dyson_mo_coeff[grid_index][neut_st_index**this->m_n_states_cat**this->m_n_occ+cat_st_index**this->m_n_occ+i]<<std::endl;
+ //     std::cout<<"Dyson: "<<i<<" = "<<this->m_dyson_mo_coeff[grid_index][neut_st_index**this->m_n_states_cat**this->m_n_occ+cat_st_index**this->m_n_occ+i]<<std::endl<<"nucl position "<<this->m_nucl_spher_pos[grid_index][0][0]<<" , "<<this->m_nucl_spher_pos[grid_index][0][1]<<","<<this->m_nucl_spher_pos[grid_index][0][2]<<" ; "<<this->m_nucl_spher_pos[grid_index][1][0]<<" , "<<this->m_nucl_spher_pos[grid_index][1][1]<<","<<this->m_nucl_spher_pos[grid_index][1][2]<<std::endl;
+
       if(this->m_dyson_mo_coeff[grid_index][neut_st_index**this->m_n_states_cat**this->m_n_occ+cat_st_index**this->m_n_occ+i] != 0)
       {
        *pice_x-=std::complex<double>(0,1)*this->m_dyson_mo_coeff[grid_index][neut_st_index**this->m_n_states_cat**this->m_n_occ+cat_st_index**this->m_n_occ+i]
          *(
-                  stp*cpp*MO_Fourier_transform_grad(i,0,kpp,thetp,phip,this->m_nucl_spher_pos[grid_index],this->m_nucl_basis_func,this->m_contraction_number,this->m_contraction_coeff,this->m_contraction_zeta,this->m_basis_func_type,this->m_MO_coeff_neutral[grid_index],*this->m_basis_size)
-                  +ctp*cpp*MO_Fourier_transform_grad(i,1,kpp,thetp,phip,this->m_nucl_spher_pos[grid_index],this->m_nucl_basis_func,this->m_contraction_number,this->m_contraction_coeff,this->m_contraction_zeta,this->m_basis_func_type,this->m_MO_coeff_neutral[grid_index],*this->m_basis_size)
-               -spp*MO_Fourier_transform_grad(i,2,kpp,thetp,phip,this->m_nucl_spher_pos[grid_index],this->m_nucl_basis_func,this->m_contraction_number,this->m_contraction_coeff,this->m_contraction_zeta,this->m_basis_func_type,this->m_MO_coeff_neutral[grid_index],*this->m_basis_size));
+                  stp * cpp * MO_Fourier_transform_grad(i,0,kpp,thetp,phip,this->m_nucl_spher_pos[grid_index],this->m_nucl_basis_func,this->m_contraction_number,this->m_contraction_coeff,this->m_contraction_zeta,this->m_angular_mom_numbers,this->m_MO_coeff_neutral[grid_index],*this->m_basis_size)
+                  + ctp * cpp * MO_Fourier_transform_grad(i,1,kpp,thetp,phip,this->m_nucl_spher_pos[grid_index],this->m_nucl_basis_func,this->m_contraction_number,this->m_contraction_coeff,this->m_contraction_zeta,this->m_angular_mom_numbers,this->m_MO_coeff_neutral[grid_index],*this->m_basis_size)
+                  -spp * MO_Fourier_transform_grad(i,2,kpp,thetp,phip,this->m_nucl_spher_pos[grid_index],this->m_nucl_basis_func,this->m_contraction_number,this->m_contraction_coeff,this->m_contraction_zeta,this->m_angular_mom_numbers,this->m_MO_coeff_neutral[grid_index],*this->m_basis_size));
 
       *pice_y-=std::complex<double>(0,1)*this->m_dyson_mo_coeff[grid_index][neut_st_index**this->m_n_states_cat**this->m_n_occ+cat_st_index**this->m_n_occ+i]
                *(
-                  stp*spp*MO_Fourier_transform_grad(i,0,kpp,thetp,phip,this->m_nucl_spher_pos[grid_index],this->m_nucl_basis_func,this->m_contraction_number,this->m_contraction_coeff,this->m_contraction_zeta,this->m_basis_func_type,this->m_MO_coeff_neutral[grid_index],*this->m_basis_size)
-                  +ctp*spp*MO_Fourier_transform_grad(i,1,kpp,thetp,phip,this->m_nucl_spher_pos[grid_index],this->m_nucl_basis_func,this->m_contraction_number,this->m_contraction_coeff,this->m_contraction_zeta,this->m_basis_func_type,this->m_MO_coeff_neutral[grid_index],*this->m_basis_size)
-               -cpp*MO_Fourier_transform_grad(i,2,kpp,thetp,phip,this->m_nucl_spher_pos[grid_index],this->m_nucl_basis_func,this->m_contraction_number,this->m_contraction_coeff,this->m_contraction_zeta,this->m_basis_func_type,this->m_MO_coeff_neutral[grid_index],*this->m_basis_size));
+                    stp * spp * MO_Fourier_transform_grad(i,0,kpp,thetp,phip,this->m_nucl_spher_pos[grid_index],this->m_nucl_basis_func,this->m_contraction_number,this->m_contraction_coeff,this->m_contraction_zeta,this->m_angular_mom_numbers,this->m_MO_coeff_neutral[grid_index],*this->m_basis_size)
+                  + ctp * spp * MO_Fourier_transform_grad(i,1,kpp,thetp,phip,this->m_nucl_spher_pos[grid_index],this->m_nucl_basis_func,this->m_contraction_number,this->m_contraction_coeff,this->m_contraction_zeta,this->m_angular_mom_numbers,this->m_MO_coeff_neutral[grid_index],*this->m_basis_size)
+                  + cpp * MO_Fourier_transform_grad(i,2,kpp,thetp,phip,this->m_nucl_spher_pos[grid_index],this->m_nucl_basis_func,this->m_contraction_number,this->m_contraction_coeff,this->m_contraction_zeta,this->m_angular_mom_numbers,this->m_MO_coeff_neutral[grid_index],*this->m_basis_size));
 
       *pice_z-=std::complex<double>(0,1)*this->m_dyson_mo_coeff[grid_index][neut_st_index**this->m_n_states_cat**this->m_n_occ+cat_st_index**this->m_n_occ+i]
                *(
-                  ctp*MO_Fourier_transform_grad(i,0,kpp,thetp,phip,this->m_nucl_spher_pos[grid_index],this->m_nucl_basis_func,this->m_contraction_number,this->m_contraction_coeff,this->m_contraction_zeta,this->m_basis_func_type,this->m_MO_coeff_neutral[grid_index],*this->m_basis_size)
-                  -stp*MO_Fourier_transform_grad(i,1,kpp,thetp,phip,this->m_nucl_spher_pos[grid_index],this->m_nucl_basis_func,this->m_contraction_number,this->m_contraction_coeff,this->m_contraction_zeta,this->m_basis_func_type,this->m_MO_coeff_neutral[grid_index],*this->m_basis_size));
+                    ctp * MO_Fourier_transform_grad(i,0,kpp,thetp,phip,this->m_nucl_spher_pos[grid_index],this->m_nucl_basis_func,this->m_contraction_number,this->m_contraction_coeff,this->m_contraction_zeta,this->m_angular_mom_numbers,this->m_MO_coeff_neutral[grid_index],*this->m_basis_size)
+                  - stp * MO_Fourier_transform_grad(i,1,kpp,thetp,phip,this->m_nucl_spher_pos[grid_index],this->m_nucl_basis_func,this->m_contraction_number,this->m_contraction_coeff,this->m_contraction_zeta,this->m_angular_mom_numbers,this->m_MO_coeff_neutral[grid_index],*this->m_basis_size));
          
       /*          for(int j=0;j!=n_occ;j++)
                 {
@@ -219,5 +246,90 @@ bool pice_set::fill_pice(std::complex<double> *pice_x,std::complex<double> *pice
                  }*/
  //            std::cout<<temp<<std::endl;
       }
+   }
+//   std::cout<<"PROBE "<<kpp<<","<<thetp<<","<<phip<<" : "<<*pice_z<<std::endl;
+}
+int l_number(std::string bas_func_type)
+{
+   if(bas_func_type == "1s")
+   {
+      return 0;
+   }
+   else if(bas_func_type=="2px" || bas_func_type=="2py" || bas_func_type=="2pz" )
+   {
+      return 1;
+   }
+   else if(bas_func_type=="3d2-" || bas_func_type=="3d1-" || bas_func_type=="3d0" || bas_func_type=="3d1+" || bas_func_type=="3d2+" )
+   {
+      return 2;
+   }
+   else if( bas_func_type=="4f3-" || bas_func_type=="4f2-" || bas_func_type=="4f1-" || bas_func_type=="4f0" || bas_func_type=="4f1+" || bas_func_type=="4f2+" || bas_func_type=="4f3+")
+   {
+      return 3;
+   }
+   else
+   {
+      std::cout<<"ERROR IN L VALUE DETERMINATION : "<<bas_func_type.c_str()<<std::endl;
+      exit(EXIT_SUCCESS);
+   }
+}
+int ml_number(std::string bas_func_type,int l)
+{
+   switch(l) {
+
+   case 0:
+      return 0;
+   case 1:
+      if(bas_func_type=="2px")
+         return 1;
+      else if(bas_func_type=="2pz")
+         return 0;
+      else if(bas_func_type=="2py")
+         return -1;
+      else 
+      {
+         std::cout<<"ERROR IN SPHERICAL HARMONICS READING in ml_number : "<<bas_func_type.c_str()<<std::endl;
+         exit(EXIT_FAILURE);
+      }
+   case 2:
+      if(bas_func_type=="3d2-")
+         return -2;
+      else if(bas_func_type=="3d1-")
+         return -1;
+      else if(bas_func_type=="3d0")
+         return 0;
+      else if(bas_func_type=="3d1+")
+         return 1;
+      else if(bas_func_type=="3d2+")
+         return 2;
+      else 
+      {
+         std::cout<<"ERROR IN SPHERICAL HARMONICS READING in ml_number : "<<bas_func_type.c_str()<<std::endl;
+         exit(EXIT_FAILURE);
+      }
+   case 3:
+      if(bas_func_type=="4f3-")
+         return -3;
+      else if(bas_func_type=="4f2-")
+         return -2;
+      else if(bas_func_type=="4f1-")
+         return -1;
+      else if(bas_func_type=="4f0")
+         return 0;
+      else if(bas_func_type=="4f1+")
+         return 1;
+      else if(bas_func_type=="4f2+")
+         return 2;
+      else if(bas_func_type=="4f3+")
+         return 3;
+      else 
+      {
+         std::cout<<"ERROR IN SPHERICAL HARMONICS READING in ml_number : "<<bas_func_type.c_str()<<std::endl;
+         exit(EXIT_FAILURE);
+      }
+   default:
+         std::cout<<"ERROR IN SPHERICAL HARMONICS READING in ml_number : "<<bas_func_type.c_str()<<std::endl;
+         exit(EXIT_FAILURE);
+
    }
 }

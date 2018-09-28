@@ -10,11 +10,14 @@ bool write_output(std::string h5filename,int* n_states_neut,int* n_states_cat,in
       int basis_func_type_array[*basis_size][2];
       for(int i=0;i!=*grid_size;i++)
       {
+         std::cout<<"position "<<i<<std::endl;
          for(int j=0;j!=*num_of_nucl;j++)
          {
             nucl_cart_coord[i][j][0]=nucl_spher_pos[i][j][0]*sin(nucl_spher_pos[i][j][1])*cos(nucl_spher_pos[i][j][2]);
             nucl_cart_coord[i][j][1]=nucl_spher_pos[i][j][0]*sin(nucl_spher_pos[i][j][1])*sin(nucl_spher_pos[i][j][2]);
             nucl_cart_coord[i][j][2]=nucl_spher_pos[i][j][0]*cos(nucl_spher_pos[i][j][1]);
+            std::cout<<"nucl "<<j<<" - "<<nucl_cart_coord[i][j][0]<<","<<nucl_cart_coord[i][j][1]<<","<<nucl_cart_coord[i][j][2]<<std::endl;
+            std::cout<<"spher : "<<nucl_spher_pos[i][j][0]<<","<<nucl_spher_pos[i][j][1]<<","<<nucl_spher_pos[i][j][2]<<std::endl;
          }
       }
      // std::cout<<*basis_size<<"  PROBE!!!!"<<std::endl;
@@ -406,6 +409,9 @@ bool read_output(std::string h5filename,int* n_states_neut,int* n_states_cat,int
          {
             for(int i=0;i!=*num_of_nucl;i++)
             {
+//               nucl_cart_coord[x][i][0]/=0.529;
+//               nucl_cart_coord[x][i][1]/=0.529;
+//               nucl_cart_coord[x][i][2]/=0.529;
                nucl_spher_pos[x][i][0]=sqrt(pow(nucl_cart_coord[x][i][0],2)+pow(nucl_cart_coord[x][i][1],2)+pow(nucl_cart_coord[x][i][2],2));
                if(nucl_spher_pos[x][i][0]==0)
                {
@@ -431,7 +437,9 @@ bool read_output(std::string h5filename,int* n_states_neut,int* n_states_cat,int
                else
                {
                   nucl_spher_pos[x][i][1]=acos(nucl_cart_coord[x][i][2]/nucl_spher_pos[x][i][0]);
-                  nucl_spher_pos[x][i][2]=atan(nucl_cart_coord[x][i][1]/nucl_cart_coord[x][i][0]);
+                  nucl_spher_pos[x][i][2]=atan2(nucl_cart_coord[x][i][1],nucl_cart_coord[x][i][0]);
+                  if(nucl_spher_pos[x][i][2]<0)
+                     nucl_spher_pos[x][i][2]+=2*acos(-1);
                }
             }
          }

@@ -1132,6 +1132,7 @@ int ci_vec_reader(int *n_states_neut_s,int *n_states_cat_s,int *n_occ,int *n_clo
 
     std::ifstream molpro_output;
 
+       std::cout<<"PROBE!!!!"<<std::endl;
     if(n_sym==1)
     {
     if(!search(&position, file_address,position, "CI", 0, "vector"))
