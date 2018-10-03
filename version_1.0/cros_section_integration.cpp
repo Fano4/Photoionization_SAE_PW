@@ -13,7 +13,7 @@ bool angularly_resolved_dipole_reader(double *prefactor,double *theta,double *ph
 int main(int argc, char *argv [])
 {
    using namespace std;
-   string dipole_address("/data1/home/stephan/LiH_gridtest_+++custom_MO_1.6125/test_2PI.txt");
+   string dipole_address("/data1/home/stephan/LiH_gridtest_+++custom_MO_1.6125/test_1S.txt");
    string spectrum_address("/data1/home/stephan/LiH_gridtest_+++custom_MO_1.6125/LiH_CS_bruteforce_0_0.txt");
    int n_theta(20);
    int n_phi(40);
@@ -51,10 +51,10 @@ int main(int argc, char *argv [])
         output<<theta[i*n_phi+j]<<"   "<<phi[i*n_phi+j]<<"   "<<total_cs(n_theta,n_phi,theta,phi,mfpad)<<std::endl;//Compute the total cross section for the given direction of the electric field
       }output<<std::endl;
    }*/
-   int kp(5);
-        compute_mfpad(x_comp,y_comp,z_comp,n_points,mfpad,kp,dipole_address);//Compute the angularly resolved differential cross section for the given direction of the electric field
+//   int kp(5);
+//        compute_mfpad(x_comp,y_comp,z_comp,n_points,mfpad,kp,dipole_address);//Compute the angularly resolved differential cross section for the given direction of the electric field
         //output<<theta[i*n_phi+j]<<"   "<<phi[i*n_phi+j]<<"   "<<total_cs(n_theta,n_phi,theta,phi,mfpad)<<std::endl;//Compute the total cross section for the given direction of the electric field
-//         compute_spectrum( x_comp, y_comp, z_comp, n_points, dipole_address, spectrum_address);
+         compute_spectrum( x_comp, y_comp, z_comp, n_points, dipole_address, spectrum_address);
 
    return 0;
 }
@@ -164,6 +164,7 @@ bool compute_spectrum(double x_comp,double y_comp,double z_comp,int n_points,std
    const double Ly(75);
    const double Lz(75);
    const int nk(50);
+   double total(0);
    double *cs=new double[nk];
 
    using namespace std;
@@ -205,7 +206,9 @@ bool compute_spectrum(double x_comp,double y_comp,double z_comp,int n_points,std
                 cs[i]+=pow(k[i*n_theta*n_phi+j*n_phi+l],2)*sin(theta[i*n_theta*n_phi+j*n_phi+l])*(acos(-1)/n_theta)*(2*acos(-1)/n_phi)*real(std::complex<double>(x_comp*RePICE_x[i*n_theta*n_phi+j*n_phi+l]+y_comp*RePICE_y[i*n_theta*n_phi+j*n_phi+l]+z_comp*RePICE_z[i*n_theta*n_phi+j*n_phi+l],x_comp*ImPICE_x[i*n_theta*n_phi+j*n_phi+l]+y_comp*ImPICE_y[i*n_theta*n_phi+j*n_phi+l]+z_comp*ImPICE_z[i*n_theta*n_phi+j*n_phi+l])*std::complex<double>(x_comp*RePICE_x[i*n_theta*n_phi+j*n_phi+l]+y_comp*RePICE_y[i*n_theta*n_phi+j*n_phi+l]+z_comp*RePICE_z[i*n_theta*n_phi+j*n_phi+l],-(x_comp*ImPICE_x[i*n_theta*n_phi+j*n_phi+l]+y_comp*ImPICE_y[i*n_theta*n_phi+j*n_phi+l]+z_comp*ImPICE_z[i*n_theta*n_phi+j*n_phi+l])));
              }
          }
-         std::cout<<pow(k[i*n_theta*n_phi],2)*27.211/2<<", "<<cs[i]<<std::endl;
+         total+=cs[i]*(k[nk*n_theta*n_phi-1]-k[0])/nk;
+         std::cout<<k[i*n_theta*n_phi]<<", "<<cs[i]<<" => total = "<<total<<std::endl;
+ //        std::cout<<pow(k[i*n_theta*n_phi],2)*27.211/2<<", "<<cs[i]<<std::endl;
          //std::cout<<pow(k[i*n_theta*n_phi],2)*27.211/2<<", "<<cs[i]*Lx*Ly*Lz/pow((2*pi),3)<<std::endl;
       }
       input.close(); 

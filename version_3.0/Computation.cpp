@@ -316,6 +316,7 @@ std::complex<double> contraction_FT_grad_k( double k, double thet, double phi,do
    */
 //   std::cout<<"dk:"<<l<<","<<ml<<","<<thet<<","<<phi<<","<<contraction_zeta<<","<<value<<std::endl;
 
+   delete [] legendre_val;
    return value;
 
 }
@@ -449,6 +450,8 @@ std::complex<double> contraction_FT_grad_thet( double k, double thet, double phi
       }
    }
 */
+   delete [] legendre_val;
+   delete [] legendre_der_val;
    return value;
 }
 std::complex<double> contraction_FT_grad_phi( double k, double thet, double phi,double* nucl_spher_pos,double contraction_zeta,int* angular_mom_numbers)
@@ -576,6 +579,8 @@ std::complex<double> contraction_FT_grad_phi( double k, double thet, double phi,
       ;
    }
 */
+   delete [] legendre_val;
+   delete [] legendre_val_NN;
    return value;
 }
 
@@ -694,7 +699,13 @@ double contraction_value( double r, double thet, double phi,double* nucl_spher_p
             case 3:
                 return 0.25*sqrt(35/(2*acos(-1)))*(1-4.*pow(sin(phi),2))*pow(sin(thet),3)*cos(phi)*exp(-contraction_zeta*pow(r,2))*pow(r,3);
          }
+      default:
+         std::cout<<"ERROR : NOT RECOGNIZED ML QUANTUM NUMBER IN CONTRACTION VALUE FUNCTION"<<std::endl;
+         exit(EXIT_FAILURE);
+
    }
+   exit(EXIT_FAILURE);
+   return 0;
 /*
    double temp(0);
    if(basis_func_type=="1s")

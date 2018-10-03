@@ -24,6 +24,8 @@ pice_set::pice_set(std::string file_address)
       int *num_of_nucl=new int;
       int *max_cont_num=new int;
 
+      *max_cont_num=0;
+
    //Reading array size variables
    read_output(file_address,n_states_neut,n_states_cat,n_occ,n_closed,n_nucl_dim,grid_size,num_of_nucl,basis_size);
 
@@ -36,6 +38,7 @@ pice_set::pice_set(std::string file_address)
    *this->m_grid_size=*grid_size;
    *this->m_basis_size=*basis_size;
    *this->m_num_of_nucl=*num_of_nucl;
+
 
    //Initializing contraction number vector
    int *contraction_number=new int[*this->m_basis_size];
@@ -113,31 +116,17 @@ pice_set::pice_set(std::string file_address)
 //      std::cout<<this->m_basis_func_type[i].c_str()<<" -> "<<this->m_angular_mom_numbers[i][0]<<","<<this->m_angular_mom_numbers[i][1]<<std::endl;
    }
    std::cout<<"READING OF HF5 FILE DONE"<<std::endl;
-/*
-//################################ BUILDING THE ARRAYS THAT WILL ALLOW TO COMPUTE THE PICE #####################################
-      this->k_part_s=new std::complex<double>[this->m_contraction_zeta][nk];
-      this->k_part_p=new std::complex<double>[this->m_contraction_zeta][nk];
-      this->k_part_d=new std::complex<double>[this->m_contraction_zeta][nk];
-      this->k_part_f=new std::complex<double>[this->m_contraction_zeta][nk];
-      this->k_part_s_gk=new std::complex<double>[this->m_contraction_zeta][nk];
-      this->k_part_p_gk=new std::complex<double>[this->m_contraction_zeta][nk];
-      this->k_part_d_gk=new std::complex<double>[this->m_contraction_zeta][nk];
-      this->k_part_f_gk=new std::complex<double>[this->m_contraction_zeta][nk];
-      this->k_part_s_gt=new std::complex<double>[this->m_contraction_zeta][nk];
-      this->k_part_p_gt=new std::complex<double>[this->m_contraction_zeta][nk];
-      this->k_part_d_gt=new std::complex<double>[this->m_contraction_zeta][nk];
-      this->k_part_f_gt=new std::complex<double>[this->m_contraction_zeta][nk];
-      this->k_part_s_gf=new std::complex<double>[this->m_contraction_zeta][nk];
-      this->k_part_p_gf=new std::complex<double>[this->m_contraction_zeta][nk];
-      this->k_part_d_gf=new std::complex<double>[this->m_contraction_zeta][nk];
-      this->k_part_f_gf=new std::complex<double>[this->m_contraction_zeta][nk];
-      for(int i=0;i!=;i++)
-      {
-         k=k_modulus[i];
-         this->k_part_s[i]=(exp(-k*k/(4*this->m_contraction_zeta))/(2*pow(this->m_contraction_zeta,1.5)));
-         this->k_part_p[i]=std::complex<double>(0,1)*sqrt(2.)*(k-(1./3.)*(k+pow(k,3)/(2*this->contraction_zeta))*gsl_sf_hyperg_1F1(1,2.5,-k*k/(4*this->contraction_zeta)))/(4.*sqrt(acos(-1))*pow(this->contraction_zeta,2));
-      }
-      */
+
+   delete n_states_neut;
+   delete n_states_cat;
+   delete n_occ;
+   delete n_closed;
+   delete n_nucl_dim;
+   delete grid_size;
+   delete basis_size;
+   delete num_of_nucl;
+   delete [] contraction_number;
+   delete [] mo_dipole;
 }
 
 bool pice_set::fill_pice(std::complex<double> *pice_x,std::complex<double> *pice_y,std::complex<double> *pice_z,int grid_index,int neut_st_index,int cat_st_index,double thet,double phi,double kp,double *ppot_vec)
@@ -147,7 +136,7 @@ bool pice_set::fill_pice(std::complex<double> *pice_x,std::complex<double> *pice
    double thetp(0);
    double phip(0);
    double kpp(0);
-   double *pot_vec=new double[3];
+   std::complex<double>temp(0,0);
 
    double xp(0);
    double yp(0);
@@ -158,19 +147,12 @@ bool pice_set::fill_pice(std::complex<double> *pice_x,std::complex<double> *pice
 
    if(ppot_vec==NULL)
    {
-      pot_vec[0]=0;
-      pot_vec[1]=0;
-      pot_vec[2]=0;
-
       xp=kp*sin(thet)*cos(phi);
       yp=kp*sin(thet)*sin(phi);
       zp=kp*cos(thet);
    }
    else
    {
-      pot_vec[0]=ppot_vec[0];
-      pot_vec[1]=ppot_vec[1];
-      pot_vec[2]=ppot_vec[2];
 
       xp=kp*sin(thet)*cos(phi)-ppot_vec[0];
       yp=kp*sin(thet)*sin(phi)-ppot_vec[1];
@@ -204,8 +186,7 @@ bool pice_set::fill_pice(std::complex<double> *pice_x,std::complex<double> *pice
             phip+=2*acos(-1);
       }
    }
-//   std::cout<<" !!!!! ANGLES AND RADII NEW !!!! "<<kpp<<" , "<<thetp<<" , "<<phip <<" WITH pot vec ("<<pot_vec[0]<<","<<pot_vec[1]<<","<<pot_vec[2]<<std::endl;
-//   std::cout<<this->m_nucl_spher_pos[grid_index][0][0]<<std::endl<<this->m_nucl_spher_pos[grid_index][1][0]<<std::endl;
+   delete []spher_pot_vec;
 
    double stp(sin(thetp));
    double ctp(cos(thetp));
@@ -237,18 +218,25 @@ bool pice_set::fill_pice(std::complex<double> *pice_x,std::complex<double> *pice
                *(
                     ctp * MO_Fourier_transform_grad(i,0,kpp,thetp,phip,this->m_nucl_spher_pos[grid_index],this->m_nucl_basis_func,this->m_contraction_number,this->m_contraction_coeff,this->m_contraction_zeta,this->m_angular_mom_numbers,this->m_MO_coeff_neutral[grid_index],*this->m_basis_size)
                   - stp * MO_Fourier_transform_grad(i,1,kpp,thetp,phip,this->m_nucl_spher_pos[grid_index],this->m_nucl_basis_func,this->m_contraction_number,this->m_contraction_coeff,this->m_contraction_zeta,this->m_angular_mom_numbers,this->m_MO_coeff_neutral[grid_index],*this->m_basis_size));
-         
-      /*          for(int j=0;j!=n_occ;j++)
-                {
-                
-                   temp-=dyson_mo_basis_coeff[state_neut*n_states_cat*n_occ+0*n_occ+i]
-                      *MO_Fourier_transform(j,kp,thet,phi,nucl_spher_pos,nucl_basis_func,contraction_number,contraction_coeff,contraction_zeta,basis_func_type,MO_coeff_neutral,basis_size)*(mo_dipole[0][i*n_occ+j]*efield[0]+mo_dipole[1][i*n_occ+j]*efield[1]+mo_dipole[2][i*n_occ+j]*efield[2]);
+        /* 
+                for(int j=0;j!=*this->m_n_occ;j++)
+                { 
+                   temp=this->m_dyson_mo_coeff[grid_index][neut_st_index**this->m_n_states_cat**this->m_n_occ+cat_st_index**this->m_n_occ+i]
+                      *MO_Fourier_transform(j,kpp,thetp,phip,this->m_nucl_spher_pos[grid_index],this->m_nucl_basis_func,this->m_contraction_number,this->m_contraction_coeff,this->m_contraction_zeta,this->m_angular_mom_numbers,this->m_MO_coeff_neutral[grid_index],*this->m_basis_size);
+                            *pice_x-=temp*this->m_mo_dipole[grid_index][0][i**this->m_n_occ+j];
+                            *pice_y-=temp*this->m_mo_dipole[grid_index][1][i**this->m_n_occ+j];
+                            *pice_z-=temp*this->m_mo_dipole[grid_index][2][i**this->m_n_occ+j];
                  }*/
  //            std::cout<<temp<<std::endl;
       }
    }
+   return 0;
 //   std::cout<<"PROBE "<<kpp<<","<<thetp<<","<<phip<<" : "<<*pice_z<<std::endl;
 }
+//###############################################################################
+//
+//
+//###############################################################################
 int l_number(std::string bas_func_type)
 {
    if(bas_func_type == "1s")

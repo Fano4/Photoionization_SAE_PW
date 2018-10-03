@@ -298,6 +298,8 @@ bool write_output(std::string h5filename,int* n_states_neut,int* n_states_cat,in
       basis_set_info.close();
 
       file.close();
+
+      return 0;
    }  
    catch(FileIException error)
     {
@@ -318,6 +320,7 @@ bool write_output(std::string h5filename,int* n_states_neut,int* n_states_cat,in
        error.printError();
        return -1;
     }
+    return 0;
 }
 bool read_output(std::string h5filename,int* n_states_neut,int* n_states_cat,int *n_occ,int *n_closed,int *n_nucl_dim,int *grid_size,int *num_of_nucl,int* basis_size,int *contraction_number,double *nucl_coord,double ***nucl_spher_pos,double ***mo_dipoles_mat,double **MO_coeff_neutral,double **dyson_mo_coeff,double **contraction_coeff,double **contraction_zeta,int* nucl_basis_func,std::string *basis_func_type)
 {
@@ -558,6 +561,7 @@ bool read_output(std::string h5filename,int* n_states_neut,int* n_states_cat,int
          }
       }
       std::cout<<std::endl<<"BASIS SET INFO PARAMETERS READ IN HF5"<<std::endl;
+      return 0;
    }
    catch(FileIException error)
     {
@@ -581,6 +585,7 @@ bool read_output(std::string h5filename,int* n_states_neut,int* n_states_cat,int
        std::cout<<"ERROR OF TYPE 3 IN PICE HF5 READER"<<std::endl;
        exit(EXIT_FAILURE);
     }
+    return 0;
    
 }
 int spherical_harmonics_translator(std::string basis_func_type,bool component)
