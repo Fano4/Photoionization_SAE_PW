@@ -1,9 +1,10 @@
 #include "photoion_comp.hpp"
+#include <ctime>
 
 int main(int argc,char* argv[])
 {
    int photoion_comp(int argc, char* argv[]);
-   omp_set_num_threads(8); 
+   omp_set_num_threads(1); 
 
    photoion_comp(argc,argv);
 
@@ -17,9 +18,9 @@ int photoion_comp(int argc, char* argv[])
     double temp_norm(0);
     const int n_sym(4);
     int n_states_neut(0);
-    int n_states_neutral_sym[n_sym]={10,4,4,1};
+    int n_states_neutral_sym[n_sym]={1,0,0,0};
     int n_states_cat(0);
-    int n_states_cat_sym[n_sym]={4,1,1,0};//{2,1,1,0}
+    int n_states_cat_sym[n_sym]={10,4,4,1};//{2,1,1,0}
     int n_occ(0);
     int *n_occs;
     int n_closed(0);
@@ -44,30 +45,30 @@ int photoion_comp(int argc, char* argv[])
     int ci_size_cat(0);
     int ci_size_neut_sym[n_sym];
     int ci_size_cat_sym[n_sym];
-    int n_elec_neut(4);//!!!! ecrire une routine qui cherche le nombre d'electrons dans l'output molpro!!!
+    int n_elec_neut(5);//!!!! ecrire une routine qui cherche le nombre d'electrons dans l'output molpro!!!
    double Pi=acos(-1);
 
 
     //TEMPORARY VARIABLES
     double kmin(0.0);
-    double Emax(200/27.211);
-    double kmax(sqrt(2*Emax)/4);
-    int nk(50);
-    int ntheta(20);
-    int nphi(40);
-    double xmin(-62.5);
-    double xmax(62.5);
-    double ymin(-62.5);
-    double ymax(62.5);
-    double zmin(-62.5);
-    double zmax(62.5);
-    int nx(180);
-    int ny(180);
-    int nz(180);
+    double Emax(2/27.211);
+    double kmax(1.5);//sqrt(2*Emax)/4);
+    int nk(10);
+    int ntheta(1);
+    int nphi(1);
+    double xmin(-12.330463);
+    double xmax(12.524705);
+    double ymin(-12.330463);
+    double ymax(12.524705);
+    double zmin(-11.835375);
+    double zmax(13.019793);
+    int nx(128);
+    int ny(128);
+    int nz(128);
     double x;
     double y;
     double z;
-    int n_points_sphere(ntheta*nphi);
+    int n_points_sphere(10);//ntheta*nphi);
     int continuum_matrix_cols(1);
     double Redip_mom[3];
     double Imdip_mom[3];
@@ -103,8 +104,8 @@ int photoion_comp(int argc, char* argv[])
     Improduct_vector[1]=new double[continuum_matrix_cols];
     Improduct_vector[2]=new double[continuum_matrix_cols];
 
-    string MO_cube_loc("/data1/home/stephan/LiH_gridtest_+++custom_MO_1.6125/lih_neut_orbital_");
-    string dyson_cube_loc("/data1/home/stephan/LiH_gridtest_+++custom_MO_1.6125/dyson_mo_bruteforce");
+    string MO_cube_loc("/data1/home/stephan/LiH_anion_cation_custom_6-311++G3df3dp/lih_anion__orbital_");
+    string dyson_cube_loc("/data1/home/stephan/LiH_anion_cation_custom_6-311++G3df3dp/dyson_anion_");
     stringstream ss_cross_section;
     string s_cross_section;
     stringstream ss_PICE;
@@ -279,17 +280,33 @@ int photoion_comp(int argc, char* argv[])
     std::cout<<"DYSON COEFF ROUTINE ENDED WITHOUT ISSUE"<<std::endl;
 
     //BUILD THE CUBE OF THE DYSON ORBITALS
-/*    for(int i=0;i!=n_states_neut;i++)
+    for(int i=0;i!=n_states_cat;i++)
     {
-        cube_header(dyson_mo_basis_coeff,n_occ,n_states_neut,n_states_cat,neut_mo_cube_array,dyson_cube_loc,i,0,num_of_nucl,nx,ny,nz,xmin,xmax,ymin,ymax,zmin,zmax,mo_cube_array); 
+        cube_header(dyson_mo_basis_coeff,n_occ,n_states_neut,n_states_cat,neut_mo_cube_array,dyson_cube_loc,0,i,num_of_nucl,nx,ny,nz,xmin,xmax,ymin,ymax,zmin,zmax,mo_cube_array); 
     }
       std::cout<<"DYSON ORBITAL CUBE CONSTRUCTED"<<std::endl;
-*/
 
+    return 0;
 //*****************************COMPUTE IONIZATION MATRIX ELEMENTS IN THE ORTHOGONALIZED PLANE WAVE APPROX******************************
+    ifstream distrib_file;
+    distrib_file.open("/data1/home/stephan/kxkykz.txt");
     sphere_dist[0]=new double[n_points_sphere];
     sphere_dist[1]=new double[n_points_sphere];
-    double thet(0);
+    double *distrib_cart=new double[3];
+
+    for(int t=0;t!=10;t++)
+    {
+       distrib_file>>temp_int;
+       distrib_file>>distrib_cart[0];
+       distrib_file>>distrib_cart[1];
+       distrib_file>>distrib_cart[2];
+
+       sphere_dist[0][t]=acos(distrib_cart[2]);
+       sphere_dist[1][t]=atan2(distrib_cart[1],distrib_cart[0]);
+       if(sphere_dist[1][t]<0)
+          sphere_dist[1][t]+=2*acos(-1);
+    }
+/*    double thet(0);
     double php(0);
     for(int t=0;t!=ntheta;t++)
     {
@@ -298,7 +315,7 @@ int photoion_comp(int argc, char* argv[])
           sphere_dist[0][t*nphi+f]=acos(-1)*t/ntheta;
           sphere_dist[1][t*nphi+f]=2*acos(-1)*f/nphi;
        }
-    }
+    }*/
        ofstream PICE;
 //       ifstream sphere_dist_file;
 //       sphere_dist_file.open("sphere_dist_file.txt");
@@ -342,28 +359,30 @@ int photoion_comp(int argc, char* argv[])
           }
             sphere_dist_file.close();
        }*/
-int m=11;
+int m=4;
 int n=0;
+double begin=omp_get_wtime();
 //for(int m=0;m!=n_states_neut;m++)
 {
 //   for(int n=0;n!=n_states_cat;n++)
    {
        ss_PICE.str("");
-       ss_PICE<<"/data2/stephan/LiH_PICE_bruteforce_"<<m<<"_"<<n<<".txt";
+       ss_PICE<<"/data1/home/stephan/test_"<<m<<"_"<<n<<".txt";
        s_PICE=ss_PICE.str();
 
        cube_header(dyson_mo_basis_coeff,n_occ,n_states_neut,n_states_cat,neut_mo_cube_array,dyson_cube_loc,m,n,num_of_nucl,nx,ny,nz,xmin,xmax,ymin,ymax,zmin,zmax,mo_cube_array); 
+       cube_dot_product(mo_cube_array,mo_cube_array,nx,ny,nz,(xmax-xmin)/nx,(ymax-ymin)/ny,(zmax-zmin)/nz,continuum_matrix_cols,&temp);
+       std::cout<<" Numerical Dyson norm is "<<temp<<std::endl;
 
        vdMul(nx*ny*nz,coord[0],mo_cube_array,moment_cube_array[0]);
        vdMul(nx*ny*nz,coord[1],mo_cube_array,moment_cube_array[1]);
        vdMul(nx*ny*nz,coord[2],mo_cube_array,moment_cube_array[2]);
        std::cout<<"DYSON ORBITAL CUBE CONSTRUCTED"<<std::endl;
 
-       PICE.open(s_PICE.c_str());
+   //    PICE.open(s_PICE.c_str());
 
-       for(int e=1;e!=nk+1;e++)
+      // for(int e=1;e!=nk+1;e++)
        {
-          kp=e*kmax/nk;
   //        kp=0.3;
           sum=0;
 //   std::cout<<"The factor is "<<4*0.441*(xmax-xmin)*(ymax-ymin)*(zmax-zmin)*kp/(2*Pi*137)<<std::endl;
@@ -373,32 +392,38 @@ int n=0;
              std::cout<<"Entering loop"<<std::endl;
              for(int j=0;j!=continuum_matrix_cols;j++)
              {
+                kp=kmax*(i+1)/nk;//e*kmax/nk;
                 theta[j]=sphere_dist[0][i*continuum_matrix_cols+j];
                 phi[j]=sphere_dist[1][i*continuum_matrix_cols+j];
              }
              std::cout<<"building pw..."<<std::endl;
 
              pw_builder(Reinput,Iminput,kp,theta,phi,continuum_matrix_cols,xmin,xmax,nx,ymin,ymax,ny,zmin,zmax,nz,n_occ,neut_mo_cube_array);
-             std::cout<<"dipole moment along X...";
+//             std::cout<<"dipole moment along X...";
              cube_dot_product(Reinput,moment_cube_array[0],nx,ny,nz,(xmax-xmin)/nx,(ymax-ymin)/ny,(zmax-zmin)/nz,continuum_matrix_cols,Reproduct_vector[0]);
              cube_dot_product(Iminput,moment_cube_array[0],nx,ny,nz,(xmax-xmin)/nx,(ymax-ymin)/ny,(zmax-zmin)/nz,continuum_matrix_cols,Improduct_vector[0]);
-             std::cout<<"dipole moment along Y...";
+//             std::cout<<"dipole moment along Y...";
              cube_dot_product(Reinput,moment_cube_array[1],nx,ny,nz,(xmax-xmin)/nx,(ymax-ymin)/ny,(zmax-zmin)/nz,continuum_matrix_cols,Reproduct_vector[1]);
              cube_dot_product(Iminput,moment_cube_array[1],nx,ny,nz,(xmax-xmin)/nx,(ymax-ymin)/ny,(zmax-zmin)/nz,continuum_matrix_cols,Improduct_vector[1]);
-             std::cout<<"dipole moment along Z...";
+//             std::cout<<"dipole moment along Z...";
              cube_dot_product(Reinput,moment_cube_array[2],nx,ny,nz,(xmax-xmin)/nx,(ymax-ymin)/ny,(zmax-zmin)/nz,continuum_matrix_cols,Reproduct_vector[2]);
              cube_dot_product(Iminput,moment_cube_array[2],nx,ny,nz,(xmax-xmin)/nx,(ymax-ymin)/ny,(zmax-zmin)/nz,continuum_matrix_cols,Improduct_vector[2]);
           for(int w=0;w!=continuum_matrix_cols;w++)
           {
-             PICE<<kp<<"    "<<theta[w]<<"    "<<phi[w]<<"    "<<Reproduct_vector[0][w]<<"   "<<Improduct_vector[0][w]<<"  "<<Reproduct_vector[1][w]<<"  "<<Improduct_vector[1][w]<<"   "<<Reproduct_vector[2][w]<<"  "<<Improduct_vector[2][w]<<std::endl;
+             //PICE<<kp<<"    "<<theta[w]<<"    "<<phi[w]<<"    "<<Reproduct_vector[0][w]<<"   "<<Improduct_vector[0][w]<<"  "<<Reproduct_vector[1][w]<<"  "<<Improduct_vector[1][w]<<"   "<<Reproduct_vector[2][w]<<"  "<<Improduct_vector[2][w]<<std::endl;
+             std::cout<<"    "<<-Reproduct_vector[0][w]<<"   "<<Improduct_vector[0][w]<<"  "<<-Reproduct_vector[1][w]<<"  "<<Improduct_vector[1][w]<<"   "<<-Reproduct_vector[2][w]<<"  "<<Improduct_vector[2][w]<<std::endl;
+
              if((i*continuum_matrix_cols+w+1)%nphi==0)
              {
-               PICE<<std::endl;
+//               PICE<<std::endl;
              }
           }
           }
        }
-       PICE.close();
+ //      PICE.close();
+
+       double end=omp_get_wtime();
+       std::cout<<std::endl<<std::fixed<<std::setprecision(6)<<(end-begin)/10<< "is the time"<<std::endl;
    }
 }
 

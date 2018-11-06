@@ -23,7 +23,8 @@ const double total_time(25/au_to_fs);
 const double h(0.001/au_to_fs);
 
 //define the input file from which the electronic structure and the pulse parametersis infered
-const std::string molpro_output_path("/data1/home/stephan/LiH_gridtest_+++custom_MO_1.6125/LiH_1.6125.out");
+//const std::string molpro_output_path("/data1/home/stephan/LiH_gridtest_+++custom_MO_1.6125/LiH_1.6125.out");
+const std::string molpro_output_path("/data1/home/stephan/LiH_anion_cation_custom_6-311++G3df3dp/LiH_an_neut_1.6737.out");
 const std::string efield_path("e-field_input.in"); 
 
 //define classes for electronic structure and electric field

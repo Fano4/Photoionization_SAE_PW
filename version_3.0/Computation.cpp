@@ -3,6 +3,8 @@ bool dyson_mo_coeff_comp(int n_states_neut,int n_states_cat,int n_occ,int ci_siz
 {
    bool test(0);
    bool test2(0);
+   int p;
+   int q;
 
    double *temp=new double[(n_elec_neut)*(n_elec_neut)];
 
@@ -22,15 +24,16 @@ bool dyson_mo_coeff_comp(int n_states_neut,int n_states_cat,int n_occ,int ci_siz
                     {
                         test2=0;
                      //========================VVVVVVVVVVVVV Overlap matrix for a given configuration VVVVVVVVVVVVVVVVV==================   
+                     /*
                         for (int m=0; m!=n_elec_neut; m++)  //Over the electrons of the neutral
                         {
                             for (int p=0; p!=n_occ; p++)//Over the MO of the neutral
                             {
                                     if(int(ci_vec_neut[0][(n_elec_neut+n_states_neut)*n+m])==p)
                                     {
-                                        if (p==k && ci_vec_neut[1][(n_elec_neut)*n+m])
+                                        if (ci_vec_neut[0][(n_elec_neut+n_states_neut)*n+m]==k && !test2);//&& !ci_vec_neut[1][(n_elec_neut)*n+m])
                                         {
-                                            //std::cout<<" p = "<<p<<" k = "<<k<<" =>  taking electron ß"<<std::endl;
+//                                            std::cout<<" p = "<<p<<" k = "<<k<<" =>  taking electron ß"<<std::endl;
                                             test=1;
                                             test2=1;
                                             continue;
@@ -50,9 +53,37 @@ bool dyson_mo_coeff_comp(int n_states_neut,int n_states_cat,int n_occ,int ci_siz
                                     }
                             }
                         }
-                        //========================^^^^^^^^^^^^^^ Overlap matrix for a given configuration ^^^^^^^^^^^^^==================
-                        
-                        
+                        */
+                        for(int m=0; m!=n_elec_neut; m++)//Over the electrons of the neutral
+                        {
+                           if (ci_vec_neut[0][(n_elec_neut+n_states_neut)*n+m]==k && !test2)
+                           {
+                              test=1;
+                              test2=1;
+                              continue;
+                           }
+                           for (int o=0; o!=n_elec_neut-1; o++)//Over the electrons of the cation
+                           {
+                              p=ci_vec_neut[0][(n_elec_neut+n_states_neut)*n+m];
+                              q=ci_vec_cat[0][(n_elec_neut-1+n_states_cat)*l+o];
+//                            std::cout<<"overlap between orbitals "<<p<<" (electron"<<m-test2<<" )"<<" and "<<q<<" (electron"<<o<<" )"<<" : "<<overlap[n_occ*p+q]<<std::endl;
+                              temp[(n_elec_neut-1)*(m-test2)+o]=overlap[n_occ*p+q]*kronecker_delta(ci_vec_neut[1][n_elec_neut*n+(m-test2)], ci_vec_cat[1][(n_elec_neut-1)*l+o]);;
+                           }
+                        }
+                        /*
+                        for(int m=0;m!=n_elec_neut-1;m++)
+                        {
+                           for (int o=0; o!=n_elec_neut-1; o++)
+                           {
+                              std::cout<<std::setw(15)<<std::setprecision(8)<<temp[(n_elec_neut-1)*m+o];
+                           }std::cout<<std::endl;
+                        }*/
+                        //========================^^^^^^^^^^^^^^ Overlap matrix for a given configuration ^^^^^^^^^^^^^================== 
+ /*                       if( n==0 && l==1)
+                        {
+                           std::cout<<"Electron taken from MO "<<k<<": Determinant value for conf "<<n<<" and "<<l<<" : "<<determinant(temp,(n_elec_neut-1))<<std::endl;
+                        exit(EXIT_SUCCESS);
+                        }*/
 /*                        //====================CHECKING DETERMINANT===============
                         
                         for (int m=0; m!=n_elec_neut; m++)
@@ -78,7 +109,7 @@ bool dyson_mo_coeff_comp(int n_states_neut,int n_states_cat,int n_occ,int ci_siz
                         //====================CHECKING DETERMINANT===============*/
                         if(test2)
                         {
-                        Dyson_MO_basis_coeff[n_occ*n_states_cat*i+n_occ*j+k]+=(ci_vec_neut[0][(n_elec_neut+n_states_neut)*n+n_elec_neut+i]*ci_vec_cat[0][(n_elec_neut-1+n_states_cat)*l+n_elec_neut-1+j]*determinant(temp,(n_elec_neut-1)));
+                           Dyson_MO_basis_coeff[n_occ*n_states_cat*i+n_occ*j+k]+=(ci_vec_neut[0][(n_elec_neut+n_states_neut)*n+n_elec_neut+i]*ci_vec_cat[0][(n_elec_neut-1+n_states_cat)*l+n_elec_neut-1+j]*determinant(temp,(n_elec_neut-1)));
    //                        std::cout<<" sum is "<<Dyson_MO_basis_coeff[n_occ*n_states_cat*i+n_occ*j+k]<<std::endl;
                         }
 
@@ -91,11 +122,11 @@ bool dyson_mo_coeff_comp(int n_states_neut,int n_states_cat,int n_occ,int ci_siz
                 if(!test)
                 {
                     Dyson_MO_basis_coeff[n_occ*n_states_cat*i+n_occ*j+k]=0;
-   //                 std::cout<<std::endl<<"states "<<i<<"  and  "<<j<<"    "<<Dyson_MO_basis_coeff[n_occ*n_states_cat*i+n_occ*j+k]<<"   MO  "<<k<<std::endl<<"====================================="<<std::endl<<std::endl;
+                    std::cout<<std::endl<<"states "<<i<<"  and  "<<j<<"    "<<Dyson_MO_basis_coeff[n_occ*n_states_cat*i+n_occ*j+k]<<"   MO  "<<k<<std::endl<<"====================================="<<std::endl<<std::endl;
                 }
                 else
                 {
- //                   std::cout<<std::endl<<"states "<<i<<"  and  "<<j<<"    "<<Dyson_MO_basis_coeff[n_occ*n_states_cat*i+n_occ*j+k]<<"   MO  "<<k<<std::endl<<"====================================="<<std::endl<<std::endl;
+                    std::cout<<std::endl<<"states "<<i<<"  and  "<<j<<"    "<<Dyson_MO_basis_coeff[n_occ*n_states_cat*i+n_occ*j+k]<<"   MO  "<<k<<std::endl<<"====================================="<<std::endl<<std::endl;
                 }
                     
             }
@@ -317,7 +348,7 @@ std::complex<double> contraction_FT_grad_k( double k, double thet, double phi,do
 //   std::cout<<"dk:"<<l<<","<<ml<<","<<thet<<","<<phi<<","<<contraction_zeta<<","<<value<<std::endl;
 
    delete [] legendre_val;
-   return value;
+   return std::conj(value);
 
 }
 std::complex<double> contraction_FT_grad_thet( double k, double thet, double phi,double* nucl_spher_pos,double contraction_zeta,int* angular_mom_numbers)
@@ -335,7 +366,7 @@ std::complex<double> contraction_FT_grad_thet( double k, double thet, double phi
 
 //   exit(EXIT_SUCCESS);
 
-   if(thet!=0)
+   if(thet!=0 && thet!=acos(-1))
    {
       gsl_sf_legendre_deriv_alt_array_e(GSL_SF_LEGENDRE_SPHARM,l,cos(thet),-1,legendre_val,legendre_der_val);
 //      std::cout<<l<<","<<ml<<" => "<<sqrt(3/(4*acos(-1)))*sin(thet)<<" | "<<legendre_val[gsl_sf_legendre_array_index(l,fabs(ml))]<<" d/dt = "<<legendre_der_val[gsl_sf_legendre_array_index(l,fabs(ml))]<<" - thet = "<<thet<<std::endl;
@@ -452,7 +483,7 @@ std::complex<double> contraction_FT_grad_thet( double k, double thet, double phi
 */
    delete [] legendre_val;
    delete [] legendre_der_val;
-   return value;
+   return std::conj(value);
 }
 std::complex<double> contraction_FT_grad_phi( double k, double thet, double phi,double* nucl_spher_pos,double contraction_zeta,int* angular_mom_numbers)
 {
@@ -581,7 +612,7 @@ std::complex<double> contraction_FT_grad_phi( double k, double thet, double phi,
 */
    delete [] legendre_val;
    delete [] legendre_val_NN;
-   return value;
+   return std::conj(value);
 }
 
 double MO_value( int mo_index, double x, double y, double z,double **nucl_spher_pos,int *nucl_basis_func,int* contraction_number,double **contraction_coeff,double **contraction_zeta,std::string *basis_func_type,double *MO_neut_basis_coeff,int basis_size,int **angular_mom_numbers)

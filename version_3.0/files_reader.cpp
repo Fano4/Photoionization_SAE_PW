@@ -855,6 +855,21 @@ int overlap_MO(double matrix[],int* n_occ,int* basis_size,int* basis_size_sym,st
 
         exit(EXIT_SUCCESS);
      */ 
+    /*
+    double answer(0);
+    int mo_index(0);
+    for(int i=0;i!=*basis_size;i++)
+    {
+       for(int j=0;j!=*basis_size;j++)
+       {
+          //answer+=MO_coeff_neutral[mo_index**basis_size+i]*MO_coeff_cation[mo_index**basis_size+j]*overlap[i**basis_size+j];
+          answer+=MO_coeff_neutral[mo_index**basis_size+i]*MO_coeff_cation[mo_index**basis_size+j]*overlap[i**basis_size+j];
+//          std::cout<<MO_coeff_neutral[mo_index**basis_size+i]<<"*"<<MO_coeff_cation[mo_index**basis_size+j]<<"*"<<overlap[i**basis_size+j]<<" = "<<MO_coeff_neutral[mo_index**basis_size+i]*MO_coeff_cation[mo_index**basis_size+j]*overlap[i**basis_size+j]<<" => "<<answer<<std::endl;
+       }
+    }
+    std::cout<<" => "<<answer<<std::endl;
+    exit(EXIT_SUCCESS);
+    */
     temp=new double[*basis_size*n_occ_tot];
     temp2=new double[*basis_size*n_occ_tot];
     for(int i=0;i!=*basis_size*n_occ_tot;i++)
@@ -884,18 +899,12 @@ int overlap_MO(double matrix[],int* n_occ,int* basis_size,int* basis_size_sym,st
     {
        for(int j=0;j!=n_occ_tot;j++)
        {
-          matrix2[i*n_occ_tot+j]=0;
-          for(int r=0;r!=*basis_size;r++)
-          {
-             for(int s=0;s!=*basis_size;s++)
-             {
-                matrix[i*n_occ_tot+j]+=MO_coeff_cation[i**basis_size+r]*MO_coeff_neutral[j**basis_size+s]*overlap[r**basis_size+s];
-             }
-          }
-       }
+          std::cout<<std::setw(15)<<std::setprecision(8)<<matrix[i*n_occ_tot+j];
+       }std::cout<<std::endl<<std::endl;;
     }
-*/
-    
+
+    exit(EXIT_SUCCESS);
+  */  
 /*    
     double norm=0;
     for (int i=0; i!=*basis_size; i++)
@@ -1150,6 +1159,7 @@ int ci_vec_reader(int *n_states_neut_s,int *n_states_cat_s,int *n_occ,int *n_clo
 
     for (int i=0; i!=*ci_size_neut; i++)
     {
+        elec_index=0;
         molpro_output>>tmp_str;
 
         if(*n_closed!=0 && elec_index<2**n_closed)
@@ -1195,7 +1205,6 @@ int ci_vec_reader(int *n_states_neut_s,int *n_states_cat_s,int *n_occ,int *n_clo
             
         }
         
-        elec_index=0;
         
         for (int j=0; j!=n_states_neut; j++)
         {
@@ -1222,6 +1231,7 @@ int ci_vec_reader(int *n_states_neut_s,int *n_states_cat_s,int *n_occ,int *n_clo
 
     for (int i=0; i!=*ci_size_cat; i++)
     {
+        elec_index=0;
         molpro_output>>tmp_str;
 
         if(*n_closed!=0 && elec_index<2**n_closed)
@@ -1267,7 +1277,6 @@ int ci_vec_reader(int *n_states_neut_s,int *n_states_cat_s,int *n_occ,int *n_clo
             
         }
         
-        elec_index=0;
         
         for (int j=0; j!=n_states_cat; j++)
         {
@@ -1305,6 +1314,7 @@ int ci_vec_reader(int *n_states_neut_s,int *n_states_cat_s,int *n_occ,int *n_clo
     
        for(int s=0;s!=n_sym;s++)
        {
+         elec_index=0;
          if(n_states_neut_s[s]!=0)
          {
             if(neut_states_sym!=1)
@@ -1319,6 +1329,7 @@ int ci_vec_reader(int *n_states_neut_s,int *n_states_cat_s,int *n_occ,int *n_clo
             for (int i=0; i!=ci_size_neut[s]; i++)
             {
                mo_index=0;
+               elec_index=0;
                for(int l=0;l!=n_symocc;l++)
                {
                   molpro_output>>tmp_str;
@@ -1372,6 +1383,12 @@ int ci_vec_reader(int *n_states_neut_s,int *n_states_cat_s,int *n_occ,int *n_clo
                        mo_index++;
                        continue;
                     }
+                  else 
+                  {
+                     std::cout<<"ERROR unrecognized symbol "<<tmp_str.at(j)<<std::endl;
+                     std::cout<<"EXIT"<<std::endl;
+                     exit(EXIT_SUCCESS);
+                  }
                 }
             }
             elec_index=0;
@@ -1439,15 +1456,16 @@ int ci_vec_reader(int *n_states_neut_s,int *n_states_cat_s,int *n_occ,int *n_clo
         //std::cout<<"probe loop sym"<<std::endl;//DEBOGAGE
        if(cat_states_sym!=1) //!!!!!!! THIS SHOULD BE ONLY COMMENTED IF WE WANT A SINGLE STATE OF THE CAITON BUT THE MOLPRO COMPUTATION WAS DONE ON SEVERAL STATES
        {
-        molpro_output>>tmp_str;
-        molpro_output>>tmp_str;
-        molpro_output>>tmp_str;
-        molpro_output>>tmp_str;
+          molpro_output>>tmp_str;
+          molpro_output>>tmp_str;
+          molpro_output>>tmp_str;
+          molpro_output>>tmp_str;
        }
         molpro_output>>tmp_str;
     
         for (int i=0; i!=ci_size_cat[s]; i++)
         {
+           elec_index=0;
            mo_index=0;
            for(int l=0;l!=n_symocc;l++)
            {
@@ -1470,7 +1488,7 @@ int ci_vec_reader(int *n_states_neut_s,int *n_states_cat_s,int *n_occ,int *n_clo
                   if(tmp_str.at(j)=='0')
                   {
                       mo_index++;
-                      continue;
+                  //    continue;
                   }
             
                   else if(tmp_str.at(j)=='2')
@@ -1482,7 +1500,7 @@ int ci_vec_reader(int *n_states_neut_s,int *n_states_cat_s,int *n_occ,int *n_clo
                       ci_vector_cat[1][(n_elec_neut-1)*ci_index+elec_index]=1;
                       elec_index++;
                       mo_index++;
-                      continue;
+                  //    continue;
                   }
             
                   else if(tmp_str.at(j)=='a' || tmp_str.at(j)=='/')
@@ -1491,7 +1509,7 @@ int ci_vec_reader(int *n_states_neut_s,int *n_states_cat_s,int *n_occ,int *n_clo
                       ci_vector_cat[1][(n_elec_neut-1)*ci_index+elec_index]=0;
                       elec_index++;
                       mo_index++;
-                      continue;
+                  //    continue;
                   }
             
                   else if( tmp_str.at(j) == 'b' || tmp_str.at(j) == '\\')
@@ -1500,11 +1518,22 @@ int ci_vec_reader(int *n_states_neut_s,int *n_states_cat_s,int *n_occ,int *n_clo
                       ci_vector_cat[1][(n_elec_neut-1)*ci_index+elec_index]=1;
                       elec_index++;
                       mo_index++;
-                      continue;
+                  //    continue;
+                  }
+                  else 
+                  {
+                     std::cout<<"ERROR unrecognized symbol "<<tmp_str.at(j)<<std::endl;
+                     std::cout<<"EXIT"<<std::endl;
+                     exit(EXIT_SUCCESS);
                   }
 
                }
          }
+         /*std::cout<<"Configuration "<<ci_index<<" state sym "<<s<<std::endl;
+         for(int j=0;j!=n_elec_neut-1;j++)
+         {
+            std::cout<<int(ci_vector_cat[0][(n_elec_neut-1+n_states_cat)*ci_index+j])<<" ";
+         }std::cout<<std::endl;*/
            //std::cout<<"probe 2"<<std::endl;//DEBOGAGE
 
            elec_index=0;

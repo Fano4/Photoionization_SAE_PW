@@ -13,12 +13,12 @@ bool angularly_resolved_dipole_reader(double *prefactor,double *theta,double *ph
 int main(int argc, char *argv [])
 {
    using namespace std;
-   string dipole_address("/data1/home/stephan/LiH_gridtest_+++custom_MO_1.6125/test_1S.txt");
-   string spectrum_address("/data1/home/stephan/LiH_gridtest_+++custom_MO_1.6125/LiH_CS_bruteforce_0_0.txt");
+   string dipole_address("/data1/home/stephan/LiH_anion_cation_custom_6-311++G3df3dp/PICE_neut_0_0.txt");
+   string spectrum_address("/data1/home/stephan/LiH_anion_cation_custom_6-311++G3df3dp/cs_anion_0_0.txt");
    int n_theta(20);
    int n_phi(40);
    int nk(50);
-   int n_points(nk*n_theta*n_phi);
+   int n_points(nk*2000);//nk*n_theta*n_phi);
    double theta_elec(0);//(acos(-1)/2);
    double phi_elec(0);//(acos(-1)/2);
    double x_comp(sin(theta_elec)*cos(phi_elec));
@@ -149,6 +149,7 @@ bool compute_spectrum(double x_comp,double y_comp,double z_comp,int n_points,std
 {
    int n_theta(20);
    int n_phi(40);
+   int temp_int;
    double * k=new double[n_points];
    double * theta=new double[n_points];
    double * phi=new double[n_points];
@@ -160,15 +161,39 @@ bool compute_spectrum(double x_comp,double y_comp,double z_comp,int n_points,std
    double *ImPICE_z=new double[n_points];
 
    const double pi(acos(-1));
-   const double Lx(75);
-   const double Ly(75);
-   const double Lz(75);
    const int nk(50);
    double total(0);
    double *cs=new double[nk];
 
    using namespace std;
    ifstream input;
+   input.open("/data1/home/stephan/kxkykz.txt");
+    double *distrib_cart=new double[3];
+
+    for(int t=0;t!=2000;t++)
+    {
+       input>>temp_int;
+       input>>distrib_cart[0];
+       input>>distrib_cart[1];
+       input>>distrib_cart[2];
+
+       for(int p=0;p!=nk;p++)
+       {
+          theta[p*2000+t]=acos(distrib_cart[2]);
+          phi[p*2000+t]=atan2(distrib_cart[1],distrib_cart[0]);
+          if(phi[p*2000+t]<0)
+             phi[p*2000+t]+=2*acos(-1);
+       }
+    }
+    input.close();
+    for(int p=0;p!=nk;p++)
+    {
+       for(int t=0;t!=2000;t++)
+       {
+          k[p*2000+t]=p*1.5/nk;
+       }
+    }
+
    input.open(dipole_address.c_str());
 
    if(!input.is_open())
@@ -178,16 +203,16 @@ bool compute_spectrum(double x_comp,double y_comp,double z_comp,int n_points,std
    }
    else
    {
-      for(int i=0;i!=nk*n_theta*n_phi;i++)
+      for(int i=0;i!=nk*2000;i++)
       {
-         input>>k[i];
+//         input>>k[i];
 //         std::cout<<i<<"-"<<i%(n_theta*n_phi)<<"---"<<k[i]<<std::endl;
-         if(i%(n_theta*n_phi)==0)
+         if(i%(2000)==0)
          {
-            std::cout<<i/(n_theta*n_phi)<<"=>"<<k[i]<<std::endl;
+            std::cout<<i/(2000)<<"=>"<<k[i]<<std::endl;
          }
-         input>>theta[i];
-         input>>phi[i];
+//         input>>theta[i];
+//         input>>phi[i];
          input>>RePICE_x[i];
          input>>ImPICE_x[i];
          input>>RePICE_y[i];
@@ -198,16 +223,19 @@ bool compute_spectrum(double x_comp,double y_comp,double z_comp,int n_points,std
       for(int i=0;i!=nk;i++)
       {
          cs[i]=0;
-         for(int j=0;j!=n_theta;j++)
+         for(int j=0;j!=2000;j++)
          {
-             for(int l=0;l!=n_phi;l++)
+//             for(int l=0;l!=n_phi;l++)
              {
 //                std::cout<<k[i*n_theta*n_phi+j*n_phi+l]<<","<<theta[i*n_theta*n_phi+j*n_phi+l]<<","<<phi[i*n_theta*n_phi+j*n_phi+l]<<","<<std::endl;
-                cs[i]+=pow(k[i*n_theta*n_phi+j*n_phi+l],2)*sin(theta[i*n_theta*n_phi+j*n_phi+l])*(acos(-1)/n_theta)*(2*acos(-1)/n_phi)*real(std::complex<double>(x_comp*RePICE_x[i*n_theta*n_phi+j*n_phi+l]+y_comp*RePICE_y[i*n_theta*n_phi+j*n_phi+l]+z_comp*RePICE_z[i*n_theta*n_phi+j*n_phi+l],x_comp*ImPICE_x[i*n_theta*n_phi+j*n_phi+l]+y_comp*ImPICE_y[i*n_theta*n_phi+j*n_phi+l]+z_comp*ImPICE_z[i*n_theta*n_phi+j*n_phi+l])*std::complex<double>(x_comp*RePICE_x[i*n_theta*n_phi+j*n_phi+l]+y_comp*RePICE_y[i*n_theta*n_phi+j*n_phi+l]+z_comp*RePICE_z[i*n_theta*n_phi+j*n_phi+l],-(x_comp*ImPICE_x[i*n_theta*n_phi+j*n_phi+l]+y_comp*ImPICE_y[i*n_theta*n_phi+j*n_phi+l]+z_comp*ImPICE_z[i*n_theta*n_phi+j*n_phi+l])));
+      //          cs[i]+=pow(k[i*n_theta*n_phi+j*n_phi+l],2)*sin(theta[i*n_theta*n_phi+j*n_phi+l])*(acos(-1)/n_theta)*(2*acos(-1)/n_phi)*real(std::complex<double>(x_comp*RePICE_x[i*n_theta*n_phi+j*n_phi+l]+y_comp*RePICE_y[i*n_theta*n_phi+j*n_phi+l]+z_comp*RePICE_z[i*n_theta*n_phi+j*n_phi+l],x_comp*ImPICE_x[i*n_theta*n_phi+j*n_phi+l]+y_comp*ImPICE_y[i*n_theta*n_phi+j*n_phi+l]+z_comp*ImPICE_z[i*n_theta*n_phi+j*n_phi+l])*std::complex<double>(x_comp*RePICE_x[i*n_theta*n_phi+j*n_phi+l]+y_comp*RePICE_y[i*n_theta*n_phi+j*n_phi+l]+z_comp*RePICE_z[i*n_theta*n_phi+j*n_phi+l],-(x_comp*ImPICE_x[i*n_theta*n_phi+j*n_phi+l]+y_comp*ImPICE_y[i*n_theta*n_phi+j*n_phi+l]+z_comp*ImPICE_z[i*n_theta*n_phi+j*n_phi+l])));
+                cs[i]+=pow(k[i*2000+j],2)*(4*acos(-1)/2000)*real(std::complex<double>(x_comp*RePICE_x[i*2000+j]+y_comp*RePICE_y[i*2000+j]+z_comp*RePICE_z[i*2000+j],x_comp*ImPICE_x[i*2000+j]+y_comp*ImPICE_y[i*2000+j]+z_comp*ImPICE_z[i*2000+j])*std::complex<double>(x_comp*RePICE_x[i*2000+j]+y_comp*RePICE_y[i*2000+j]+z_comp*RePICE_z[i*2000+j],-(x_comp*ImPICE_x[i*2000+j]+y_comp*ImPICE_y[i*2000+j]+z_comp*ImPICE_z[i*2000+j])));
              }
          }
-         total+=cs[i]*(k[nk*n_theta*n_phi-1]-k[0])/nk;
-         std::cout<<k[i*n_theta*n_phi]<<", "<<cs[i]<<" => total = "<<total<<std::endl;
+//         total+=cs[i]*(k[nk*n_theta*n_phi-1]-k[0])/nk;
+         total+=cs[i]*(k[nk*2000-1]-k[0])/nk;
+//         std::cout<<k[i*2000]<<", "<<cs[i]<<" => total = "<<total<<std::endl;
+         std::cout<<k[i*2000]*k[i*2000]*27.211/2<<"   "<<cs[i]*1.152321368*pow(0.592e-10,2)*10000<<std::endl;
  //        std::cout<<pow(k[i*n_theta*n_phi],2)*27.211/2<<", "<<cs[i]<<std::endl;
          //std::cout<<pow(k[i*n_theta*n_phi],2)*27.211/2<<", "<<cs[i]*Lx*Ly*Lz/pow((2*pi),3)<<std::endl;
       }

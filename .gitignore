@@ -1,3 +1,6 @@
+# Results and figures
+*.eps
+*.gp
 # Prerequisites
 *.d
 

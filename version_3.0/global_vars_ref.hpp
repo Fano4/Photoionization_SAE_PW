@@ -23,7 +23,7 @@ const double total_time(25/au_to_fs);
 const double h(0.001/au_to_fs);
 
 //define the input file from which the electronic structure and the pulse parametersis infered
-const std::string molpro_output_path("molpro_output.out");
+//const std::string molpro_output_path("molpro_output.out");
 const std::string efield_path("e-field_input.in"); 
 
 //define classes for electronic structure and electric field

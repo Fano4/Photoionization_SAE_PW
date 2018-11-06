@@ -10,6 +10,7 @@
 #include <cmath>
 #include <complex>
 #include <vector>
+#include <ctime>
 #include "mkl.h"
 #include "omp.h"
 

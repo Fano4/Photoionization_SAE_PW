@@ -82,6 +82,7 @@ double determinant(double *A,int dim)
 
 void matrix_product(double *C,double *A,double *B,int dim1,int dim2,int dim3)
 {
+   //C=A*B
     double ntemp;
     for (int i=0; i!=dim1; i++)
     {

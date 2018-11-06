@@ -3,7 +3,7 @@
 int main(int argc,char* argv[])
 {
    int photoion_comp(int argc, char* argv[]);
-   omp_set_num_threads(16); 
+   omp_set_num_threads(1); 
 
    photoion_comp(argc,argv);
 
@@ -50,6 +50,9 @@ int photoion_comp(int argc, char* argv[])
     std::string* basis_func_type;
     int n_elec_neut(4);//!!!! ecrire une routine qui cherche le nombre d'electrons dans l'output molpro!!!
 
+
+    double testtime=omp_get_wtime();
+    std::cout<<std::fixed<<std::setprecision(6)<<"test_time = "<<testtime<<"s is the time with a precision of"<<omp_get_wtick()<<std::endl;
     if(symmetry)
     {
        n_states_neut=0;
@@ -63,8 +66,8 @@ int photoion_comp(int argc, char* argv[])
        }
     }
     //variables depending on grid size
-    const std::string hf5_outfile("LiH_pice_data_newnorm.h5");
-    int grid_size(512);
+    const std::string hf5_outfile("LiH_pice_data_newdyson.h5");
+    int grid_size(1);
     double **MO_coeff_neutral=new double*[grid_size];
     double *overlap;
     double ***mo_dipole=new double**[grid_size];
@@ -82,11 +85,11 @@ int photoion_comp(int argc, char* argv[])
     int index(0);
     int index2(0);
     int temp_int(0);
-    double xmin(0.8);
-    double xmax(21.6);
+    double xmin(1.67368);
+    double xmax(1.67368);
     double mLi(6.015122795);
     double mH(1.007825);
-    std::string file_root("/data1/home/stephan/LiH_gridtest_+++custom/LiH_");
+    std::string file_root("/data1/home/stephan/LiH_anion_cation_custom_6-311++G3df3dp/LiH_neut_cat_");
     stringstream ss_molpro_file;
     std::string molpro_output_path;
 
@@ -297,8 +300,33 @@ for(int x=0;x!=grid_size;x++)
     else
       ci_vec_reader(&n_states_neut, &n_states_cat, &n_occ,&n_closed, n_elec_neut,&ci_size_neut,&ci_size_cat, ci_vec_neut, ci_vec_cat, molpro_output_path);
     std::cout<<"CI_VEC_READER ROUTINE ENDED WITHOUT ISSUE"<<std::endl;
-
-
+//DEBOGAGE
+/*
+    for(int i=0;i!=ci_size_neut;i++)
+    {
+       for(int j=0;j!=n_elec_neut;j++)
+       {
+          std::cout<<"Neut conf "<<i<<" electron "<<j<<" => "<<int(ci_vec_neut[0][i*(n_elec_neut+n_states_neut)+j])<<std::endl;
+       }
+       for(int j=0;j!=n_states_neut;j++)
+       {
+          std::cout<<"Neut conf "<<i<<" state "<<j<<" => "<<double(ci_vec_neut[0][i*(n_elec_neut+n_states_neut)+j+n_elec_neut])<<std::endl;
+       }
+    }
+    for(int i=0;i!=ci_size_cat;i++)
+    {
+       for(int j=0;j!=n_elec_neut-1;j++)
+       {
+          std::cout<<"cat conf "<<i<<" electron "<<j<<" => "<<int(ci_vec_cat[0][i*(n_elec_neut-1+n_states_cat)+j])<<std::endl;
+       }
+       for(int j=0;j!=n_states_cat;j++)
+       {
+          std::cout<<"cat conf "<<i<<" state "<<j<<" => "<<double(ci_vec_cat[0][i*(n_elec_neut-1+n_states_cat)+j+n_elec_neut-1])<<std::endl;
+       }
+    }
+    exit(EXIT_SUCCESS);
+    */
+//DEBOGAGE
     MO_coeff_neutral[x]=new double[(n_occ+n_closed)*basis_size];
     overlap=new double[n_occ*n_occ];
     mo_dipole[x]=new double *[3];
@@ -425,20 +453,21 @@ std::cout<<"POSITION DEPENDENT PART DONE"<<std::endl;
     /*
      TESTING HF5 DIALOG
      */
-      write_output(hf5_outfile, &n_states_neut, &n_states_cat, &n_occ, &n_closed,&nucl_dim,&grid_size,&num_of_nucl,&basis_size,contraction_number,nucl_coord,nucl_spher_pos,mo_dipole,MO_coeff_neutral,dyson_mo_basis_coeff,contraction_coeff_array,contraction_zeta_array,nucl_basis_func,basis_func_type);
+//      write_output(hf5_outfile, &n_states_neut, &n_states_cat, &n_occ, &n_closed,&nucl_dim,&grid_size,&num_of_nucl,&basis_size,contraction_number,nucl_coord,nucl_spher_pos,mo_dipole,MO_coeff_neutral,dyson_mo_basis_coeff,contraction_coeff_array,contraction_zeta_array,nucl_basis_func,basis_func_type);
+//      exit(EXIT_SUCCESS);
    //   read_output(hf5_outfile, &n_states_neut, &n_states_cat, &n_occ, &n_closed,&nucl_dim,&grid_size,&num_of_nucl,&basis_size,nucl_spher_pos,mo_dipole,MO_coeff_neutral,dyson_mo_basis_coeff,contraction_number,contraction_coeff,contraction_zeta,nucl_basis_func,basis_func_type);
     /*
      TESTING HF5 DIALOG
      */
 
     double kp(0);
-    double kmax(sqrt(2*200/27.211)/4);
+    double kmax(1.5);
     int state_neut(0);
     double int_cs(0);
-    double thet(0.3);
-    double phi(1.25);
+    double thet(0);
+    double phi(0);
     int nk=50;
-    int position(20);
+    int position(0);
     std::complex<double> *temp=new std::complex<double>[3];
 //    std::complex<double> temp;
     std::complex<double> sinet;
@@ -446,8 +475,8 @@ std::cout<<"POSITION DEPENDENT PART DONE"<<std::endl;
     std::complex<double> sinep;
     std::complex<double> cosinep;
     std::complex<double> modulus;
-    int n_theta=20;
-    int n_phi=40;
+    int n_theta=1;
+    int n_phi=1;
     //double efield[3]={1,0,0};//SPHERICAL COORDINATES
     double efield[3]={0,0,0.05};//CARTESIAN COORDINATES
     int i(0);
@@ -477,20 +506,61 @@ std::cout<<"POSITION DEPENDENT PART DONE"<<std::endl;
 std::cout<<"=>"<<real(temp)<<std::endl;
 exit(EXIT_SUCCESS);
 */
+    ifstream distrib_file;
+    
+    ofstream pice_out;
+    stringstream pice_out_ss;
+    string pice_out_s;
+    
+    distrib_file.open("/data1/home/stephan/kxkykz.txt");
+    double **distrib=new double*[2];
+    distrib[0]=new double[2000];
+    distrib[1]=new double[2000];
+    double *distrib_cart=new double[3];
+
+    for(t=0;t!=2000;t++)
+    {
+       distrib_file>>temp_int;
+       distrib_file>>distrib_cart[0];
+       distrib_file>>distrib_cart[1];
+       distrib_file>>distrib_cart[2];
+
+       distrib[0][t]=acos(distrib_cart[2]);
+       distrib[1][t]=atan2(distrib_cart[1],distrib_cart[0]);
+       if(distrib[1][t]<0)
+          distrib[1][t]+=2*acos(-1);
+    }
+    
+      int sc=0;
+//      int sn=0;
+for(int sn=0;sn!=n_states_neut;sn++)
+{
+//   for(int sc=0;sc!=n_states_cat;sc++)
+   {
+      pice_out_ss.str("");
+      pice_out_ss<<"../../LiH_anion_cation_custom_6-311++G3df3dp/PICE_orth_neut_"<<sn<<"_"<<sc<<".txt";
+      pice_out_s=pice_out_ss.str();
+      pice_out.open(pice_out_s.c_str());
+      std::cout<<" Writing PICE in file "<<pice_out_s<<std::endl;
+      double begin=omp_get_wtime();
     for(int k=0;k!=nk;k++)
     {
-       kp=kmax*(k+1)/nk;
 //       kp=0;
+       kp=kmax*(k+1)/nk;
        int_cs=0;
 //#pragma omp parallel for reduction(+:int_cs) private (i,j,t,p,temp,thet,phi)
-       for( t=0;t<n_theta;t++)
+//       for( t=0;t<n_theta;t++)
+       for(t=0;t!=2000;t++)
        {
+          thet=distrib[0][t];
+          phi=distrib[1][t];
+      //    kp=kmax*(t+1)/nk;
 //          std::cout<<t<<std::endl;
-          thet=t*(acos(-1))/n_theta;
-          for( p=0;p<n_phi;p++)
+//          thet=t*(acos(-1))/n_theta;
+//          for( p=0;p<n_phi;p++)
           {
 //            std::cout<<"point!"<<k<<","<<t<<","<<p<<"=>"<<temp<<std::endl;
-             phi=2*p*acos(-1)/n_phi;
+//             phi=2*p*acos(-1)/n_phi;
              temp[0]=0;
              temp[1]=0;
              temp[2]=0;
@@ -501,77 +571,66 @@ exit(EXIT_SUCCESS);
                 // df/dy = df/dk dk/dy + df/dthet dthet/dy + df/dphi dphi/dy 
                 // df/dz = df/dk dk/dz + df/dthet dthet/dz + df/dphi dphi/dz 
                 
-                if(dyson_mo_basis_coeff[0][state_neut*n_states_cat*n_occ+0*n_occ+i] != 0)
+                if(dyson_mo_basis_coeff[position][sn*n_states_cat*n_occ+sc*n_occ+i] != 0)
                 {
-                   temp[0]-=std::complex<double>(0,1)*dyson_mo_basis_coeff[position][state_neut*n_states_cat*n_occ+0*n_occ+i]
+                   temp[0]-=std::complex<double>(0,1)*dyson_mo_basis_coeff[position][sn*n_states_cat*n_occ+sc*n_occ+i]
                       *(
                          sin(thet) * cos(phi) * MO_Fourier_transform_grad(i,0,kp,thet,phi,nucl_spher_pos[position],nucl_basis_func,contraction_number,contraction_coeff,contraction_zeta,angular_mom_numbers,MO_coeff_neutral[position],basis_size)
                          + cos(thet) * cos(phi) * MO_Fourier_transform_grad(i,1,kp,thet,phi,nucl_spher_pos[position],nucl_basis_func,contraction_number,contraction_coeff,contraction_zeta,angular_mom_numbers,MO_coeff_neutral[position],basis_size)
                          - sin(phi) * MO_Fourier_transform_grad(i,2,kp,thet,phi,nucl_spher_pos[position],nucl_basis_func,contraction_number,contraction_coeff,contraction_zeta,angular_mom_numbers,MO_coeff_neutral[position],basis_size)
                       );
-//                   std::cout<<kp<<","<<thet<<","<<phi<<" ; "<<i<<":"<<std::endl<<
-//                   "dyson "<<dyson_mo_basis_coeff[0][state_neut*n_states_cat*n_occ+0*n_occ+i]<<std::endl<<
-//                   "1: "<<std::complex<double>(0,1)*sin(thet) * cos(phi) * MO_Fourier_transform_grad(i,0,kp,thet,phi,nucl_spher_pos[0],nucl_basis_func,contraction_number,contraction_coeff,contraction_zeta,angular_mom_numbers,MO_coeff_neutral[0],basis_size)<<std::endl<<
-//                   "2: "<<std::complex<double>(0,1)*cos(thet) * cos(phi) * MO_Fourier_transform_grad(i,1,kp,thet,phi,nucl_spher_pos[0],nucl_basis_func,contraction_number,contraction_coeff,contraction_zeta,angular_mom_numbers,MO_coeff_neutral[0],basis_size)<<std::endl<<
-//                   "3: "<<- std::complex<double>(0,1)*sin(phi) * MO_Fourier_transform_grad(i,2,kp,thet,phi,nucl_spher_pos[0],nucl_basis_func,contraction_number,contraction_coeff,contraction_zeta,angular_mom_numbers,MO_coeff_neutral[0],basis_size)<<std::endl<<std::endl;
                 
-                   temp[1]-=std::complex<double>(0,1)*dyson_mo_basis_coeff[position][state_neut*n_states_cat*n_occ+0*n_occ+i]
+                   temp[1]-=std::complex<double>(0,1)*dyson_mo_basis_coeff[position][sn*n_states_cat*n_occ+sc*n_occ+i]
                       *(
                          sin(thet) * sin(phi) * MO_Fourier_transform_grad(i,0,kp,thet,phi,nucl_spher_pos[position],nucl_basis_func,contraction_number,contraction_coeff,contraction_zeta,angular_mom_numbers,MO_coeff_neutral[position],basis_size)
                        + cos(thet) * sin(phi) * MO_Fourier_transform_grad(i,1,kp,thet,phi,nucl_spher_pos[position],nucl_basis_func,contraction_number,contraction_coeff,contraction_zeta,angular_mom_numbers,MO_coeff_neutral[position],basis_size)
                        + cos(phi) * MO_Fourier_transform_grad(i,2,kp,thet,phi,nucl_spher_pos[position],nucl_basis_func,contraction_number,contraction_coeff,contraction_zeta,angular_mom_numbers,MO_coeff_neutral[position],basis_size)
                        );
 
-                   temp[2]-=std::complex<double>(0,1)*dyson_mo_basis_coeff[position][state_neut*n_states_cat*n_occ+0*n_occ+i]
+                   temp[2]-=std::complex<double>(0,1)*dyson_mo_basis_coeff[position][sn*n_states_cat*n_occ+sc*n_occ+i]
                       *(
                          cos(thet) * MO_Fourier_transform_grad(i,0,kp,thet,phi,nucl_spher_pos[position],nucl_basis_func,contraction_number,contraction_coeff,contraction_zeta,angular_mom_numbers,MO_coeff_neutral[position],basis_size)
                        - sin(thet) * MO_Fourier_transform_grad(i,1,kp,thet,phi,nucl_spher_pos[position],nucl_basis_func,contraction_number,contraction_coeff,contraction_zeta,angular_mom_numbers,MO_coeff_neutral[position],basis_size)
                        );
-                }
- /*               
-                 temp-=std::complex<double>(0,1)*dyson_mo_basis_coeff[0][state_neut*n_states_cat*n_occ+0*n_occ+i]
-                          *(
-                                efield[0]*(
-                  sin(thet)*cos(phi)*MO_Fourier_transform_grad(i,0,kp,thet,phi,nucl_spher_pos[0],nucl_basis_func,contraction_number,contraction_coeff,contraction_zeta,angular_mom_numbers,MO_coeff_neutral[0],basis_size)
-                  +cos(thet)*cos(phi)*MO_Fourier_transform_grad(i,1,kp,thet,phi,nucl_spher_pos[0],nucl_basis_func,contraction_number,contraction_coeff,contraction_zeta,angular_mom_numbers,MO_coeff_neutral[0],basis_size)
-               -sin(phi)*MO_Fourier_transform_grad(i,2,kp,thet,phi,nucl_spher_pos[0],nucl_basis_func,contraction_number,contraction_coeff,contraction_zeta,angular_mom_numbers,MO_coeff_neutral[0],basis_size)
-                                   )
-                                +efield[1]*(
-                  sin(thet)*sin(phi)*MO_Fourier_transform_grad(i,0,kp,thet,phi,nucl_spher_pos[0],nucl_basis_func,contraction_number,contraction_coeff,contraction_zeta,angular_mom_numbers,MO_coeff_neutral[0],basis_size)
-                  +cos(thet)*sin(phi)*MO_Fourier_transform_grad(i,1,kp,thet,phi,nucl_spher_pos[0],nucl_basis_func,contraction_number,contraction_coeff,contraction_zeta,angular_mom_numbers,MO_coeff_neutral[0],basis_size)
-                  +cos(phi)*MO_Fourier_transform_grad(i,2,kp,thet,phi,nucl_spher_pos[0],nucl_basis_func,contraction_number,contraction_coeff,contraction_zeta,angular_mom_numbers,MO_coeff_neutral[0],basis_size)
-                                   )
-                                +efield[2]*(
-                  cos(thet)*MO_Fourier_transform_grad(i,0,kp,thet,phi,nucl_spher_pos[0],nucl_basis_func,contraction_number,contraction_coeff,contraction_zeta,angular_mom_numbers,MO_coeff_neutral[0],basis_size)
-                  -sin(thet)*MO_Fourier_transform_grad(i,1,kp,thet,phi,nucl_spher_pos[0],nucl_basis_func,contraction_number,contraction_coeff,contraction_zeta,angular_mom_numbers,MO_coeff_neutral[0],basis_size)
-                                   ));
-          
-                 
+                   }
+                
                 for(int j=0;j!=n_occ;j++)
                 {
                 
-                   temp-=dyson_mo_basis_coeff[0][state_neut*n_states_cat*n_occ+0*n_occ+j]
-                      *MO_Fourier_transform(i,kp,thet,phi,nucl_spher_pos[0],nucl_basis_func,contraction_number,contraction_coeff,contraction_zeta,angular_mom_numbers,MO_coeff_neutral[0],basis_size)*(mo_dipole[0][0][i*n_occ+j]*efield[0]+mo_dipole[0][1][i*n_occ+j]*efield[1]+mo_dipole[0][2][i*n_occ+j]*efield[2]);
+                   temp[0]-=dyson_mo_basis_coeff[0][sn*n_states_cat*n_occ+sc*n_occ+j]
+                      *MO_Fourier_transform(j,kp,thet,phi,nucl_spher_pos[0],nucl_basis_func,contraction_number,contraction_coeff,contraction_zeta,angular_mom_numbers,MO_coeff_neutral[0],basis_size)*mo_dipole[position][0][i*n_occ+j];
+                   temp[1]-=dyson_mo_basis_coeff[0][sn*n_states_cat*n_occ+sc*n_occ+j]
+                      *MO_Fourier_transform(j,kp,thet,phi,nucl_spher_pos[0],nucl_basis_func,contraction_number,contraction_coeff,contraction_zeta,angular_mom_numbers,MO_coeff_neutral[0],basis_size)*mo_dipole[position][1][i*n_occ+j];
+                   temp[2]-=dyson_mo_basis_coeff[0][sn*n_states_cat*n_occ+sc*n_occ+j]
+                      *MO_Fourier_transform(j,kp,thet,phi,nucl_spher_pos[0],nucl_basis_func,contraction_number,contraction_coeff,contraction_zeta,angular_mom_numbers,MO_coeff_neutral[0],basis_size)*mo_dipole[position][2][i*n_occ+j];
  //                  exit(EXIT_SUCCESS);
                  }
- // */            
+ //             
              }
-             std::cout<<kp<<"    "<<thet<<"    "<<phi<<"    "<<real(temp[0])<<"   "<<imag(temp[0])<<"  "<<real(temp[1])<<"  "<<imag(temp[1])<<"   "<<real(temp[2])<<"  "<<imag(temp[2])<<std::endl;
+//             std::cout<<kp<<"    "<<thet<<"    "<<phi<<"    "<<real(temp[0])<<"   "<<imag(temp[0])<<"  "<<real(temp[1])<<"  "<<imag(temp[1])<<"   "<<real(temp[2])<<"  "<<imag(temp[2])<<std::endl;
+             pice_out<<"    "<<real(temp[0])<<"   "<<imag(temp[0])<<"  "<<real(temp[1])<<"  "<<imag(temp[1])<<"   "<<real(temp[2])<<"  "<<imag(temp[2])<<std::endl;
+            // std::cout<<kp<<","<<t<<std::endl;
+            // std::cout<<"    "<<real(temp[0])<<"   "<<imag(temp[0])<<"  "<<real(temp[1])<<"  "<<imag(temp[1])<<"   "<<real(temp[2])<<"  "<<imag(temp[2])<<std::endl;
 //             std::cout<<thet<<","<<phi<<","<<pow(abs(temp),2)*pow(kp,2)*sin(thet)*(acos(-1)/n_theta)*(2*acos(-1)/n_phi)<<std::endl;
              
 
-            // int_cs+=pow(kp,1)*sin(thet)*(acos(-1)/n_theta)*(2*acos(-1)/n_phi)*abs(temp)*abs(temp);
+//             int_cs+=pow(kp,2)*sin(thet)*(acos(-1)/n_theta)*(2*acos(-1)/n_phi)*abs(temp)*abs(temp);
          //std::cout<<kp<<" , "<<thet<<" , "<<phi<<" , "<<temp<<std::endl;
 //             std::cout<<"small loop "<<p<<std::endl;
-          }std::cout<<std::endl;
+          }//pice_out<<std::endl;
 //             std::cout<<"LARGE loop "<<t<<std::endl<<"##################################################################"<<std::endl;
-       }
+       }pice_out<<std::endl;
+    }
+       pice_out.close();
+       double end=omp_get_wtime();
+       
+       std::cout<<std::endl<<std::fixed<<std::setprecision(6)<<(end-begin)/10<<"s is the time with a precision of"<<omp_get_wtick()<<std::endl;
+   }
+
+}
        
 //          std::cout<<kp*kp*27.211/2<<","<<int_cs<<std::endl;
 //          
-          
-    }//* /
-
       return 0;
 }
 
