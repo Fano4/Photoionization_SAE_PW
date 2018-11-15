@@ -1,9 +1,9 @@
 int l_number(std::string bas_func_type);
 int ml_number(std::string bas_func_type,int l);
 
-#include "/data1/home/stephan/Photoionization_SAE_PW/version_3.0/algebra.cpp"
-#include "/data1/home/stephan/Photoionization_SAE_PW/version_3.0/hf5_photoion.cpp"
-#include "/data1/home/stephan/Photoionization_SAE_PW/version_3.0/Computation.cpp"
+#include "algebra.cpp"
+#include "hf5_photoion.cpp"
+#include "Computation.cpp"
 //#include "/data1/home/stephan/Photoionization_SAE_PW/version_3.0/photoionization_module_1.0/pice_module_comp.cpp"
 
 
