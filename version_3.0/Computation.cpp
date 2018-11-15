@@ -254,7 +254,7 @@ std::complex<double> contraction_FT( double k, double thet, double phi,double* n
       ;
    }
 
-   return value;
+   return std::conj(value);
 
 }
 std::complex<double> contraction_FT_grad_k( double k, double thet, double phi,double* nucl_spher_pos,double contraction_zeta,int* angular_mom_numbers)

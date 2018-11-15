@@ -18,9 +18,9 @@ int photoion_comp(int argc, char* argv[])
     const int n_sym(4);
     int nucl_dim(1);
     int n_states_neut(0);
-    int n_states_neutral_sym[n_sym]={10,4,4,1};//{8,3,3,1};
+    int n_states_neutral_sym[n_sym]={1,0,0,0};//{8,3,3,1};
     int n_states_cat(0);
-    int n_states_cat_sym[n_sym]={4,1,1,0};//{2,1,1,0}
+    int n_states_cat_sym[n_sym]={10,4,4,1};//{2,1,1,0}
     int n_occ(0);
     int *n_occs;
     int n_closed(0);
@@ -48,7 +48,7 @@ int photoion_comp(int argc, char* argv[])
     int *contraction_number;
     int *nucl_basis_func;
     std::string* basis_func_type;
-    int n_elec_neut(4);//!!!! ecrire une routine qui cherche le nombre d'electrons dans l'output molpro!!!
+    int n_elec_neut(5);//!!!! ecrire une routine qui cherche le nombre d'electrons dans l'output molpro!!!
 
 
     double testtime=omp_get_wtime();
@@ -89,7 +89,7 @@ int photoion_comp(int argc, char* argv[])
     double xmax(1.67368);
     double mLi(6.015122795);
     double mH(1.007825);
-    std::string file_root("/data1/home/stephan/LiH_anion_cation_custom_6-311++G3df3dp/LiH_neut_cat_");
+    std::string file_root("/data1/home/stephan/LiH_anion_cation_custom_6-311++G3df3dp/LiH_an_neut_");
     stringstream ss_molpro_file;
     std::string molpro_output_path;
 
@@ -531,14 +531,14 @@ exit(EXIT_SUCCESS);
           distrib[1][t]+=2*acos(-1);
     }
     
-      int sc=0;
+//      int sc=0;
 //      int sn=0;
 for(int sn=0;sn!=n_states_neut;sn++)
 {
-//   for(int sc=0;sc!=n_states_cat;sc++)
+   for(int sc=0;sc!=n_states_cat;sc++)
    {
       pice_out_ss.str("");
-      pice_out_ss<<"../../LiH_anion_cation_custom_6-311++G3df3dp/PICE_orth_neut_"<<sn<<"_"<<sc<<".txt";
+      pice_out_ss<<"../../LiH_anion_cation_custom_6-311++G3df3dp/PICE_orth_anion_"<<sn<<"_"<<sc<<".txt";
       pice_out_s=pice_out_ss.str();
       pice_out.open(pice_out_s.c_str());
       std::cout<<" Writing PICE in file "<<pice_out_s<<std::endl;
