@@ -237,7 +237,7 @@ std::complex<double> contraction_FT( double k, double thet, double phi,double* n
    {
    value=
       (sqrt(2)*associated_legendre(l,-ml,cos(thet))*sin(-ml*phi)) // Real spherical harmonics
-      *((pow(std::complex<double>(0,-k),l)*exp(-pow(k,2)/(4*contraction_zeta)))/(pow(2*contraction_zeta,1.5+l))) // Radial part
+      *((pow(std::complex<double>(0,-k),l)*exp(-k*k/(4*contraction_zeta)))/(pow(2*contraction_zeta,1.5+l))) // Radial part
       *phase_factor // phase factor
       ;
    }
@@ -245,7 +245,7 @@ std::complex<double> contraction_FT( double k, double thet, double phi,double* n
    {
    value=
       (sqrt(2)*associated_legendre(l,ml,cos(thet))*cos(ml*phi)) // Real spherical harmonics
-      *((pow(std::complex<double>(0,-k),l)*exp(-pow(k,2)/(4*contraction_zeta)))/(pow(2*contraction_zeta,1.5+l))) // Radial part
+      *((pow(std::complex<double>(0,-k),l)*exp(-k*k/(4*contraction_zeta)))/(pow(2*contraction_zeta,1.5+l))) // Radial part
       *phase_factor // phase factor
       ;
       //std::cout<<thet<<";"<<phi<<" : probe! => "<<value<<std::endl;
@@ -254,7 +254,7 @@ std::complex<double> contraction_FT( double k, double thet, double phi,double* n
    {
    value=
       (associated_legendre(l,ml,cos(thet))) // Real spherical harmonics
-      *((pow(std::complex<double>(0,-k),l)*exp(-pow(k,2)/(4*contraction_zeta)))/(pow(2*contraction_zeta,1.5+l))) // Radial part
+      *((pow(std::complex<double>(0,-k),l)*exp(-k*k/(4*contraction_zeta)))/(pow(2*contraction_zeta,1.5+l))) // Radial part
       *phase_factor // phase factor
       ;
    }
@@ -300,7 +300,7 @@ std::complex<double> contraction_FT_grad_k( double k, double thet, double phi,do
              )
             
             *(
-               pow(std::complex<double>(0,-1),l) * pow(k,l-1) * exp( -pow(k,2) / (4*contraction_zeta) ) / pow(2*contraction_zeta,1.5+l)
+               pow(std::complex<double>(0,-1),l) * pow(k,l-1) * exp( -k*k / (4*contraction_zeta) ) / pow(2*contraction_zeta,1.5+l)
              )
              
             *phase_factor // phase factor
@@ -321,7 +321,7 @@ std::complex<double> contraction_FT_grad_k( double k, double thet, double phi,do
              )
 
             *(
-               pow(std::complex<double>(0,-1),l) * pow(k,l-1) * exp( -pow(k,2) / (4*contraction_zeta) ) / pow(2*contraction_zeta,1.5+l)
+               pow(std::complex<double>(0,-1),l) * pow(k,l-1) * exp( -k*k / (4*contraction_zeta) ) / pow(2*contraction_zeta,1.5+l)
              )
       
             *phase_factor // phase factor
@@ -411,7 +411,7 @@ std::complex<double> contraction_FT_grad_thet( double k, double thet, double phi
           ) // ml sign dependent phi part
 
          *( 
-               (pow(std::complex<double>(0,-1),l) * pow(k,l-1) * exp( -pow(k,2) / (4*contraction_zeta))) / (pow(2*contraction_zeta,1.5+l)) 
+               (pow(std::complex<double>(0,-1),l) * pow(k,l-1) * exp( -k*k / (4*contraction_zeta))) / (pow(2*contraction_zeta,1.5+l)) 
           ) // Radial part
 
           *phase_factor // phase factor
@@ -424,7 +424,7 @@ std::complex<double> contraction_FT_grad_thet( double k, double thet, double phi
       value=
          (std::complex<double>(0,-1) * k * nucl_spher_pos[0] * dfdt * associated_legendre(l,ml,cos(thet)) //Associated Legendre polynomial
             +associated_legendre_der(l,ml,cos(thet))) // Derivative of the associated Legendre polynomial. Theta dependent parts
-         *((pow(std::complex<double>(0,-1),l)*pow(k,l-1)*exp(-pow(k,2)/(4*contraction_zeta)))/(pow(2*contraction_zeta,1.5+l))) // Radial part
+         *((pow(std::complex<double>(0,-1),l)*pow(k,l-1)*exp(-k*k/(4*contraction_zeta)))/(pow(2*contraction_zeta,1.5+l))) // Radial part
          *phase_factor // phase factor
          ;
       //std::cout<<"ddt : "<<value<<std::endl;
@@ -536,7 +536,7 @@ std::complex<double> contraction_FT_grad_phi( double k, double thet, double phi,
           ) // ml sign dependent phi part
 
          *(
-             pow(std::complex<double>(0,-1),l) * pow(k,l-1) * exp(-pow(k,2) / (4*contraction_zeta))  / (pow(2*contraction_zeta,1.5+l))
+             pow(std::complex<double>(0,-1),l) * pow(k,l-1) * exp(-k*k / (4*contraction_zeta))  / (pow(2*contraction_zeta,1.5+l))
           ) // Radial part
 
          *phase_factor // phase factor
@@ -552,7 +552,7 @@ std::complex<double> contraction_FT_grad_phi( double k, double thet, double phi,
                    std::complex<double>(0,-1) * k *nucl_spher_pos[0] * associated_legendre(l,ml,cos(thet))
                ) // Real spherical harmonics
               *(
-                 (pow(std::complex<double>(0,-1),l) * pow(k,l-1) * exp(-pow(k,2) / (4*contraction_zeta)) ) / (pow( 2 * contraction_zeta,1.5 + l)) 
+                 (pow(std::complex<double>(0,-1),l) * pow(k,l-1) * exp(-k*k / (4*contraction_zeta)) ) / (pow( 2 * contraction_zeta,1.5 + l)) 
                )
             ) // Radial part
             *phase_factor // phase factor

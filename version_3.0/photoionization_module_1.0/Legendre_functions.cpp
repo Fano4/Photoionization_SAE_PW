@@ -2,7 +2,7 @@
 
 double associated_legendre(unsigned int l,int m,double x)
 {
-   using namespace std;
+   int sign(-bool( m % 2 != 0 ) + bool( m % 2 == 0 ));
 
    if(x==1)
       return 0;
@@ -14,17 +14,19 @@ double associated_legendre(unsigned int l,int m,double x)
       }
       else if(m > 0)
       {
-         return pow(-1,m)*sqrt((2*l+1)*factorial(l-m)/(4*acos(-1)*factorial(l+m)))
-            *((l-m+1)*x*associated_legendre_nonorm(l,m-1,x)-(l+m-1)*associated_legendre_nonorm(l-1,m-1,x))/sqrt(1-x*x);
+         return sign * sqrt((2*l+1) * factorial(l-m) / (4*acos(-1) * factorial(l+m)))
+            * ((l-m+1) * x * associated_legendre_nonorm(l,m-1,x) - (l+m-1) * associated_legendre_nonorm(l-1,m-1,x)) / sqrt(1-x*x);
       }
       else 
       {
-         return pow(-1,-m)*factorial(l+m)*associated_legendre(l,-m,x)/factorial(l-m);
+         return sign * factorial(l+m)*associated_legendre(l,-m,x)/factorial(l-m);
       }
    }
 }
 double associated_legendre_nonorm(unsigned int l,int m,double x)
 {
+
+   int sign(-bool( m % 2 != 0 ) + bool( m % 2 == 0 ));
 
    if(x==1 || l < m)
       return 0;
@@ -32,21 +34,23 @@ double associated_legendre_nonorm(unsigned int l,int m,double x)
    {
       if(m == 0)
       {
-         return pow(-1,m)*legendre(l,x);
+         return sign * legendre(l,x);
       }
       else if(m > 0)
       {
-         return pow(-1,m)*((l-m+1)*x*associated_legendre_nonorm(l,m-1,x)-(l+m-1)*associated_legendre_nonorm(l-1,m-1,x))/sqrt(1-x*x);
+         return sign * ((l-m+1)*x*associated_legendre_nonorm(l,m-1,x)-(l+m-1)*associated_legendre_nonorm(l-1,m-1,x))/sqrt(1-x*x);
       }
       else 
       {
-         return pow(-1,-m)*associated_legendre_nonorm(l,-m,x);
+         return sign * associated_legendre_nonorm(l,-m,x);
       }
    }
 }
 
 double associated_legendre_der(unsigned int l,int m,double x)
 {
+
+   int sign(-bool( m % 2 != 0 ) + bool( m % 2 == 0 ));
 
    if( x == 1 )
       return 0;
@@ -58,12 +62,12 @@ double associated_legendre_der(unsigned int l,int m,double x)
       }
       else if(m > 0)
       {
-         return -pow(-1,m)*sqrt((2*l+1)*factorial(l-m)/(4*acos(-1)*factorial(l+m)))
+         return -sign * sqrt((2*l+1)*factorial(l-m)/(4*acos(-1)*factorial(l+m)))
             *(l*x*associated_legendre_nonorm(l,m,x)-(l+m)*associated_legendre_nonorm(l-1,m,x))/sqrt(1-x*x);
       }
       else 
       {
-         return pow(-1,-m)*factorial(l+m)*associated_legendre_der(l,-m,x)/factorial(l-m);
+         return sign * factorial(l+m)*associated_legendre_der(l,-m,x)/factorial(l-m);
       }
    }
 }
