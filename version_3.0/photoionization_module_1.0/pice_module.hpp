@@ -4,6 +4,7 @@ int ml_number(std::string bas_func_type,int l);
 #include "algebra.cpp"
 #include "hf5_photoion.cpp"
 #include "Computation.cpp"
+#include "Legendre_functions.cpp"
 //#include "/data1/home/stephan/Photoionization_SAE_PW/version_3.0/photoionization_module_1.0/pice_module_comp.cpp"
 
 

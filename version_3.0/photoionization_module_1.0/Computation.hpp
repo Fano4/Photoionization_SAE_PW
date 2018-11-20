@@ -31,4 +31,9 @@ double AO_value(int ao_index,double r, double thet, double phi,int *contraction_
 double contraction_value( double r, double thet, double phi,double* nucl_spher_pos,double contraction_zeta,std::string basis_func_type,int* angular_mom_numbers);
 bool build_ao_s(double* S,int *nucl_basis_func,int *contraction_number,double **nucl_spher_pos,double **contraction_coeff,double **contraction_zeta,std::string *basis_func_type,int basis_size);
 
+double legendre(unsigned int l,double x);
+double associated_legendre(unsigned int l,int m,double x);
+double associated_legendre_nonorm(unsigned int l,int m,double x);
+double legendre_der(unsigned int l,double x);
+double associated_legendre_der(unsigned int l,int m,double x);
 #endif /*Computation_hpp*/
