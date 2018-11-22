@@ -221,11 +221,11 @@ bool pice_set::fill_pice(std::complex<double> *pice_x,std::complex<double> *pice
          
                 for(int j=0;j!=*this->m_n_occ;j++)
                 { 
-                   temp=this->m_dyson_mo_coeff[grid_index][neut_st_index**this->m_n_states_cat**this->m_n_occ+cat_st_index**this->m_n_occ+i]
-                      *MO_Fourier_transform(j,kpp,thetp,phip,this->m_nucl_spher_pos[grid_index],this->m_nucl_basis_func,this->m_contraction_number,this->m_contraction_coeff,this->m_contraction_zeta,this->m_angular_mom_numbers,this->m_MO_coeff_neutral[grid_index],*this->m_basis_size);
-                            *pice_x-=temp*this->m_mo_dipole[grid_index][0][i**this->m_n_occ+j];
-                            *pice_y-=temp*this->m_mo_dipole[grid_index][1][i**this->m_n_occ+j];
-                            *pice_z-=temp*this->m_mo_dipole[grid_index][2][i**this->m_n_occ+j];
+                      temp=this->m_dyson_mo_coeff[grid_index][neut_st_index**this->m_n_states_cat**this->m_n_occ+cat_st_index**this->m_n_occ+i]
+                         *MO_Fourier_transform(j,kpp,thetp,phip,this->m_nucl_spher_pos[grid_index],this->m_nucl_basis_func,this->m_contraction_number,this->m_contraction_coeff,this->m_contraction_zeta,this->m_angular_mom_numbers,this->m_MO_coeff_neutral[grid_index],*this->m_basis_size);
+                               *pice_x-=temp*this->m_mo_dipole[grid_index][0][i**this->m_n_occ+j];
+                               *pice_y-=temp*this->m_mo_dipole[grid_index][1][i**this->m_n_occ+j];
+                               *pice_z-=temp*this->m_mo_dipole[grid_index][2][i**this->m_n_occ+j];
                  }
  //            std::cout<<temp<<std::endl;
       }

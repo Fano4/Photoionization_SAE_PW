@@ -207,7 +207,10 @@ std::complex<double> MO_Fourier_transform( int mo_index, double k, double thet, 
    std::complex<double> value(0);
    for(int i=0;i!=basis_size;i++)
    {
-      value+=MO_neut_basis_coeff[mo_index*basis_size+i]*AO_FT(i,k,thet,phi,contraction_number,nucl_spher_pos[nucl_basis_func[i]-1],contraction_coeff,contraction_zeta,angular_mom_numbers[i]);
+      if(MO_neut_basis_coeff[mo_index*basis_size+i] != 0)
+      {
+         value+=MO_neut_basis_coeff[mo_index*basis_size+i]*AO_FT(i,k,thet,phi,contraction_number,nucl_spher_pos[nucl_basis_func[i]-1],contraction_coeff,contraction_zeta,angular_mom_numbers[i]);
+      }
 //      std::cout<<nucl_basis_func[i]-1<<"!!"<<nucl_spher_pos[nucl_basis_func[i]-1][0]<<","<<nucl_spher_pos[nucl_basis_func[i]-1][1]<<","<<nucl_spher_pos[nucl_basis_func[i]-1][2]<<std::endl;
    }
 //   exit(EXIT_SUCCESS);
@@ -218,7 +221,10 @@ std::complex<double> AO_FT(int ao_index,double k, double thet, double phi,int *c
    std::complex<double> value(0);
    for(int i=0;i!=contraction_number[ao_index];i++)
    {
+      if(contraction_coeff[ao_index][i] != 0)
+      {
          value+=contraction_coeff[ao_index][i]*contraction_FT(k,thet,phi,nucl_spher_pos,contraction_zeta[ao_index][i],angular_mom_numbers);
+      }
    }
    return value;
 
