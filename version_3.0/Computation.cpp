@@ -841,3 +841,35 @@ bool build_ao_s(double* S,int *nucl_basis_func,int *contraction_number,double **
    exit(EXIT_SUCCESS);
    return 1;
 }
+
+bool build_transition_density_matrix(int n_states_neut,int n_closed,int n_occ,int ci_size_neut,int n_elec_neut,double **ci_vec_neut,double *AO_S,double **tran_den_mat_mo)
+{
+   double *temp=new double[n_elec_neut*n_elec_neut];
+    for (int i=0; i!=n_states_neut; i++)//ELECTRONIC STATE N
+    {
+        for (int j=0; j!=n_states_cat; j++)//ELECTRONIC STATE K
+        {
+           // Sum over the configurations on the neutral
+           for(int m=0;m!=ci_size_neut;m++)
+           {
+              for(int n=0;n!=ci_size_neut;n++)
+              {
+
+                 //Now we decompose on the mo basis set. there is a double sum per product of determinants.
+                 for(int k=0;k!=n_closed+n_occ;k++)
+                 {
+                    for(int kp=0;kp!=n_closed+n_occ;kp++)
+                    {
+                       // VVVVVVVVVVVVVVVVVVVV Building the determinant of the overlap VVVVVVVVVVVVVVVVVVVVVV
+                       
+                       // ^^^^^^^^^^^^^^^^^^^^^ End of determinant ^^^^^^^^^^^^^^^^^^^
+                    }
+                 }
+              }
+           }
+        }
+    }
+    delete [] temp;
+
+    return 1;
+}

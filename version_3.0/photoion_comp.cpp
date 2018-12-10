@@ -18,9 +18,9 @@ int photoion_comp(int argc, char* argv[])
     const int n_sym(4);
     int nucl_dim(1);
     int n_states_neut(0);
-    int n_states_neutral_sym[n_sym]={1,0,0,0};//{8,3,3,1};
+    int n_states_neutral_sym[n_sym]={10,4,4,1};//{8,3,3,1};
     int n_states_cat(0);
-    int n_states_cat_sym[n_sym]={10,4,4,1};//{2,1,1,0}
+    int n_states_cat_sym[n_sym]={4,1,1,0};//{2,1,1,0}
     int n_occ(0);
     int *n_occs;
     int n_closed(0);
@@ -48,7 +48,7 @@ int photoion_comp(int argc, char* argv[])
     int *contraction_number;
     int *nucl_basis_func;
     std::string* basis_func_type;
-    int n_elec_neut(5);//!!!! ecrire une routine qui cherche le nombre d'electrons dans l'output molpro!!!
+    int n_elec_neut(4);//!!!! ecrire une routine qui cherche le nombre d'electrons dans l'output molpro!!!
 
 
     double testtime=omp_get_wtime();
@@ -66,13 +66,14 @@ int photoion_comp(int argc, char* argv[])
        }
     }
     //variables depending on grid size
-    const std::string hf5_outfile("LiH_pice_data_newdyson.h5");
-    int grid_size(1);
+    const std::string hf5_outfile("LiH_pice_data_trdm.h5");
+    int grid_size(128);
     double **MO_coeff_neutral=new double*[grid_size];
     double *overlap;
     double ***mo_dipole=new double**[grid_size];
     double ***mo_dipole_spher=new double**[grid_size];
     double **dyson_mo_basis_coeff=new double*[grid_size];
+    double ***tran_den_mat_mo=new double ** [grid_size];
     double xp(0);
     double rLi(0);
     double rH(0);
@@ -85,8 +86,8 @@ int photoion_comp(int argc, char* argv[])
     int index(0);
     int index2(0);
     int temp_int(0);
-    double xmin(1.67368);
-    double xmax(1.67368);
+    double xmin(0.8);
+    double xmax(21.6);
     double mLi(6.015122795);
     double mH(1.007825);
     std::string file_root("/data1/home/stephan/LiH_anion_cation_custom_6-311++G3df3dp/LiH_an_neut_");
@@ -109,12 +110,8 @@ int photoion_comp(int argc, char* argv[])
     }
 
 //*****************************GET DATA FOR COMPUTING DYSON ORBITALS FROM MOLPRO OUTPUT FILE*****************************
-        //GET THE NUMBER OF ELECTRONIC STATES AND THE SIZE OF THE ACTIVE SPACE
 for(int x=0;x!=grid_size;x++)
 {
-    //*****************************THIS SECTION OF THE CODE DOES NOT DEPEND ON NUCLEAR POSITIONS. IT MUST BE CALLED ONLY ONCE*****************************
-   //
-   //
 
    xp=xmin+x*(xmax-xmin)/grid_size;
    rH=mLi*xp/(mLi+mH);
@@ -127,6 +124,9 @@ for(int x=0;x!=grid_size;x++)
 
    std::cout<<"WORKING WITH MOLPRO FILE \""<<molpro_output_path.c_str()<<"\""<<std::endl;
 
+   //*****************************THIS SECTION OF THE CODE DOES NOT DEPEND ON NUCLEAR POSITIONS. IT MUST BE CALLED ONLY ONCE*****************************
+   //
+   //
    if(x==0)
    {
       if(symmetry)
@@ -337,6 +337,11 @@ for(int x=0;x!=grid_size;x++)
     mo_dipole_spher[x][0]=new double[(n_occ+n_closed)*(n_occ+n_closed)];
     mo_dipole_spher[x][1]=new double[(n_occ+n_closed)*(n_occ+n_closed)];
     mo_dipole_spher[x][2]=new double[(n_occ+n_closed)*(n_occ+n_closed)];
+    tran_den_mat_mo[x]=new double*[int( (n_states_neut*n_states_neut+n_states_neut) / 2 )];
+    for(int i=0;i!=int( (n_states_neut*n_states_neut+n_states_neut) / 2 );i++)
+    {
+      tran_den_mat_mo[x][i]=new double [ int( ( (n_occ+n_closed)*(n_occ+n_closed)+(n_occ+n_closed) ) / 2 ) ];
+    }
 
     std::cout<<"ALLOCATION OF CAS DEPENDENT VECTORS DONE"<<std::endl;
 //*****************************COMPUTE DYSON ORBITALS*****************************

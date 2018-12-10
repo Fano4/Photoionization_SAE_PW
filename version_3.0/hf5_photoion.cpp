@@ -1,6 +1,6 @@
 #include "hf5_photoion.hpp"
 
-bool write_output(std::string h5filename,int* n_states_neut,int* n_states_cat,int *n_occ,int *n_closed,int *n_nucl_dim,int *grid_size,int *num_of_nucl,int* basis_size,int *contraction_number,double *nucl_coord,double ***nucl_spher_pos,double ***mo_dipoles_mat,double **MO_coeff_neutral,double **dyson_mo_coeff,double **contraction_coeff,double **contraction_zeta,int* nucleus_basis_func,std::string *basis_func_type)
+bool write_output(std::string h5filename,int* n_states_neut,int* n_states_cat,int *n_occ,int *n_closed,int *n_nucl_dim,int *grid_size,int *num_of_nucl,int* basis_size,int *contraction_number,double *nucl_coord,double ***nucl_spher_pos,double ***mo_dipoles_mat,double **MO_coeff_neutral,double **dyson_mo_coeff,double **contraction_coeff,double **contraction_zeta,int* nucleus_basis_func,std::string *basis_func_type,double ***tran_den_mat_mo)
 {
    using namespace H5;
       double nucl_cart_coord[*grid_size][*num_of_nucl][3];
@@ -62,25 +62,6 @@ bool write_output(std::string h5filename,int* n_states_neut,int* n_states_cat,in
       Group electronic_struct_param(file.createGroup("/electronic_struct_param"));
       DataSpace *dataspace;
       DataSet *dataset;
-      //DEBOGAGE
-      /*//
-      delete dim;
-      dim=new hsize_t [2];
-      dim[0]=*n_states_neut;
-      dim[1]=2;
-      double that[*n_states_neut][2];
-
-      that[0][0]=1.5;
-      that[1][0]=3.0;
-      that[0][1]=2.5;
-      that[1][1]=35.0;
-      dataspace=new DataSpace(2,dim);
-      dataset = new DataSet(electronic_struct_param.createDataSet("shittydata",PredType::NATIVE_DOUBLE, *dataspace));
-      dataset->write(that,PredType::NATIVE_DOUBLE);
-
-      delete dataspace;
-      delete dataset;
-      */
    //create n_states_neutral_sym_dataset in electronic_struc_parameters group
       dim1=1;
       dataspace=new DataSpace(1,&dim1);
@@ -113,6 +94,7 @@ bool write_output(std::string h5filename,int* n_states_neut,int* n_states_cat,in
       
       delete dataspace;
       delete dataset;
+
    // CLOSE ELECTRONIC STRUCT PARAMETERS GROUP
       electronic_struct_param.close();
 
@@ -222,6 +204,20 @@ bool write_output(std::string h5filename,int* n_states_neut,int* n_states_cat,in
       
       delete dataspace;
       delete dataset;
+
+      //create Transition Density Matrix dataset in the basis set of MO's
+
+      dim3[0]=*grid_size;
+      dim3[1]=int((*n_states_neut**n_states_neut+*n_states_neut)/2);
+      dim3[2]=int(((*n_occ+*n_closed)*(*n_occ+*n_closed)+(*n_occ+*n_closed))/2);
+
+      dataspace = new DataSpace(3,dim3);
+      dataset = new DataSet(lcao_coeff.createDataSet("tran_den_mat_mo",PredType::NATIVE_DOUBLE, *dataspace));
+      dataset->write(tran_den_mat_mo,PredType::NATIVE_DOUBLE);
+
+      delete dataspace;
+      delete dataset;
+
    //CLOSE LCAO COEFF GROUP
       lcao_coeff.close();
    //CREATE BASIS SET INFO GROUP
