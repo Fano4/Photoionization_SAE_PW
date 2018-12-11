@@ -66,8 +66,8 @@ int photoion_comp(int argc, char* argv[])
        }
     }
     //variables depending on grid size
-    const std::string hf5_outfile("LiH_pice_data_trdm.h5");
-    int grid_size(128);
+    const std::string hf5_outfile("LiH_testing_density.h5");
+    int grid_size(1);
     double **MO_coeff_neutral=new double*[grid_size];
     double *overlap;
     double ***mo_dipole=new double**[grid_size];
@@ -86,11 +86,11 @@ int photoion_comp(int argc, char* argv[])
     int index(0);
     int index2(0);
     int temp_int(0);
-    double xmin(0.8);
-    double xmax(21.6);
+    double xmin(1.630);
+    double xmax(1.630);
     double mLi(6.015122795);
     double mH(1.007825);
-    std::string file_root("/data1/home/stephan/LiH_anion_cation_custom_6-311++G3df3dp/LiH_an_neut_");
+    std::string file_root("/data1/home/stephan/LiH_test_density/LiH_test_density_");
     stringstream ss_molpro_file;
     std::string molpro_output_path;
 
