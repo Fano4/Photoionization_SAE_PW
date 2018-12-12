@@ -12,15 +12,49 @@ int main(int argc,char* argv[])
 
 int photoion_comp(int argc, char* argv[])
 {
+
+
+   double **a=new double*[2];
+   int na(2);
+   int nes(1);
+   int ncl(0);
+   int ncc(4);
+   int nel(4);
+   a[0]=new double[(nel+nes)*na];
+   a[1]=new double[nes*na];
+
+   int s1=int(double(nes*nes+nes)/2.);
+   int s2=int( double( (ncl+ncc) * (ncl+ncc) + (ncl+ncc) ) / 2.);
+
+   double *tdm;//=new double * [s1];
+
+   for(int i=0;i!=s1;i++)
+       tdm=new double[s2];
+
+   a[0][0]=0,a[0][1]=0,a[0][2]=1,a[0][3]=1,a[0][4]=1;
+   a[1][0]=0,a[1][1]=1,a[1][2]=0,a[1][3]=1;
+
+   a[0][5]=0,a[0][6]=0,a[0][7]=1,a[0][8]=2,a[0][9]=(1./sqrt(2));
+   a[1][4]=0,a[1][5]=1,a[1][6]=0,a[1][7]=1;
+//   std::cout<<tdm[0]<<std::endl;
+
+   std::cout<<"Calling routine"<<std::endl;
+   build_transition_density_matrix(nes,ncl,ncc,na,nel,a,&tdm);
+   
+   
+   exit(EXIT_SUCCESS);
+
+
+
     using namespace std;
     //variables independent of grid size
     const bool symmetry(1);
     const int n_sym(4);
     int nucl_dim(1);
     int n_states_neut(0);
-    int n_states_neutral_sym[n_sym]={10,4,4,1};//{8,3,3,1};
+    int n_states_neutral_sym[n_sym]={1,0,0,0};//{8,3,3,1};
     int n_states_cat(0);
-    int n_states_cat_sym[n_sym]={4,1,1,0};//{2,1,1,0}
+    int n_states_cat_sym[n_sym]={1,0,0,0};//{2,1,1,0}
     int n_occ(0);
     int *n_occs;
     int n_closed(0);
@@ -409,6 +443,25 @@ for(int i=0;i!=grid_size;i++)
 std::cout<<"POSITION DEPENDENT PART DONE"<<std::endl;
 //    exit(EXIT_SUCCESS);
  
+/*
+ * BUILDING AND TESTING ONE ELECTRON REDUCED DENSITY MATRIX IN THE BASIS SET OF MO'S
+ */
+
+std::cout<<"ENTERING DENSITY ROUTINE"<<std::endl;
+
+build_transition_density_matrix(n_states_neut,n_closed,n_occ,ci_size_neut,n_elec_neut,ci_vec_neut,tran_den_mat_mo[0]);
+
+std::cout<<" DENSITY ROUTINE DONE !"<<std::endl;
+
+for(int i = 0 ; i != (n_occ+n_closed)*( 1 + n_occ+n_closed) / 2  ; i++)
+{
+   std::cout<<setw(10)<<setprecision(5)<<tran_den_mat_mo[0][0][i]<<std::endl;
+}
+
+exit(EXIT_SUCCESS);
+/*
+ * END OF DENSITY TESTING 
+ */
 
 //   build_ao_s(NULL,nucl_basis_func,contraction_number,nucl_spher_pos[0],contraction_coeff,contraction_zeta,basis_func_type,basis_size); 
 /*

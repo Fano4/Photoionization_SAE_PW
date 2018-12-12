@@ -67,8 +67,8 @@ bool dyson_mo_coeff_comp(int n_states_neut,int n_states_cat,int n_occ,int ci_siz
                               p=ci_vec_neut[0][(n_elec_neut+n_states_neut)*n+m];
                               q=ci_vec_cat[0][(n_elec_neut-1+n_states_cat)*l+o];
 //                            std::cout<<"overlap between orbitals "<<p<<" (electron"<<m-test2<<" )"<<" and "<<q<<" (electron"<<o<<" )"<<" : "<<overlap[n_occ*p+q]<<std::endl;
-//                              temp[(n_elec_neut-1)*(m-test2)+o]=overlap[n_occ*p+q]*kronecker_delta(ci_vec_neut[1][n_elec_neut*n+(m-test2)], ci_vec_cat[1][(n_elec_neut-1)*l+o]);
-                              temp[(n_elec_neut-1)*(m-test2)+o]=overlap[n_occ*p+q]*kronecker_delta(ci_vec_neut[1][n_elec_neut*n+(m)], ci_vec_cat[1][(n_elec_neut-1)*l+o]);
+                              temp[(n_elec_neut-1)*(m-test2)+o]=overlap[n_occ*p+q]*kronecker_delta(ci_vec_neut[1][n_elec_neut*n+(m-test2)], ci_vec_cat[1][(n_elec_neut-1)*l+o]);
+//                              temp[(n_elec_neut-1)*(m-test2)+o]=overlap[n_occ*p+q]*kronecker_delta(ci_vec_neut[1][n_elec_neut*n+(m)], ci_vec_cat[1][(n_elec_neut-1)*l+o]);
                            }
                         }
                         /*
@@ -845,79 +845,163 @@ bool build_ao_s(double* S,int *nucl_basis_func,int *contraction_number,double **
 
 bool build_transition_density_matrix(int n_states_neut,int n_closed,int n_occ,int ci_size_neut,int n_elec_neut,double **ci_vec_neut,double **tran_den_mat_mo)
 {
+
    bool test(0);
    bool test2(0);
    bool test3(0);
    int q(0);
    int p(0);
+   double sum(0);
 
-   double *temp=new double[n_elec_neut*n_elec_neut];
+   double* temp=new double[(n_elec_neut-1)*(n_elec_neut-1)];
+   
+   std::cout<<"nes="<<n_states_neut<<",ncl="<<n_closed<<",ncc="<<n_occ<<",na="<<ci_size_neut<<",nel="<<n_elec_neut<<std::endl;
+
     for (int i=0; i!=n_states_neut; i++)//ELECTRONIC STATE N
     {
         for (int j=0; j!=n_states_neut; j++)//ELECTRONIC STATE K
         {
-           // Sum over the configurations on the neutral
-           for(int m=0;m!=ci_size_neut;m++)
-           {
-              for(int n=0;n!=ci_size_neut;n++)
-              {
+         for(int w=0;w!=(n_closed+n_occ);w++)
+         {
+            for(int kp=0;kp!=n_closed+n_occ;kp++)
+            {
 
-                 //Now we decompose on the mo basis set. there is a double sum per product of determinants.
-                 for(int k=0;k!=n_closed+n_occ;k++)
-                 {
-                    test2=0;
-                    for(int kp=0;kp!=n_closed+n_occ;kp++)
-                    {
-                       test3=0;
+//               std::cout<<"Accessing element "<<int((n_states_neut*i)+j-(i*(i+1))/2)<<" , "<<int((n_occ+n_closed)*w+kp-(w*(w+1))/2)<<std::endl;
+
+               tran_den_mat_mo[int((n_states_neut*i)+j-(i*(i+1))/2)][int((n_occ+n_closed)*w+kp-(w*(w+1))/2)] = 0; 
+               for(int m=0;m!=ci_size_neut;m++)
+               {
+                  for(int n=0;n!=ci_size_neut;n++)
+                  {
+
+                     test=0;
+                     test2=0;
                        // VVVVVVVVVVVVVVVVVVVV Building the determinant of the overlap VVVVVVVVVVVVVVVVVVVVVV
                        
                         for(int e=0; e!=n_elec_neut; e++)//Over the electrons of the neutral
                         {
-                           for(int ep=0; ep!=n_elec_neut; ep++)//Over the electrons of the neutral
+                           if ((ci_vec_neut[0][(n_elec_neut+n_states_neut)*m+e] == w && !test2))
+                           {
+                              test2=1;
+                           }
+                           else
                            {
 
-                              if (ci_vec_neut[0][(n_elec_neut+n_states_neut)*m+e]==k && !test2)
+                              test3=0;
+                              for(int ep=0; ep!=n_elec_neut; ep++)//Over the electrons of the neutral
                               {
-                                 test=1;
-                                 test2=1;
-                                 continue;
-                              }
-                              if(ci_vec_neut[0][(n_elec_neut+n_states_neut)*n+ep]==kp && !test3)
-                              {
-                                 test=1;
-                                 test3=1;
-                                 continue;
-                              }
-                              p=ci_vec_neut[0][(n_elec_neut+n_states_neut)*m+e];
-                              q=ci_vec_neut[0][(n_elec_neut+n_states_neut)*n+ep];
-//                            std::cout<<"overlap between orbitals "<<p<<" (electron"<<m-test2<<" )"<<" and "<<q<<" (electron"<<o<<" )"<<" : "<<overlap[n_occ*p+q]<<std::endl;
+  //                               std::cout<<"e="<<e<<",ep="<<ep<<std::endl;
+  //                               std::cout<<"m="<<m<<",n="<<n<<std::endl;
 
-                              if( p==q && ci_vec_neut[1][n_elec_neut*m+e] == ci_vec_neut[1][n_elec_neut*n+ep])
-                              {
-                                  temp[(n_elec_neut-1)*(e-test2)+(ep-test3)]=1;
-                              }
-                              else
-                              {
-                                 temp[(n_elec_neut-1)*(e-test2)+(ep-test3)]=0;
+                                 if(ci_vec_neut[0][(n_elec_neut+n_states_neut)*n+ep]==kp && !test3)
+                                 {
+                                    test3=1;
+                                 }
+                                 else
+                                 {
+                                    p=ci_vec_neut[0][(n_elec_neut+n_states_neut)*m+e];
+                                    q=ci_vec_neut[0][(n_elec_neut+n_states_neut)*n+ep];
+
+                                    if(e-test2 < n_elec_neut-1 && ep-test3 < n_elec_neut-1 )
+                                    {
+                                       if( p==q && ci_vec_neut[1][n_elec_neut*m+e] == ci_vec_neut[1][n_elec_neut*n+ep])
+                                       {
+//                                          std::cout<<(e-test2)<<","<<(ep-test3)<<"!"<<std::endl;
+                                           temp[(n_elec_neut-1)*(e-test2)+(ep-test3)]=1;
+                                       }
+                                       else
+                                       {
+//                                          std::cout<<(e-test2)<<","<<(ep-test3)<<"!!"<<std::endl;
+                                          temp[(n_elec_neut-1)*(e-test2)+(ep-test3)]=0;
+                                       }
+                                    }
+                                 }
+                              
                               }
                            }
                         }
                        // ^^^^^^^^^^^^^^^^^^^^^ End of determinant ^^^^^^^^^^^^^^^^^^^
-                       if(test2 && test3)
-                       {
-                          tran_den_mat_mo[int((n_states_neut*i)+j-(i*(i+1))/2)][int((n_states_neut*k)+kp-(k*(k+1))/2)]=(2/factorial(n_elec_neut))*ci_vec_neut[0][(n_elec_neut+n_states_neut)*m+n_elec_neut+i]*ci_vec_neut[0][(n_elec_neut+n_states_neut)*n+n_elec_neut+j]*determinant(temp,(n_elec_neut-1));
-                       }
-                       else
-                          tran_den_mat_mo[int((n_states_neut*i)+j-(i*(i+1))/2)][int((n_states_neut*k)+kp-(k*(k+1))/2)]=0;
 
+                        if(test2 && test3)
+                        {
+                           tran_den_mat_mo[int((n_states_neut*i)+j-(i*(i+1))/2)][int((n_occ+n_closed)*w+kp-(w*(w+1))/2)]+=(2.)*ci_vec_neut[0][(n_elec_neut+n_states_neut)*(m)+n_elec_neut+i]*ci_vec_neut[0][(n_elec_neut+n_states_neut)*(n)+n_elec_neut+j]*determinant(temp,(n_elec_neut-1));
+                        }
+                        
                     }
                  }
+               if(w==kp)
+               {
+                 sum+=tran_den_mat_mo[int((n_states_neut*i)+j-(i*(i+1))/2)][int((n_occ+n_closed)*w+kp-(w*(w+1))/2)];
+                 std::cout<<" from orbital "<<w<<" and from orbital "<<kp<<std::endl;
+                 std::cout<<std::setprecision(8)<<"trdm val "<<tran_den_mat_mo[int((n_states_neut*i)+j-(i*(i+1))/2)][int((n_occ+n_closed)*w+kp-(w*(w+1))/2)]<<std::endl;
+               }
 
               }
            }
+         std::cout<<"SUM = "<<sum<<std::endl;
         }
     }
+
+    std::cout<<"reached the end of density computation"<<std::endl;
+
     delete [] temp;
 
     return 1;
+}
+double build_reduced_determinant( int ai,int aj,int n_elec,double* mo_vector_1,double* mo_vector_2,double *spin_vector_1,double *spin_vector_2  )
+{
+   /* Given the vectors containing the mo labels and the spin labels of the electrons, this routine builds a slater determinant from which one electron contained in the mo's i and j have been removed
+   */
+
+   bool test(0);
+   bool test2(0);
+   bool test3(0);
+
+   double **new_vector_1=new double*[2];
+   new_vector_1[0]=new double[n_elec-1];
+   new_vector_1[1]=new double[n_elec-1];
+   double **new_vector_2=new double*[2];
+   new_vector_2[0]=new double[n_elec-1];
+   new_vector_2[1]=new double[n_elec-1];
+   
+   double result(0);
+
+   double *matrix=new double[(n_elec-1)*(n_elec-1)];
+
+   for(int e=0; e!=n_elec; e++)//Over the electrons of the neutral
+   {
+      if(mo_vector_1[e] == double(ai) && !test2)
+         test2=1;
+      else
+      {
+         new_vector_1[0][e-test2]=mo_vector_1[e];
+         new_vector_1[1][e-test2]=spin_vector_1[e];
+      }
+   }
+   for(int e=0; e!=n_elec; e++)//Over the electrons of the neutral
+   {
+      if(mo_vector_2[e] == double(aj) && !test2)
+         test2=1;
+      else
+      {
+         new_vector_2[0][e-test2]=mo_vector_2[e];
+         new_vector_2[1][e-test2]=spin_vector_2[e];
+      }
+   }
+
+   for(int e=0; e!=n_elec-1; e++)
+   {
+      for(int ep=0; ep!=n_elec-1; ep++)
+      {
+         matrix[e*(n_elec-1)+ep]=bool(new_vector_1[0][e]==new_vector_2[0][ep] && new_vector_1[1][e]==new_vector_2[1][ep]);
+      }
+   }
+
+   result=determinant(matrix,n_elec);
+
+   delete [] matrix;
+   delete [] new_vector_1;
+   delete [] new_vector_2;
+
+   return result;
 }
