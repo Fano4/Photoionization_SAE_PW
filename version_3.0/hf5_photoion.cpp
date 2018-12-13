@@ -8,6 +8,7 @@ bool write_output(std::string h5filename,int* n_states_neut,int* n_states_cat,in
       double lcao_mo_coeff[*grid_size][*n_occ+*n_closed][*basis_size];
       double dyson_mo_coeff_array[*grid_size][*n_states_neut][*n_states_cat][*n_occ+*n_closed];
       int basis_func_type_array[*basis_size][2];
+      double tdmm[*grid_size][*n_states_neut**n_states_neut][(*n_occ+*n_closed)*(*n_occ+*n_closed)];
       for(int i=0;i!=*grid_size;i++)
       {
          std::cout<<"position "<<i<<std::endl;
@@ -49,6 +50,14 @@ bool write_output(std::string h5filename,int* n_states_neut,int* n_states_cat,in
                   dyson_mo_coeff_array[kp][j][k][i]=dyson_mo_coeff[kp][j**n_states_cat*(*n_occ+*n_closed)+k*(*n_occ+*n_closed)+i];
               //    std::cout<<"dyson mo coeff geom "<<kp<<" neut state "<<j<<" cat state "<<k<<" mo "<<i<<" , "<<dyson_mo_coeff_array[kp][j][k][i]<<std::endl;
                }
+            }
+         }
+
+         for(int i=0;i!=*n_states_neut**n_states_neut;i++)
+         {
+            for(int k=0;k!=(*n_occ+*n_closed)*(*n_occ+*n_closed);k++)
+            {
+               tdmm[kp][i][k]=tran_den_mat_mo[kp][i][k];
             }
          }
       }
@@ -213,7 +222,7 @@ bool write_output(std::string h5filename,int* n_states_neut,int* n_states_cat,in
 
       dataspace = new DataSpace(3,dim3);
       dataset = new DataSet(lcao_coeff.createDataSet("tran_den_mat_mo",PredType::NATIVE_DOUBLE, *dataspace));
-      dataset->write(tran_den_mat_mo,PredType::NATIVE_DOUBLE);
+      dataset->write(tdmm,PredType::NATIVE_DOUBLE);
 
       delete dataspace;
       delete dataset;
