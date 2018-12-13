@@ -208,8 +208,8 @@ bool write_output(std::string h5filename,int* n_states_neut,int* n_states_cat,in
       //create Transition Density Matrix dataset in the basis set of MO's
 
       dim3[0]=*grid_size;
-      dim3[1]=int((*n_states_neut**n_states_neut+*n_states_neut)/2);
-      dim3[2]=int(((*n_occ+*n_closed)*(*n_occ+*n_closed)+(*n_occ+*n_closed))/2);
+      dim3[1]=(*n_states_neut**n_states_neut);
+      dim3[2]=(*n_occ+*n_closed)*(*n_occ+*n_closed);
 
       dataspace = new DataSpace(3,dim3);
       dataset = new DataSet(lcao_coeff.createDataSet("tran_den_mat_mo",PredType::NATIVE_DOUBLE, *dataspace));

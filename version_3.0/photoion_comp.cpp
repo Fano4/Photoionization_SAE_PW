@@ -439,6 +439,12 @@ for(int x=0;x!=grid_size;x++)
     dyson_mo_basis_coeff[x]=new double[n_occ*n_states_neut*n_states_cat];
     dyson_mo_coeff_comp( n_states_neut,n_states_cat, n_occ,ci_size_neut, ci_size_cat, n_elec_neut, ci_vec_neut, ci_vec_cat,overlap, dyson_mo_basis_coeff[x]);
 
+    std::cout<<"ENTERING DENSITY ROUTINE"<<std::endl;
+
+    build_transition_density_matrix(n_states_neut,n_closed,n_occ,ci_size_neut,n_elec_neut,ci_vec_neut,tran_den_mat_mo[x]);
+
+    std::cout<<" DENSITY ROUTINE DONE !"<<std::endl;
+
    }
 
 for(int i=0;i!=grid_size;i++)
@@ -455,11 +461,6 @@ std::cout<<"POSITION DEPENDENT PART DONE"<<std::endl;
  * BUILDING AND TESTING ONE ELECTRON REDUCED DENSITY MATRIX IN THE BASIS SET OF MO'S
  */
 
-std::cout<<"ENTERING DENSITY ROUTINE"<<std::endl;
-
-build_transition_density_matrix(n_states_neut,n_closed,n_occ,ci_size_neut,n_elec_neut,ci_vec_neut,tran_den_mat_mo[0]);
-
-std::cout<<" DENSITY ROUTINE DONE !"<<std::endl;
 /*
 for(int i = 0 ; i != (n_occ+n_closed)  ; i++)
 {
@@ -540,8 +541,8 @@ std::cout<<"********"<<std::endl;
     /*
      TESTING HF5 DIALOG
      */
-//      write_output(hf5_outfile, &n_states_neut, &n_states_cat, &n_occ, &n_closed,&nucl_dim,&grid_size,&num_of_nucl,&basis_size,contraction_number,nucl_coord,nucl_spher_pos,mo_dipole,MO_coeff_neutral,dyson_mo_basis_coeff,contraction_coeff_array,contraction_zeta_array,nucl_basis_func,basis_func_type);
-//      exit(EXIT_SUCCESS);
+      write_output(hf5_outfile, &n_states_neut, &n_states_cat, &n_occ, &n_closed,&nucl_dim,&grid_size,&num_of_nucl,&basis_size,contraction_number,nucl_coord,nucl_spher_pos,mo_dipole,MO_coeff_neutral,dyson_mo_basis_coeff,contraction_coeff_array,contraction_zeta_array,nucl_basis_func,basis_func_type,tran_den_mat_mo);
+      exit(EXIT_SUCCESS);
    //   read_output(hf5_outfile, &n_states_neut, &n_states_cat, &n_occ, &n_closed,&nucl_dim,&grid_size,&num_of_nucl,&basis_size,nucl_spher_pos,mo_dipole,MO_coeff_neutral,dyson_mo_basis_coeff,contraction_number,contraction_coeff,contraction_zeta,nucl_basis_func,basis_func_type);
     /*
      TESTING HF5 DIALOG
