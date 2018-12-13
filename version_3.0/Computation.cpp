@@ -843,7 +843,7 @@ bool build_ao_s(double* S,int *nucl_basis_func,int *contraction_number,double **
    return 1;
 }
 
-bool build_transition_density_matrix(int n_states_neut,int n_closed,int n_occ,int ci_size_neut,int n_elec_neut,double **ci_vec_neut,double **tran_den_mat_mo)
+void build_transition_density_matrix(int n_states_neut,int n_closed,int n_occ,int ci_size_neut,int n_elec_neut,double **ci_vec_neut,double **tran_den_mat_mo)
 {
 
    bool test(0);
@@ -852,89 +852,67 @@ bool build_transition_density_matrix(int n_states_neut,int n_closed,int n_occ,in
    int q(0);
    int p(0);
    double sum(0);
-
-   double* temp=new double[(n_elec_neut-1)*(n_elec_neut-1)];
+   double det_val;
    
+/*                  for(int n=0;n!=ci_size_neut;n++)
+                  {
+                     for(int h=0;h!=n_elec_neut;h++)
+                     {
+                        std::cout<<ci_vec_neut[0][(n_elec_neut+n_states_neut)*n+h]<<"("<<(n_elec_neut+n_states_neut)*n+h<<")"<<"-"<<ci_vec_neut[1][(n_elec_neut)*n+h]<<"("<<(n_elec_neut)*n+h<<")"<<std::endl;
+                     }
+                  }*/
+
    std::cout<<"nes="<<n_states_neut<<",ncl="<<n_closed<<",ncc="<<n_occ<<",na="<<ci_size_neut<<",nel="<<n_elec_neut<<std::endl;
 
     for (int i=0; i!=n_states_neut; i++)//ELECTRONIC STATE N
     {
         for (int j=0; j!=n_states_neut; j++)//ELECTRONIC STATE K
         {
-         for(int w=0;w!=(n_closed+n_occ);w++)
+           sum=0;
+         for(int k=0;k!=(n_closed+n_occ);k++)
          {
             for(int kp=0;kp!=n_closed+n_occ;kp++)
             {
 
-//               std::cout<<"Accessing element "<<int((n_states_neut*i)+j-(i*(i+1))/2)<<" , "<<int((n_occ+n_closed)*w+kp-(w*(w+1))/2)<<std::endl;
+//               std::cout<<"Accessing element "<<"("<<i<<","<<j<<")"<<" , "<<"("<<k<<","<<kp<<")"<<std::endl;
 
-               tran_den_mat_mo[int((n_states_neut*i)+j-(i*(i+1))/2)][int((n_occ+n_closed)*w+kp-(w*(w+1))/2)] = 0; 
+//               tran_den_mat_mo[int((n_states_neut*i)+j-(i*(i+1))/2)][int((n_occ+n_closed)*k+kp-(k*(k+1))/2)] = 0; 
+               tran_den_mat_mo[n_states_neut*i+j][(n_occ+n_closed)*k+kp] = 0; 
                for(int m=0;m!=ci_size_neut;m++)
                {
                   for(int n=0;n!=ci_size_neut;n++)
                   {
+     //                std::cout<<"config "<<m<<"-"<<n<<std::endl;
 
-                     test=0;
-                     test2=0;
-                       // VVVVVVVVVVVVVVVVVVVV Building the determinant of the overlap VVVVVVVVVVVVVVVVVVVVVV
-                       
-                        for(int e=0; e!=n_elec_neut; e++)//Over the electrons of the neutral
-                        {
-                           if ((ci_vec_neut[0][(n_elec_neut+n_states_neut)*m+e] == w && !test2))
-                           {
-                              test2=1;
-                           }
-                           else
-                           {
+/*                     std::cout<<"++"<<std::endl;
+                     for(int h=0;h!=n_elec_neut;h++)
+                     {
+                        std::cout<<ci_vec_neut[0][(n_elec_neut+n_states_neut)*n+h]<<"("<<(n_elec_neut+n_states_neut)*n+h<<")"<<"-"<<ci_vec_neut[1][(n_elec_neut)*n+h]<<"("<<(n_elec_neut)*n+h<<")"<<std::endl;
+                     }
+                     std::cout<<"++"<<std::endl;*/
 
-                              test3=0;
-                              for(int ep=0; ep!=n_elec_neut; ep++)//Over the electrons of the neutral
-                              {
-  //                               std::cout<<"e="<<e<<",ep="<<ep<<std::endl;
-  //                               std::cout<<"m="<<m<<",n="<<n<<std::endl;
+                     det_val=build_reduced_determinant(k,kp,n_elec_neut,&ci_vec_neut[0][(n_elec_neut+n_states_neut)*m],&ci_vec_neut[0][(n_elec_neut+n_states_neut)*n],&ci_vec_neut[1][n_elec_neut*m],&ci_vec_neut[1][n_elec_neut*n]);
 
-                                 if(ci_vec_neut[0][(n_elec_neut+n_states_neut)*n+ep]==kp && !test3)
-                                 {
-                                    test3=1;
-                                 }
-                                 else
-                                 {
-                                    p=ci_vec_neut[0][(n_elec_neut+n_states_neut)*m+e];
-                                    q=ci_vec_neut[0][(n_elec_neut+n_states_neut)*n+ep];
 
-                                    if(e-test2 < n_elec_neut-1 && ep-test3 < n_elec_neut-1 )
-                                    {
-                                       if( p==q && ci_vec_neut[1][n_elec_neut*m+e] == ci_vec_neut[1][n_elec_neut*n+ep])
-                                       {
-//                                          std::cout<<(e-test2)<<","<<(ep-test3)<<"!"<<std::endl;
-                                           temp[(n_elec_neut-1)*(e-test2)+(ep-test3)]=1;
-                                       }
-                                       else
-                                       {
-//                                          std::cout<<(e-test2)<<","<<(ep-test3)<<"!!"<<std::endl;
-                                          temp[(n_elec_neut-1)*(e-test2)+(ep-test3)]=0;
-                                       }
-                                    }
-                                 }
-                              
-                              }
-                           }
-                        }
-                       // ^^^^^^^^^^^^^^^^^^^^^ End of determinant ^^^^^^^^^^^^^^^^^^^
 
-                        if(test2 && test3)
-                        {
-                           tran_den_mat_mo[int((n_states_neut*i)+j-(i*(i+1))/2)][int((n_occ+n_closed)*w+kp-(w*(w+1))/2)]+=(2.)*ci_vec_neut[0][(n_elec_neut+n_states_neut)*(m)+n_elec_neut+i]*ci_vec_neut[0][(n_elec_neut+n_states_neut)*(n)+n_elec_neut+j]*determinant(temp,(n_elec_neut-1));
-                        }
+//                        std::cout<<" o -"<<w<<"/"<<kp<<";"<<m<<"/"<<n<<" ; det val"<<det_val<<std::endl;
+
+//                     tran_den_mat_mo[int((n_states_neut*i)+j-(i*(i+1))/2)][int((n_occ+n_closed)*w+kp-(w*(w+1))/2)]+=(2.)*ci_vec_neut[0][(n_elec_neut+n_states_neut)*(m)+n_elec_neut+i]*ci_vec_neut[0][(n_elec_neut+n_states_neut)*(n)+n_elec_neut+j]*det_val;
+                     tran_den_mat_mo[i*n_states_neut+j][k*(n_occ+n_closed)+kp]+=(2.)*ci_vec_neut[0][(n_elec_neut+n_states_neut)*(m)+n_elec_neut+i]*ci_vec_neut[0][(n_elec_neut+n_states_neut)*(n)+n_elec_neut+j]*det_val;
+
+//                     std::cout<<ci_vec_neut[0][(n_elec_neut+n_states_neut)*(m)+n_elec_neut+i]<<";"<<ci_vec_neut[0][(n_elec_neut+n_states_neut)*n+n_elec_neut+i]<<"==="<<ci_vec_neut[0][(n_elec_neut+n_states_neut)*(m)+n_elec_neut+i]*ci_vec_neut[0][(n_elec_neut+n_states_neut)*n+n_elec_neut+i]*det_val<<std::endl;
                         
                     }
+//                  std::cout<<"============================================================"<<std::endl<<"============================================================"<<std::endl;
+//                  if(m==2)
+//                     exit(EXIT_SUCCESS);
                  }
-               if(w==kp)
+               if(k==kp)
                {
-                 sum+=tran_den_mat_mo[int((n_states_neut*i)+j-(i*(i+1))/2)][int((n_occ+n_closed)*w+kp-(w*(w+1))/2)];
-                 std::cout<<" from orbital "<<w<<" and from orbital "<<kp<<std::endl;
-                 std::cout<<std::setprecision(8)<<"trdm val "<<tran_den_mat_mo[int((n_states_neut*i)+j-(i*(i+1))/2)][int((n_occ+n_closed)*w+kp-(w*(w+1))/2)]<<std::endl;
+                 sum+=tran_den_mat_mo[i*n_states_neut+j][k*(n_occ+n_closed)+kp];
+                 std::cout<<" from orbital "<<k<<" and from orbital "<<kp<<std::endl;
                }
+               std::cout<<std::setprecision(8)<<"trdm val "<<tran_den_mat_mo[i*n_states_neut+j][k*(n_occ+n_closed)+kp]<<std::endl;
 
               }
            }
@@ -944,9 +922,6 @@ bool build_transition_density_matrix(int n_states_neut,int n_closed,int n_occ,in
 
     std::cout<<"reached the end of density computation"<<std::endl;
 
-    delete [] temp;
-
-    return 1;
 }
 double build_reduced_determinant( int ai,int aj,int n_elec,double* mo_vector_1,double* mo_vector_2,double *spin_vector_1,double *spin_vector_2  )
 {
@@ -958,11 +933,11 @@ double build_reduced_determinant( int ai,int aj,int n_elec,double* mo_vector_1,d
    bool test3(0);
 
    double **new_vector_1=new double*[2];
-   new_vector_1[0]=new double[n_elec-1];
-   new_vector_1[1]=new double[n_elec-1];
+   new_vector_1[0]=new double[n_elec];
+   new_vector_1[1]=new double[n_elec];
    double **new_vector_2=new double*[2];
-   new_vector_2[0]=new double[n_elec-1];
-   new_vector_2[1]=new double[n_elec-1];
+   new_vector_2[0]=new double[n_elec];
+   new_vector_2[1]=new double[n_elec];
    
    double result(0);
 
@@ -980,28 +955,83 @@ double build_reduced_determinant( int ai,int aj,int n_elec,double* mo_vector_1,d
    }
    for(int e=0; e!=n_elec; e++)//Over the electrons of the neutral
    {
-      if(mo_vector_2[e] == double(aj) && !test2)
-         test2=1;
+      if(mo_vector_2[e] == double(aj) && !test3)
+         test3=1;
       else
       {
-         new_vector_2[0][e-test2]=mo_vector_2[e];
-         new_vector_2[1][e-test2]=spin_vector_2[e];
+         new_vector_2[0][e-test3]=mo_vector_2[e];
+         new_vector_2[1][e-test3]=spin_vector_2[e];
       }
    }
+//#####################
+   std::cout<<" Initial vector 1 :";
+   for(int i=0;i!=n_elec;i++)
+   {
+      std::cout<<mo_vector_1[i]<<",";
+   }std::cout<<std::endl;
+   for(int i=0;i!=n_elec;i++)
+   {
+      std::cout<<spin_vector_1[i]<<",";
+   }std::cout<<std::endl;
+   std::cout<<" Initial vector 2 :";
+   for(int i=0;i!=n_elec;i++)
+   {
+      std::cout<<mo_vector_2[i]<<",";
+   }std::cout<<std::endl;
+   for(int i=0;i!=n_elec;i++)
+   {
+      std::cout<<spin_vector_2[i]<<",";
+   }std::cout<<std::endl;
 
+    std::cout<<"Taking electron from "<<ai<<","<<aj<<std::endl;
+
+   std::cout<<" New vector 1 :";
+   for(int i=0;i!=n_elec-1;i++)
+   {
+      std::cout<<new_vector_1[0][i]<<",";
+   }std::cout<<std::endl;
+   for(int i=0;i!=n_elec-1;i++)
+   {
+      std::cout<<new_vector_1[1][i]<<",";
+   }std::cout<<std::endl;
+   std::cout<<" New vector 2 :";
+   for(int i=0;i!=n_elec-1;i++)
+   {
+      std::cout<<new_vector_2[0][i]<<",";
+   }std::cout<<std::endl;
+   for(int i=0;i!=n_elec-1;i++)
+   {
+      std::cout<<new_vector_2[1][i]<<",";
+   }std::cout<<std::endl;
+//################
    for(int e=0; e!=n_elec-1; e++)
    {
       for(int ep=0; ep!=n_elec-1; ep++)
       {
          matrix[e*(n_elec-1)+ep]=bool(new_vector_1[0][e]==new_vector_2[0][ep] && new_vector_1[1][e]==new_vector_2[1][ep]);
-      }
+         std::cout<<matrix[e*(n_elec-1)+ep]<<"  ";
+      }std::cout<<std::endl;
+   }std::cout<<std::endl;
+
+   if(test2 && test3)
+       result=determinant(matrix,n_elec-1);
+   else
+   {
+      std::cout<<"annihilated an electron from a virtual orbital => 0"<<std::endl;
+      result=0;
    }
 
-   result=determinant(matrix,n_elec);
+   std::cout<<"=> det val :"<<result<<std::endl;
 
    delete [] matrix;
    delete [] new_vector_1;
    delete [] new_vector_2;
+
+   if(result<0)
+   {
+      std::cout<<result<<","<<ai<<","<<aj<<std::endl;
+      exit(EXIT_SUCCESS);
+   }
 
    return result;
 }

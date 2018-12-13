@@ -5,7 +5,47 @@ int main(int argc,char* argv[])
    int photoion_comp(int argc, char* argv[]);
    omp_set_num_threads(1); 
 
-   photoion_comp(argc,argv);
+   int na(1);
+   int nes(1);
+   int ncl(0);
+   int ncc(4);
+   int nel(4);
+   int s1=(nes*nes);
+   int s2=((ncl+ncc) * (ncl+ncc));
+   double **a=new double*[2];
+   double **tdm=new double*[s1];
+   for(int i=0;i!=s1;i++)
+   {
+       tdm[i]=new double[s2];
+   }
+   a[0]=new double[(nel+nes)*na];
+   a[1]=new double[nel*na];
+
+//   std::cout<<s1<<","<<s2<<std::endl;
+
+
+   a[0][0]=0,a[0][1]=0,a[0][2]=1,a[0][3]=1,a[0][4]=(1./sqrt(2));
+   a[1][0]=0,a[1][1]=1,a[1][2]=0,a[1][3]=1;
+
+//   a[0][5]=0,a[0][6]=0,a[0][7]=1,a[0][8]=2,a[0][9]=(1./sqrt(2));
+//   a[1][4]=0,a[1][5]=1,a[1][6]=0,a[1][7]=1;
+
+/*   for(int n=0;n!=na;n++)
+   {
+      for(int h=0;h!=nel;h++)
+      {
+         std::cout<<a[0][(nel+nes)*n+h]<<"("<<(nel+nes)*n+h<<")"<<"-"<<a[1][(nel)*n+h]<<"("<<(nel)*n+h<<")"<<std::endl;
+      }
+   }*/
+   std::cout<<"Calling routine"<<std::endl;
+   build_transition_density_matrix(nes,ncl,ncc,na,nel,a,tdm);
+   
+   std::cout<<"deallocating arrays"<<std::endl;
+   delete [] a;
+   delete [] tdm;
+   std::cout<<"program termination"<<std::endl;
+   
+   //photoion_comp(argc,argv);
 
    return 0;
 }
@@ -14,35 +54,6 @@ int photoion_comp(int argc, char* argv[])
 {
 
 
-   double **a=new double*[2];
-   int na(2);
-   int nes(1);
-   int ncl(0);
-   int ncc(4);
-   int nel(4);
-   a[0]=new double[(nel+nes)*na];
-   a[1]=new double[nes*na];
-
-   int s1=int(double(nes*nes+nes)/2.);
-   int s2=int( double( (ncl+ncc) * (ncl+ncc) + (ncl+ncc) ) / 2.);
-
-   double *tdm;//=new double * [s1];
-
-   for(int i=0;i!=s1;i++)
-       tdm=new double[s2];
-
-   a[0][0]=0,a[0][1]=0,a[0][2]=1,a[0][3]=1,a[0][4]=1;
-   a[1][0]=0,a[1][1]=1,a[1][2]=0,a[1][3]=1;
-
-   a[0][5]=0,a[0][6]=0,a[0][7]=1,a[0][8]=2,a[0][9]=(1./sqrt(2));
-   a[1][4]=0,a[1][5]=1,a[1][6]=0,a[1][7]=1;
-//   std::cout<<tdm[0]<<std::endl;
-
-   std::cout<<"Calling routine"<<std::endl;
-   build_transition_density_matrix(nes,ncl,ncc,na,nel,a,&tdm);
-   
-   
-   exit(EXIT_SUCCESS);
 
 
 
@@ -52,7 +63,7 @@ int photoion_comp(int argc, char* argv[])
     const int n_sym(4);
     int nucl_dim(1);
     int n_states_neut(0);
-    int n_states_neutral_sym[n_sym]={1,0,0,0};//{8,3,3,1};
+    int n_states_neutral_sym[n_sym]={2,0,0,0};//{8,3,3,1};
     int n_states_cat(0);
     int n_states_cat_sym[n_sym]={1,0,0,0};//{2,1,1,0}
     int n_occ(0);
@@ -455,7 +466,15 @@ std::cout<<" DENSITY ROUTINE DONE !"<<std::endl;
 
 for(int i = 0 ; i != (n_occ+n_closed)*( 1 + n_occ+n_closed) / 2  ; i++)
 {
-   std::cout<<setw(10)<<setprecision(5)<<tran_den_mat_mo[0][0][i]<<std::endl;
+   std::cout<<setw(10)<<setprecision(5)<<i<<"- "<<tran_den_mat_mo[0][0][i]<<std::endl;
+}
+for(int i = 0 ; i != (n_occ+n_closed)*( 1 + n_occ+n_closed) / 2  ; i++)
+{
+   std::cout<<setw(10)<<setprecision(5)<<i<<"- "<<tran_den_mat_mo[0][1][i]<<std::endl;
+}
+for(int i = 0 ; i != (n_occ+n_closed)*( 1 + n_occ+n_closed) / 2  ; i++)
+{
+   std::cout<<setw(10)<<setprecision(5)<<i<<"- "<<tran_den_mat_mo[0][2][i]<<std::endl;
 }
 
 exit(EXIT_SUCCESS);
