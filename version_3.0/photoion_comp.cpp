@@ -4,8 +4,8 @@ int main(int argc,char* argv[])
 {
    int photoion_comp(int argc, char* argv[]);
    omp_set_num_threads(1); 
-
-   int na(1);
+/*
+   int na(3);
    int nes(1);
    int ncl(0);
    int ncc(4);
@@ -24,19 +24,21 @@ int main(int argc,char* argv[])
 //   std::cout<<s1<<","<<s2<<std::endl;
 
 
-   a[0][0]=0,a[0][1]=0,a[0][2]=1,a[0][3]=1,a[0][4]=(1./sqrt(2));
+   a[0][0]=0,a[0][1]=0,a[0][2]=1,a[0][3]=1,a[0][4]=(1./sqrt(3));
    a[1][0]=0,a[1][1]=1,a[1][2]=0,a[1][3]=1;
 
-//   a[0][5]=0,a[0][6]=0,a[0][7]=1,a[0][8]=2,a[0][9]=(1./sqrt(2));
-//   a[1][4]=0,a[1][5]=1,a[1][6]=0,a[1][7]=1;
+   a[0][5]=0,a[0][6]=0,a[0][7]=1,a[0][8]=2,a[0][9]=(1./sqrt(3));
+   a[1][4]=0,a[1][5]=1,a[1][6]=0,a[1][7]=1;
 
-/*   for(int n=0;n!=na;n++)
+   a[0][10]=0,a[0][11]=0,a[0][12]=2,a[0][13]=2,a[0][14]=(1./sqrt(3));
+   a[1][8]=0,a[1][9]=1,a[1][10]=0,a[1][11]=1;
+   for(int n=0;n!=na;n++)
    {
       for(int h=0;h!=nel;h++)
       {
          std::cout<<a[0][(nel+nes)*n+h]<<"("<<(nel+nes)*n+h<<")"<<"-"<<a[1][(nel)*n+h]<<"("<<(nel)*n+h<<")"<<std::endl;
       }
-   }*/
+   }
    std::cout<<"Calling routine"<<std::endl;
    build_transition_density_matrix(nes,ncl,ncc,na,nel,a,tdm);
    
@@ -44,19 +46,14 @@ int main(int argc,char* argv[])
    delete [] a;
    delete [] tdm;
    std::cout<<"program termination"<<std::endl;
-   
-   //photoion_comp(argc,argv);
+ */  
+   photoion_comp(argc,argv);
 
    return 0;
 }
 
 int photoion_comp(int argc, char* argv[])
 {
-
-
-
-
-
     using namespace std;
     //variables independent of grid size
     const bool symmetry(1);
@@ -382,10 +379,10 @@ for(int x=0;x!=grid_size;x++)
     mo_dipole_spher[x][0]=new double[(n_occ+n_closed)*(n_occ+n_closed)];
     mo_dipole_spher[x][1]=new double[(n_occ+n_closed)*(n_occ+n_closed)];
     mo_dipole_spher[x][2]=new double[(n_occ+n_closed)*(n_occ+n_closed)];
-    tran_den_mat_mo[x]=new double*[int( (n_states_neut*n_states_neut+n_states_neut) / 2 )];
-    for(int i=0;i!=int( (n_states_neut*n_states_neut+n_states_neut) / 2 );i++)
+    tran_den_mat_mo[x]=new double*[n_states_neut*n_states_neut];
+    for(int i=0;i!=n_states_neut*n_states_neut;i++)
     {
-      tran_den_mat_mo[x][i]=new double [ int( ( (n_occ+n_closed)*(n_occ+n_closed)+(n_occ+n_closed) ) / 2 ) ];
+      tran_den_mat_mo[x][i]=new double [(n_occ+n_closed)*(n_occ+n_closed) ];
     }
 
     std::cout<<"ALLOCATION OF CAS DEPENDENT VECTORS DONE"<<std::endl;
@@ -463,21 +460,34 @@ std::cout<<"ENTERING DENSITY ROUTINE"<<std::endl;
 build_transition_density_matrix(n_states_neut,n_closed,n_occ,ci_size_neut,n_elec_neut,ci_vec_neut,tran_den_mat_mo[0]);
 
 std::cout<<" DENSITY ROUTINE DONE !"<<std::endl;
-
-for(int i = 0 ; i != (n_occ+n_closed)*( 1 + n_occ+n_closed) / 2  ; i++)
+/*
+for(int i = 0 ; i != (n_occ+n_closed)  ; i++)
 {
-   std::cout<<setw(10)<<setprecision(5)<<i<<"- "<<tran_den_mat_mo[0][0][i]<<std::endl;
-}
-for(int i = 0 ; i != (n_occ+n_closed)*( 1 + n_occ+n_closed) / 2  ; i++)
-{
-   std::cout<<setw(10)<<setprecision(5)<<i<<"- "<<tran_den_mat_mo[0][1][i]<<std::endl;
-}
-for(int i = 0 ; i != (n_occ+n_closed)*( 1 + n_occ+n_closed) / 2  ; i++)
-{
-   std::cout<<setw(10)<<setprecision(5)<<i<<"- "<<tran_den_mat_mo[0][2][i]<<std::endl;
+   for(int j = 0 ; j != (n_occ+n_closed)  ; j++)
+   {
+      std::cout<<setw(10)<<setprecision(5)<<i<<","<<j<<" - "<<tran_den_mat_mo[0][0][i*(n_occ+n_closed)+j]<<std::endl;
+   }
 }
 
-exit(EXIT_SUCCESS);
+std::cout<<"********"<<std::endl;
+for(int i = 0 ; i != (n_occ+n_closed)  ; i++)
+{
+   for(int j = 0 ; j != (n_occ+n_closed)  ; j++)
+   {
+      std::cout<<setw(10)<<setprecision(5)<<i<<","<<j<<" - "<<tran_den_mat_mo[0][1][i*(n_occ+n_closed)+j]<<std::endl;
+   }
+}
+std::cout<<"********"<<std::endl;
+for(int i = 0 ; i != (n_occ+n_closed)  ; i++)
+{
+   for(int j = 0 ; j != (n_occ+n_closed)  ; j++)
+   {
+      std::cout<<setw(10)<<setprecision(5)<<i<<","<<j<<" - "<<tran_den_mat_mo[0][2][i*(n_occ+n_closed)+j]<<std::endl;
+   }
+}
+std::cout<<"********"<<std::endl;
+*/
+//exit(EXIT_SUCCESS);
 /*
  * END OF DENSITY TESTING 
  */
