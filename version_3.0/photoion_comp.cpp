@@ -60,7 +60,7 @@ int photoion_comp(int argc, char* argv[])
     const int n_sym(4);
     int nucl_dim(1);
     int n_states_neut(0);
-    int n_states_neutral_sym[n_sym]={2,0,0,0};//{8,3,3,1};
+    int n_states_neutral_sym[n_sym]={4,1,1,0};//{8,3,3,1};
     int n_states_cat(0);
     int n_states_cat_sym[n_sym]={1,0,0,0};//{2,1,1,0}
     int n_occ(0);
@@ -128,8 +128,8 @@ int photoion_comp(int argc, char* argv[])
     int index(0);
     int index2(0);
     int temp_int(0);
-    double xmin(1.630);
-    double xmax(1.630);
+    double xmin(1.63);
+    double xmax(1.63);
     double mLi(6.015122795);
     double mH(1.007825);
     std::string file_root("/data1/home/stephan/LiH_test_density/LiH_test_density_");
@@ -280,18 +280,20 @@ for(int x=0;x!=grid_size;x++)
           }
           else
           {
-            contraction_coeff_array[i][j]=NAN;
-            contraction_zeta_array[i][j]=NAN;
+            //contraction_coeff_array[i][j]=NAN;
+            //contraction_zeta_array[i][j]=NAN;
+            contraction_coeff_array[i][j]=0.0;
+            contraction_zeta_array[i][j]=0.0;
           }
        }
     }
  }
     //*****************************THIS SECTION OF THE CODE DEPENDS ON NUCLEAR POSITIONS.*****************************
     std::cout<<"position "<<x<<std::endl;
-    nucl_spher_pos[x][0][0]=rH/0.529;
+    nucl_spher_pos[x][0][0]=rH/0.529177249;
     nucl_spher_pos[x][0][1]=acos(-1);
     nucl_spher_pos[x][0][2]=0.0;
-    nucl_spher_pos[x][1][0]=rLi/0.529;
+    nucl_spher_pos[x][1][0]=rLi/0.529177249;
     nucl_spher_pos[x][1][1]=0.0;
     nucl_spher_pos[x][1][2]=0.0;
    std::cout<<"spher 1: "<<nucl_spher_pos[x][0][0]<<","<<nucl_spher_pos[x][0][1]<<","<<nucl_spher_pos[x][0][2]<<std::endl;
@@ -442,6 +444,33 @@ for(int x=0;x!=grid_size;x++)
     std::cout<<"ENTERING DENSITY ROUTINE"<<std::endl;
 
     build_transition_density_matrix(n_states_neut,n_closed,n_occ,ci_size_neut,n_elec_neut,ci_vec_neut,tran_den_mat_mo[x]);
+
+    //DEBOGAGE
+    
+    double  valx(0);
+    double  valy(0);
+    double  valz(0);
+    for(int inistate=0;inistate!=n_states_neut;inistate++)
+    {
+    for(int finstate=0;finstate!=n_states_neut;finstate++)
+    {
+    valx=0;
+    valy=0;
+    valz=0;
+    for(int i = 0 ; i!=n_occ+n_closed ; i++)
+    {
+        for(int j = 0 ; j!=n_occ+n_closed ; j++)
+        {
+           valx+=tran_den_mat_mo[x][inistate*n_states_neut+finstate][i*(n_occ+n_closed)+j]*mo_dipole[x][0][j*(n_occ+n_closed)+i];
+           valy+=tran_den_mat_mo[x][inistate*n_states_neut+finstate][i*(n_occ+n_closed)+j]*mo_dipole[x][1][j*(n_occ+n_closed)+i];
+           valz+=tran_den_mat_mo[x][inistate*n_states_neut+finstate][i*(n_occ+n_closed)+j]*mo_dipole[x][2][j*(n_occ+n_closed)+i];
+        }
+    }
+    std::cout<<"transition dipole "<<inistate<<"-"<<finstate<<":"<<valx<<","<<valy<<","<<valz<<std::endl;
+    }
+    }
+    exit(EXIT_SUCCESS);
+    //DEBOGAGE
 
     std::cout<<" DENSITY ROUTINE DONE !"<<std::endl;
 

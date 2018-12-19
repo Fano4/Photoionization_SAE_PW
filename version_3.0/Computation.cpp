@@ -839,7 +839,7 @@ bool build_ao_s(double* S,int *nucl_basis_func,int *contraction_number,double **
          }
       }
    }
-   exit(EXIT_SUCCESS);
+//   exit(EXIT_SUCCESS);
    return 1;
 }
 
@@ -854,27 +854,16 @@ void build_transition_density_matrix(int n_states_neut,int n_closed,int n_occ,in
    double sum(0);
    double det_val;
    
-/*                  for(int n=0;n!=ci_size_neut;n++)
-                  {
-                     for(int h=0;h!=n_elec_neut;h++)
-                     {
-                        std::cout<<ci_vec_neut[0][(n_elec_neut+n_states_neut)*n+h]<<"("<<(n_elec_neut+n_states_neut)*n+h<<")"<<"-"<<ci_vec_neut[1][(n_elec_neut)*n+h]<<"("<<(n_elec_neut)*n+h<<")"<<std::endl;
-                     }
-                  }*/
-
-//   std::cout<<"nes="<<n_states_neut<<",ncl="<<n_closed<<",ncc="<<n_occ<<",na="<<ci_size_neut<<",nel="<<n_elec_neut<<std::endl;
-
     for (int i=0; i!=n_states_neut; i++)//ELECTRONIC STATE N
     {
         for (int j=0; j!=n_states_neut; j++)//ELECTRONIC STATE K
         {
+           std::cout<<" density between states "<<i<<" and "<<j<<std::endl;
            sum=0;
          for(int k=0;k!=(n_closed+n_occ);k++)
          {
             for(int kp=0;kp!=n_closed+n_occ;kp++)
             {
-
-//               std::cout<<"Accessing element "<<"("<<i<<","<<j<<")"<<" , "<<"("<<k<<","<<kp<<")"<<std::endl;
 
 //               tran_den_mat_mo[int((n_states_neut*i)+j-(i*(i+1))/2)][int((n_occ+n_closed)*k+kp-(k*(k+1))/2)] = 0; 
                tran_den_mat_mo[n_states_neut*i+j][(n_occ+n_closed)*k+kp] = 0; 
@@ -882,47 +871,24 @@ void build_transition_density_matrix(int n_states_neut,int n_closed,int n_occ,in
                {
                   for(int n=0;n!=ci_size_neut;n++)
                   {
-//                     std::cout<<"config "<<m<<"-"<<n<<std::endl;
-
-/*                     std::cout<<"++"<<std::endl;
-                     for(int h=0;h!=n_elec_neut;h++)
-                     {
-                        std::cout<<ci_vec_neut[0][(n_elec_neut+n_states_neut)*n+h]<<"("<<(n_elec_neut+n_states_neut)*n+h<<")"<<"-"<<ci_vec_neut[1][(n_elec_neut)*n+h]<<"("<<(n_elec_neut)*n+h<<")"<<std::endl;
-                     }
-                     std::cout<<"++"<<std::endl;*/
 
                      det_val=build_reduced_determinant(k,kp,n_elec_neut,&ci_vec_neut[0][(n_elec_neut+n_states_neut)*m],&ci_vec_neut[0][(n_elec_neut+n_states_neut)*n],&ci_vec_neut[1][n_elec_neut*m],&ci_vec_neut[1][n_elec_neut*n]);
 
-
-
-//                        std::cout<<" o -"<<k<<"/"<<kp<<";"<<m<<"/"<<n<<" ; det val"<<det_val<<std::endl;
-
-//                     tran_den_mat_mo[int((n_states_neut*i)+j-(i*(i+1))/2)][int((n_occ+n_closed)*w+kp-(w*(w+1))/2)]+=(2.)*ci_vec_neut[0][(n_elec_neut+n_states_neut)*(m)+n_elec_neut+i]*ci_vec_neut[0][(n_elec_neut+n_states_neut)*(n)+n_elec_neut+j]*det_val;
                      tran_den_mat_mo[i*n_states_neut+j][k*(n_occ+n_closed)+kp]+=ci_vec_neut[0][(n_elec_neut+n_states_neut)*(m)+n_elec_neut+i]*ci_vec_neut[0][(n_elec_neut+n_states_neut)*(n)+n_elec_neut+j]*det_val;
 
-//                     std::cout<<ci_vec_neut[0][(n_elec_neut+n_states_neut)*(m)+n_elec_neut+i]<<";"<<ci_vec_neut[0][(n_elec_neut+n_states_neut)*n+n_elec_neut+i]<<"==="<<ci_vec_neut[0][(n_elec_neut+n_states_neut)*(m)+n_elec_neut+i]*ci_vec_neut[0][(n_elec_neut+n_states_neut)*n+n_elec_neut+i]*det_val<<std::endl;
-                        
                     }
-//                  std::cout<<"============================================================"<<std::endl<<"============================================================"<<std::endl;
-//                  if(m==2)
-//                     exit(EXIT_SUCCESS);
                  }
-//               if(k==kp)
-//               {
-//                 sum+=tran_den_mat_mo[i*n_states_neut+j][k*(n_occ+n_closed)+kp];
+               if(k==kp)
+               {
+                 sum+=tran_den_mat_mo[i*n_states_neut+j][k*(n_occ+n_closed)+kp];
 //                 std::cout<<" from orbital "<<k<<" and from orbital "<<kp<<std::endl;
-//               }
+               }
 //               std::cout<<std::setprecision(8)<<"trdm val "<<tran_den_mat_mo[i*n_states_neut+j][k*(n_occ+n_closed)+kp]<<std::endl;
-
               }
            }
-//         std::cout<<"SUM = "<<sum<<std::endl;
-//                     exit(EXIT_SUCCESS);
+         std::cout<<"SUM = "<<sum<<std::endl;
         }
     }
-
-//    std::cout<<"reached the end of density computation"<<std::endl;
-
 }
 double build_reduced_determinant( int ai,int aj,int n_elec,double* mo_vector_1,double* mo_vector_2,double *spin_vector_1,double *spin_vector_2  )
 {
@@ -1038,11 +1004,11 @@ double build_reduced_determinant( int ai,int aj,int n_elec,double* mo_vector_1,d
    delete [] new_vector_1;
    delete [] new_vector_2;
 
-   if(result<0)
+/*   if(result<0)
    {
       std::cout<<result<<","<<ai<<","<<aj<<std::endl;
       exit(EXIT_SUCCESS);
    }
-
+*/
    return result;
 }
