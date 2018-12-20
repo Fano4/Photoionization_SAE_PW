@@ -461,15 +461,15 @@ for(int x=0;x!=grid_size;x++)
     {
         for(int j = 0 ; j!=n_occ+n_closed ; j++)
         {
-           valx+=tran_den_mat_mo[x][inistate*n_states_neut+finstate][i*(n_occ+n_closed)+j]*mo_dipole[x][0][j*(n_occ+n_closed)+i];
-           valy+=tran_den_mat_mo[x][inistate*n_states_neut+finstate][i*(n_occ+n_closed)+j]*mo_dipole[x][1][j*(n_occ+n_closed)+i];
-           valz+=tran_den_mat_mo[x][inistate*n_states_neut+finstate][i*(n_occ+n_closed)+j]*mo_dipole[x][2][j*(n_occ+n_closed)+i];
+           valx+=tran_den_mat_mo[x][inistate*n_states_neut+finstate][i*(n_occ+n_closed)+j]*mo_dipole[x][0][i*(n_occ+n_closed)+j];
+           valy+=tran_den_mat_mo[x][inistate*n_states_neut+finstate][i*(n_occ+n_closed)+j]*mo_dipole[x][1][i*(n_occ+n_closed)+j];
+           valz+=tran_den_mat_mo[x][inistate*n_states_neut+finstate][i*(n_occ+n_closed)+j]*mo_dipole[x][2][i*(n_occ+n_closed)+j];
         }
     }
     std::cout<<"transition dipole "<<inistate<<"-"<<finstate<<":"<<valx<<","<<valy<<","<<valz<<std::endl;
     }
     }
-    exit(EXIT_SUCCESS);
+//    exit(EXIT_SUCCESS);
     //DEBOGAGE
 
     std::cout<<" DENSITY ROUTINE DONE !"<<std::endl;

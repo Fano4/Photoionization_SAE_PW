@@ -31,6 +31,6 @@ double AO_value(int ao_index,double r, double thet, double phi,int *contraction_
 double contraction_value( double r, double thet, double phi,double* nucl_spher_pos,double contraction_zeta,std::string basis_func_type,int* angular_mom_numbers);
 bool build_ao_s(double* S,int *nucl_basis_func,int *contraction_number,double **nucl_spher_pos,double **contraction_coeff,double **contraction_zeta,std::string *basis_func_type,int basis_size);
 void build_transition_density_matrix(int n_states_neut,int n_closed,int n_occ,int ci_size_neut,int n_elec_neut,double **ci_vec_neut,double **tran_den_mat_mo);
-double build_reduced_determinant( int ai,int aj,int n_elec,double* mo_vector_1,double* mo_vector_2,double *spin_vector_1,double *spin_vector_2  );
+double build_reduced_determinant( int ai,int aj,int n_elec,int n_closed,int n_occ,double* mo_vector_1,double* mo_vector_2,double *spin_vector_1,double *spin_vector_2);
 
 #endif /*Computation_hpp*/
