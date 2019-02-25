@@ -460,17 +460,21 @@ void dipole_MO(double **matrix,int* n_occ,int* basis_size,int* basis_size_sym,st
       }
    }
    input.close();
-
-/*    for(int i=0;i!=*basis_size;i++)
+/*
+    for(int i=0;i!=*basis_size;i++)
     {
        for(int j=0;j!=*basis_size;j++)
        {
-          std::cout<<aodipole_z[i**basis_size+j]<<"   ";
+          std::cout<<setprecision(7)<<setw(12)<<aodipole_z[i**basis_size+j];
+          if((j+1) %10 == 0 && j !=0 )
+             std::cout<<std::endl;
        }std::cout<<std::endl<<std::endl;
 
     }
+    
     exit(EXIT_SUCCESS);
-  */ //ONCE THE AO TRANSITION DIPOLE MATRICES ARE KNOWM, WE HAVE TO COMPUTE THE MOLECULAR ORBITALS TRANSITION DIPOLES USING THE LCAO COEFFICIENTS.
+    */
+   //ONCE THE AO TRANSITION DIPOLE MATRICES ARE KNOWM, WE HAVE TO COMPUTE THE MOLECULAR ORBITALS TRANSITION DIPOLES USING THE LCAO COEFFICIENTS.
    //SEARCH FOR THE LCAO COEFFICIENTS
    position=0;
    if(!search(&position, molpro_out_path,position, "NATURAL", 0, "ORBITALS"))
@@ -581,7 +585,8 @@ void dipole_MO(double **matrix,int* n_occ,int* basis_size,int* basis_size_sym,st
              }
           }
        }
-    }*/
+    }
+    */
 /*    std::cout<<"X dipole "<<n_occ_tot<<std::endl;
     transpose(MO_coeff_neutral, temp2, n_occ_tot, *basis_size);
     matrix_product(temp, aodipole_x, temp2, *basis_size, *basis_size, n_occ_tot);

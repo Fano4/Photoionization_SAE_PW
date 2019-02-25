@@ -60,9 +60,9 @@ int photoion_comp(int argc, char* argv[])
     const int n_sym(4);
     int nucl_dim(1);
     int n_states_neut(0);
-    int n_states_neutral_sym[n_sym]={4,1,1,0};//{8,3,3,1};
+    int n_states_neutral_sym[n_sym]={10,4,4,1};//{8,3,3,1};
     int n_states_cat(0);
-    int n_states_cat_sym[n_sym]={1,0,0,0};//{2,1,1,0}
+    int n_states_cat_sym[n_sym]={4,1,1,0};//{2,1,1,0}
     int n_occ(0);
     int *n_occs;
     int n_closed(0);
@@ -108,8 +108,8 @@ int photoion_comp(int argc, char* argv[])
        }
     }
     //variables depending on grid size
-    const std::string hf5_outfile("LiH_testing_density.h5");
-    int grid_size(1);
+    const std::string hf5_outfile("LiH_density_grid.h5");
+    int grid_size(512);
     double **MO_coeff_neutral=new double*[grid_size];
     double *overlap;
     double ***mo_dipole=new double**[grid_size];
@@ -128,11 +128,11 @@ int photoion_comp(int argc, char* argv[])
     int index(0);
     int index2(0);
     int temp_int(0);
-    double xmin(1.63);
-    double xmax(1.63);
+    double xmin(0.8);
+    double xmax(21.6);
     double mLi(6.015122795);
     double mH(1.007825);
-    std::string file_root("/data1/home/stephan/LiH_test_density/LiH_test_density_");
+    std::string file_root("/data1/home/stephan/LiH_gridtest_+++custom/LiH_");
     stringstream ss_molpro_file;
     std::string molpro_output_path;
 
@@ -446,7 +446,7 @@ for(int x=0;x!=grid_size;x++)
     build_transition_density_matrix(n_states_neut,n_closed,n_occ,ci_size_neut,n_elec_neut,ci_vec_neut,tran_den_mat_mo[x]);
 
     //DEBOGAGE
-    
+   /* 
     double  valx(0);
     double  valy(0);
     double  valz(0);
@@ -466,10 +466,13 @@ for(int x=0;x!=grid_size;x++)
            valz+=tran_den_mat_mo[x][inistate*n_states_neut+finstate][i*(n_occ+n_closed)+j]*mo_dipole[x][2][i*(n_occ+n_closed)+j];
         }
     }
+    if(inistate == finstate)
+        valz+=(1.63/.529)*(3.*mH-1.*mLi)/(mLi+mH);
     std::cout<<"transition dipole "<<inistate<<"-"<<finstate<<":"<<valx<<","<<valy<<","<<valz<<std::endl;
     }
     }
 //    exit(EXIT_SUCCESS);
+//    */
     //DEBOGAGE
 
     std::cout<<" DENSITY ROUTINE DONE !"<<std::endl;
