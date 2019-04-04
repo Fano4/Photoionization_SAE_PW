@@ -6,13 +6,6 @@
 #include <iomanip>
 #include <cmath>
 #include <complex>
-#include <gsl/gsl_math.h>
-#include <gsl/gsl_sf_dawson.h>
-#include <gsl/gsl_sf_erf.h>
-#include <gsl/gsl_sf_gamma.h>
-#include <gsl/gsl_sf_legendre.h>
-#include <gsl/gsl_sf_trig.h>
-//#include <gsl/gsl_sf_hyperg.h>
 
 
 bool dyson_mo_coeff_comp(int n_states_neut,int n_states_cat,int n_occ,int ci_size_neut,int ci_size_cat,int n_elec_neut,double **ci_vec_neut,double **ci_vec_cat,double *overlap,double *Dyson_MO_basis_coeff);
