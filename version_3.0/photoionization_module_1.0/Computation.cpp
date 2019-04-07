@@ -687,12 +687,47 @@ double AO_value(int ao_index,double r, double thet, double phi,int *contraction_
 double contraction_value( double r, double thet, double phi,double* nucl_spher_pos,double contraction_zeta,std::string basis_func_type,int* angular_mom_numbers)
 {
    using namespace std;
+   /*
+    * EVALUATION OF CONTRACTION VALUE USING SPHERICAL HARMONICS COMPUTED USING ABRAMOWITZ FORMULAE
+    */
 
+   int l(angular_mom_numbers[0]);
+   int ml(angular_mom_numbers[1]);
+   double value;
+
+   if(ml<0)
+   {
+   value=
+      (sqrt(2)*associated_legendre(l,-ml,cos(thet))*sin(-ml*phi)) // Real spherical harmonics
+      *(pow(r,l)*exp(-contraction_zeta*r*r)) // Radial part
+      ;
+   }
+   else if(ml>0)
+   {
+   value=
+      (sqrt(2)*associated_legendre(l,ml,cos(thet))*cos(ml*phi)) // Real spherical harmonics
+      *(pow(r,l)*exp(-contraction_zeta*r*r)) // Radial part
+      ;
+      //std::cout<<thet<<";"<<phi<<" : probe! => "<<value<<std::endl;
+   }
+   else
+   {
+   value=
+      (associated_legendre(l,ml,cos(thet))) // Real spherical harmonics
+      *(pow(r,l)*exp(-contraction_zeta*r*r)) // Radial part
+      ;
+   }
+
+   return value;
+   
+   /*
+    * EVALUATION OF CONTRACTION VALUE USING EXPLICIT SPHERICAL HARMONICS VALUES
+    */
 //   if(exp(-contraction_zeta*pow(r,2))*pow(r,2) > 1)
 //      std::cout<<"****"<<exp(-contraction_zeta*pow(r,2))<<","<<r<<std::endl<<"==>"<<exp(-contraction_zeta*pow(r,2))*pow(r,2)<<std::endl;
 
 //   std::cout<<basis_func_type.c_str()<<" - l = "<<angular_mom_numbers[0]<<" ; ml = "<<angular_mom_numbers[1]<<std::endl;
-
+/*
    switch(angular_mom_numbers[0])
    {
       case 0:
@@ -746,6 +781,7 @@ double contraction_value( double r, double thet, double phi,double* nucl_spher_p
    }
    exit(EXIT_FAILURE);
    return 0;
+   */
 /*
    double temp(0);
    if(basis_func_type=="1s")

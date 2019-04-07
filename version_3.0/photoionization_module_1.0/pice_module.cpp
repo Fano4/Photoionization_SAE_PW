@@ -321,3 +321,11 @@ int ml_number(std::string bas_func_type,int l)
 
    }
 }
+int pice_set::n_occ()
+{
+   return this->m_n_occ;
+}
+double pice_set::mo_value(double x,double y,double z,int mo_index,int grid_index)
+{
+   return MO_value(mo_index,x,y,z,this->m_nucl_spher_pos[grid_index],this->m_nucl_basis_func,this->m_contraction_number,this->m_contraction_coeff,this->m_contraction_zeta,this->m_angular_mom_numbers,this->m_MO_coeff_neutral[grid_index],*this->m_basis_size);
+}
