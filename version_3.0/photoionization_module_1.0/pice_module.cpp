@@ -329,3 +329,7 @@ double pice_set::mo_value(double x,double y,double z,int mo_index,int grid_index
 {
    return MO_value(mo_index,x,y,z,this->m_nucl_spher_pos[grid_index],this->m_nucl_basis_func,this->m_contraction_number,this->m_contraction_coeff,this->m_contraction_zeta,this->m_angular_mom_numbers,this->m_MO_coeff_neutral[grid_index],*this->m_basis_size);
 }
+std::complex<double> pice_set::mo_ft_value(double k,double thet,double phi,int mo_index,int grid_index)
+{
+   return MO_Fourier_transform(mo_index,k,thet,phi,this->m_nucl_spher_pos[grid_index],this->m_nucl_basis_func,this->m_contraction_number,this->m_contraction_coeff,this->m_contraction_zeta,this->m_angular_mom_numbers,this->m_MO_coeff_neutral[grid_index],*this->m_basis_size);
+}
