@@ -56,5 +56,5 @@ class pice_set {
       bool fill_pice(std::complex<double> *pice_x,std::complex<double> *pice_y,std::complex<double> *pice_z,int grid_index,int neut_st_index,int cat_st_index,double thet,double phi,double kp,double*pot_vec);
       int n_occ();
       double mo_value(double x,double y,double z,int mo_index,int grid_index);
-      std::complex<double> mo_ft_value(double k,double thet,double phi,int mo_index,int grid_index):
+      std::complex<double> mo_ft_value(double k,double thet,double phi,int mo_index,int grid_index);
 };

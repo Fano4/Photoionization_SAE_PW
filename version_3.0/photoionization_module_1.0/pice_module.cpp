@@ -323,7 +323,7 @@ int ml_number(std::string bas_func_type,int l)
 }
 int pice_set::n_occ()
 {
-   return this->m_n_occ;
+   return *this->m_n_occ;
 }
 double pice_set::mo_value(double x,double y,double z,int mo_index,int grid_index)
 {
