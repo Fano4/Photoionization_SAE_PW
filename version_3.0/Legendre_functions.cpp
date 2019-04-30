@@ -1,5 +1,3 @@
-#include "Computation.hpp"
-
 double associated_legendre(unsigned int l,int m,double x)
 {
    int sign(-bool( m % 2 != 0 ) + bool( m % 2 == 0 ));

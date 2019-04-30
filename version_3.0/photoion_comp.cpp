@@ -108,8 +108,8 @@ int photoion_comp(int argc, char* argv[])
        }
     }
     //variables depending on grid size
-    const std::string hf5_outfile("LiH_density_grid.h5");
-    int grid_size(512);
+    const std::string hf5_outfile("LiH_testing_continuum.h5");
+    int grid_size(1);
     double **MO_coeff_neutral=new double*[grid_size];
     double *overlap;
     double ***mo_dipole=new double**[grid_size];
@@ -128,8 +128,8 @@ int photoion_comp(int argc, char* argv[])
     int index(0);
     int index2(0);
     int temp_int(0);
-    double xmin(0.8);
-    double xmax(21.6);
+    double xmin(1.6125);
+    double xmax(1.6125);
     double mLi(6.015122795);
     double mH(1.007825);
     std::string file_root("/data1/home/stephan/LiH_gridtest_+++custom/LiH_");
@@ -574,7 +574,7 @@ std::cout<<"********"<<std::endl;
      TESTING HF5 DIALOG
      */
       write_output(hf5_outfile, &n_states_neut, &n_states_cat, &n_occ, &n_closed,&nucl_dim,&grid_size,&num_of_nucl,&basis_size,contraction_number,nucl_coord,nucl_spher_pos,mo_dipole,MO_coeff_neutral,dyson_mo_basis_coeff,contraction_coeff_array,contraction_zeta_array,nucl_basis_func,basis_func_type,tran_den_mat_mo);
-      exit(EXIT_SUCCESS);
+//      exit(EXIT_SUCCESS);
    //   read_output(hf5_outfile, &n_states_neut, &n_states_cat, &n_occ, &n_closed,&nucl_dim,&grid_size,&num_of_nucl,&basis_size,nucl_spher_pos,mo_dipole,MO_coeff_neutral,dyson_mo_basis_coeff,contraction_number,contraction_coeff,contraction_zeta,nucl_basis_func,basis_func_type);
     /*
      TESTING HF5 DIALOG
@@ -586,7 +586,7 @@ std::cout<<"********"<<std::endl;
     double int_cs(0);
     double thet(0);
     double phi(0);
-    int nk=50;
+    int nk=56;
     int position(0);
     std::complex<double> *temp=new std::complex<double>[3];
 //    std::complex<double> temp;
@@ -598,7 +598,7 @@ std::cout<<"********"<<std::endl;
     int n_theta=1;
     int n_phi=1;
     //double efield[3]={1,0,0};//SPHERICAL COORDINATES
-    double efield[3]={0,0,0.05};//CARTESIAN COORDINATES
+    double efield[3]={0,0,1};//CARTESIAN COORDINATES
     int i(0);
     int t(0);
     int p(0);
@@ -632,33 +632,36 @@ exit(EXIT_SUCCESS);
     stringstream pice_out_ss;
     string pice_out_s;
     
-    distrib_file.open("/data1/home/stephan/kxkykz.txt");
+    const int n_angles(2048);
+    distrib_file.open("/data1/home/stephan/Wavepack_1D/wavepack_int_input/sphere_dist_2048.txt");
     double **distrib=new double*[2];
-    distrib[0]=new double[2000];
-    distrib[1]=new double[2000];
-    double *distrib_cart=new double[3];
+    distrib[0]=new double[n_angles];
+    distrib[1]=new double[n_angles];
+//    double *distrib_cart=new double[3];
 
-    for(t=0;t!=2000;t++)
+    for(t=0;t!=n_angles;t++)
     {
-       distrib_file>>temp_int;
-       distrib_file>>distrib_cart[0];
-       distrib_file>>distrib_cart[1];
-       distrib_file>>distrib_cart[2];
+//       distrib_file>>temp_int;
+//       distrib_file>>distrib_cart[0];
+//       distrib_file>>distrib_cart[1];
+//       distrib_file>>distrib_cart[2];
 
-       distrib[0][t]=acos(distrib_cart[2]);
-       distrib[1][t]=atan2(distrib_cart[1],distrib_cart[0]);
-       if(distrib[1][t]<0)
-          distrib[1][t]+=2*acos(-1);
+       distrib_file>>distrib[0][t];
+       distrib_file>>distrib[1][t];
+//       distrib[0][t]=acos(distrib_cart[2]);
+//       distrib[1][t]=atan2(distrib_cart[1],distrib_cart[0]);
+//       if(distrib[1][t]<0)
+//          distrib[1][t]+=2*acos(-1);
     }
     
-//      int sc=0;
+      int sc=0;
 //      int sn=0;
 for(int sn=0;sn!=n_states_neut;sn++)
 {
-   for(int sc=0;sc!=n_states_cat;sc++)
+//   for(int sc=0;sc!=n_states_cat;sc++)
    {
       pice_out_ss.str("");
-      pice_out_ss<<"../../LiH_anion_cation_custom_6-311++G3df3dp/PICE_orth_anion_"<<sn<<"_"<<sc<<".txt";
+      pice_out_ss<<"/data1/home/stephan/wavepack_test_continuum_2048/PICE_orth_neut_"<<sn<<"_"<<sc<<".txt";
       pice_out_s=pice_out_ss.str();
       pice_out.open(pice_out_s.c_str());
       std::cout<<" Writing PICE in file "<<pice_out_s<<std::endl;
@@ -670,7 +673,7 @@ for(int sn=0;sn!=n_states_neut;sn++)
        int_cs=0;
 //#pragma omp parallel for reduction(+:int_cs) private (i,j,t,p,temp,thet,phi)
 //       for( t=0;t<n_theta;t++)
-       for(t=0;t!=2000;t++)
+       for(t=0;t!=n_angles;t++)
        {
           thet=distrib[0][t];
           phi=distrib[1][t];
@@ -679,7 +682,7 @@ for(int sn=0;sn!=n_states_neut;sn++)
 //          thet=t*(acos(-1))/n_theta;
 //          for( p=0;p<n_phi;p++)
           {
-//            std::cout<<"point!"<<k<<","<<t<<","<<p<<"=>"<<temp<<std::endl;
+            std::cout<<"point!"<<k<<","<<t<<std::endl;
 //             phi=2*p*acos(-1)/n_phi;
              temp[0]=0;
              temp[1]=0;
