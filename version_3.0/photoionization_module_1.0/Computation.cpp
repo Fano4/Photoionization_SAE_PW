@@ -666,7 +666,11 @@ double MO_value( int mo_index, double x, double y, double z,double **nucl_spher_
       }
    }
       value+=MO_neut_basis_coeff[mo_index*basis_size+i]*AO_value(i,r,thet,phi,contraction_number,nucl_spher_pos[nucl_basis_func[i]-1],contraction_coeff,contraction_zeta,angular_mom_numbers[i]);
-//      std::cout<<"==>"<<MO_neut_basis_coeff[mo_index*basis_size+i]<<"*"<<AO_value(i,r,thet,phi,contraction_number,nucl_spher_pos[nucl_basis_func[i]-1],contraction_coeff,contraction_zeta,basis_func_type,angular_mom_numbers)<<std::endl;
+//      if( x == 0 && y == 0)
+//      {
+//         std::cout<<"coord "<<r<<","<<thet<<","<<phi<<std::endl;
+//          std::cout<<"==>"<<MO_neut_basis_coeff[mo_index*basis_size+i]<<"*"<<AO_value(i,r,thet,phi,contraction_number,nucl_spher_pos[nucl_basis_func[i]-1],contraction_coeff,contraction_zeta,angular_mom_numbers[i])<<std::endl;
+//      }
    }
    return value;
 }
@@ -678,8 +682,8 @@ double AO_value(int ao_index,double r, double thet, double phi,int *contraction_
    for(int i=0;i!=contraction_number[ao_index];i++)
    {
          value+=contraction_coeff[ao_index][i]*contraction_value(r,thet,phi,nucl_spher_pos,contraction_zeta[ao_index][i],angular_mom_numbers);
-//         if(value>=1)
-//            std::cout<<"==>==>"<<contraction_coeff[ao_index][i]<<" * "<<contraction_value(r,thet,phi,nucl_spher_pos,contraction_zeta[ao_index][i],basis_func_type[ao_index],angular_mom_numbers[ao_index])<<" = "<<contraction_coeff[ao_index][i]*contraction_value(r,thet,phi,nucl_spher_pos,contraction_zeta[ao_index][i],basis_func_type[ao_index],angular_mom_numbers[ao_index])<<std::endl;
+//         if(thet = 0 || thet == acos(-1))
+//            std::cout<<"==>==>"<<contraction_coeff[ao_index][i]<<" * "<<contraction_value(r,thet,phi,nucl_spher_pos,contraction_zeta[ao_index][i],angular_mom_numbers)<<" = "<<contraction_coeff[ao_index][i]*contraction_value(r,thet,phi,nucl_spher_pos,contraction_zeta[ao_index][i],angular_mom_numbers)<<std::endl;
    }
    return value;
 
@@ -697,10 +701,10 @@ double contraction_value( double r, double thet, double phi,double* nucl_spher_p
 
    if(ml<0)
    {
-   value=
-      (sqrt(2)*associated_legendre(l,-ml,cos(thet))*sin(-ml*phi)) // Real spherical harmonics
-      *(pow(r,l)*exp(-contraction_zeta*r*r)) // Radial part
-      ;
+      value=
+         (sqrt(2)*associated_legendre(l,-ml,cos(thet))*sin(-ml*phi)) // Real spherical harmonics
+         *(pow(r,l)*exp(-contraction_zeta*r*r)) // Radial part
+         ;
    }
    else if(ml>0)
    {

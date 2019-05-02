@@ -329,7 +329,15 @@ int pice_set::n_occ()
 }
 double pice_set::mo_value(double x,double y,double z,int mo_index,int grid_index)
 {
-   return MO_value(mo_index,x,y,z,this->m_nucl_spher_pos[grid_index],this->m_nucl_basis_func,this->m_contraction_number,this->m_contraction_coeff,this->m_contraction_zeta,this->m_angular_mom_numbers,this->m_MO_coeff_neutral[grid_index],*this->m_basis_size);
+   std::cout<<x<<","<<y<<","<<z<<","<<mo_index<<","<<grid_index<<std::endl;
+   double temp(MO_value(mo_index,x,y,z,this->m_nucl_spher_pos[grid_index],this->m_nucl_basis_func,this->m_contraction_number,this->m_contraction_coeff,this->m_contraction_zeta,this->m_angular_mom_numbers,this->m_MO_coeff_neutral[grid_index],*this->m_basis_size));
+
+   if(isnan(temp))
+   {
+      std::cout<<"ERROR IN MO VALUE COMPUTATION IN PICE CODE"<<std::endl;
+      exit(EXIT_FAILURE);
+   }
+   return temp;
 }
 std::complex<double> pice_set::mo_ft_value(double k,double thet,double phi,int mo_index,int grid_index)
 {
