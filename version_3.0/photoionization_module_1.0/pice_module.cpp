@@ -155,9 +155,9 @@ bool pice_set::fill_pice(std::complex<double> *pice_x,std::complex<double> *pice
    else
    {
 
-      xp=kp*sin(thet)*cos(phi)-ppot_vec[0];
-      yp=kp*sin(thet)*sin(phi)-ppot_vec[1];
-      zp=kp*cos(thet)-ppot_vec[2];
+      xp=kp*sin(thet)*cos(phi)+ppot_vec[0];
+      yp=kp*sin(thet)*sin(phi)+ppot_vec[1];
+      zp=kp*cos(thet)+ppot_vec[2];
    }
    kpp=sqrt(pow(xp,2)+pow(yp,2)+pow(zp,2));
    if(kpp==0)
