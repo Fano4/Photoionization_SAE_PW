@@ -122,63 +122,290 @@ double E( int i , int j , int t , double xa , double xb , double m , double p )
 
 }
 
-double mono_gauss_prod(int i,int j,int k,int l,int m,int n,double p,double q,double xa,double ya,double za,double xb,double yb,double zb, double xc,double yc,double zc)
+double mono_gauss_prod(int lx1,int ly1,int lz1,int lx2,int ly2,int lz2,double d1,double d2,double x1,double y1,double z1,double x2,double y2,double z2, double xc,double yc,double zc)
 {
    double result(0.0);
-   double xp(p*xa+q*xb)/(p+q);
-   double yp(p*ya+q*yb)/(p+q);
-   double zp(p*za+q*zb)/(p+q);
+   double p=d1+d2;
+   double mu=(d1*d2)/(d1+d2)
+   double xp(d1*xa+d2*xb)/(d1+d2);
+   double yp(d1*ya+d2*yb)/(d1+d2);
+   double zp(d1*za+d2*zb)/(d1+d2);
 
-   for(int t=0;t!=i+l+1+1;t++)
+   for(int t=0;t!=lx1+lx2+1+1;t++)
    {
-      for(int u=0;u!=j+m+1+1;u++)
+      for(int u=0;u!=ly1+ly2+1+1;u++)
       {
-         for(int v=0;v!=k+n+1+1;v++)
+         for(int v=0;v!=lz1+lz2+1+1;v++)
          {
-            result+=E(i,l,t,xa,xb,xp,p*q/(p+q),p+q)*E(j,m,u,ya,yb,yp,p*q/(p+q),p+q)*E(k,n,v,za,zb,zp,p*q/(p+q),p+q)*hermite_coulomb(0,t,u,v,p+q, xp-xc,yp-yc,zp-zc)
+            result+=E(lx1,lx2,t,x1,x2,xp,mu,p)*E(ly1,ly2,u,y1,y2,yp,mu,p)*E(lz1,lz2,v,z1,z2,zp,mu,p)*hermite_coulomb(0,t,u,v,p,xp-xc,yp-yc,zp-zc)
          }
       }
    }
-   result*=2*acos(-1)/(p+q);
+   result*=2*acos(-1)/p;
 
    return result;
 }
 
-double bi_gauss_prod(int i,int j,int k,int l,int m,int n,int ii,int jj, kk,int ll,int mm,int nn ,double p,double q,double pp,double qq,double xa,double ya,double za,double xb,double yb,double zb)
+double bi_gauss_prod(int lxa1,int lya1,int lza1,int lxb1,int lyb1,int lzb1,int lxa2,int lya2,int lza2,int lxb2,int lyb2,int lzb2 ,double da1,double db1,double da2,double db2,double xa1,double ya1,double za1,double xb1,double yb1,double zb1,double xa2,double ya2,double za2,double xb2,double yb2,double zb2)
 {
    double result(0.0);
-   double xp(p*xa+q*xb)/(p+q);
-   double yp(p*ya+q*yb)/(p+q);
-   double zp(p*za+q*zb)/(p+q);
-   double xq(pp*xa+qq*xb)/(pp+qq);
-   double yq(pp*ya+qq*yb)/(pp+qq);
-   double zq(pp*za+qq*zb)/(pp+qq);
-   double alpha((p+q)*(pp+qq)/((p+q)+(pp+qq)));
+   double p1(da1+db1);
+   double p2(da2+db2);
+   double mu1(da1*db1/p1);
+   double mu2(da2*db2/p2);
+   double xp1((da1*xa1+db1*xb1)/(da1+db1));
+   double yp1((da1*ya1+db1*yb1)/(da1+db1));
+   double zp1((da1*za1+db1*zb1)/(da1+db1));
+   double xp2((da2*xa2+db2*xb2)/(da2+db2));
+   double yp2((da2*ya2+db2*yb2)/(da2+db2));
+   double zp2((da2*za2+db2*zb2)/(da2+db2));
+   double alpha(p1*p2/(p1+p2));
    double temp(0);
 
-   for(int t=0;t!=i+l+1+1;t++)
+   for(int t=0;t!=lxa1+lxb1+1+1;t++)
    {
-      for(int u=0;u!=j+m+1+1;u++)
+      for(int u=0;u!=lya1+lyb1+1+1;u++)
       {
-         for(int v=0;v!=k+n+1+1;v++)
+         for(int v=0;v!=lza1+lzb1+1+1;v++)
          {
             temp=0;
-            for(int tt=0;tt!=ii+ll+1+1;tt++)
+            for(int tt=0;tt!=lxa2+lxb2+1+1;tt++)
             {
-               for(int uu=0;uu!=jj+mm+1+1;uu++)
+               for(int uu=0;uu!=lya2+lyb2+1+1;uu++)
                {
-                  for(int vv=0;vv!=kk+nn+1+1;vv++)
+                  for(int vv=0;vv!=lza2+lzb2+1+1;vv++)
                   {
-                     temp+=pow(-1,tt+uu+vv)*E(ii,ll,tt,xa,xb,xq,pp*qq/(pp+qq),pp+qq)*E(jj,mm,uu,ya,yb,yq,pp*qq/(pp+qq),pp+qq)*E(kk,nn,vv,za,zb,zq,pp*qq/(pp+qq),pp+qq)*hermite_coulomb(0,tt+t,uu+u,vv+v,alpha, xp-xq,yp-yq,zp-zq)
+                     temp+=pow(-1,tt+uu+vv)*E(lxa2,lxb2,tt,xa2,xb2,xp2,mu2,p2)*E(lya2,lyb2,uu,ya2,yb2,yp2,mu2,p2)*E(lza2,lzb2,za2,zb2,zp2,mu2,p2)*hermite_coulomb(0,tt+t,uu+u,vv+v,alpha, xp1-xp2,yp1-yp2,zp1-zp2)
                   }
                }
             }
-            temp*=E(i,l,t,xa,xb,xp,p*q/(p+q),p+q)*E(j,m,u,ya,yb,yp,p*q/(p+q),p+q)*E(k,n,v,za,zb,zp,p*q/(p+q),p+q)
-               result+=temp;
+            temp*=E(lxa1,lxb1,t,xa1,xb1,xp1,mu1,p1)*E(lya1,lyb1,u,ya1,yb1,yp1,mu1,p1)*E(lza1,lzb1,za1,zb1,zp1,mu1,p1);
+            result+=temp;
          }
       }
    }
-   result*=2*pow(acos(-1),2.5)/((p+q)*(pp+qq)*sqrt((p+q)+(pp+qq)));
+   result*=2*pow(acos(-1),2.5)/(p1*p2*sqrt(p1+p2));
 
    return result;
+}
+
+double spher_harmo_mono_gauss_int(int l, int lp, int m, int mp,double d,double dp,double xa,double ya,double za,double xb,double yb,double zb,double xc,double yc,double zc)
+{
+   double result=0;
+
+   double vm=0.5*bool(m<0)
+   double vmp=0.5*bool(mp<0)
+
+   double N=(1/(pow(2,fabs(m))*factorial(l)))*sqrt(2*factorial(l+fabs(m))*factorial(l-fabs(m))/2*bool(m==0));
+   double Np=(1/(pow(2,fabs(mp))*factorial(lp)))*sqrt(2*factorial(lp+fabs(mp))*factorial(lp-fabs(mp))/2*bool(mp==0));
+
+   double Renorm(sqrt(0.5*intplushalf_gamma(1+l)/(pow(2*d,1.5+l)))/pow(acos(-1)/(2*d),0.75));
+   double Renormp(sqrt(0.5*intplushalf_gamma(1+lp)/(pow(2*dp,1.5+lp)))/pow(acos(-1)/(2*dp),0.75));
+   
+   for(int t=0;t!=int((l-fabs(m))/2)+1;t++)
+   {
+      for(int tp=0;tp!=int((lp-fabs(mp))/2)+1;tp++)
+      {
+         for(int u=0;u!=t+1;u++)
+         {
+            for(int up=0;up!=tp+1;up++)
+            {
+               for(int v=0;v!=int(fabs(m/2)-vm);v++)
+               {
+                  for(int vp=0;vp!=int(fabs(mp/2)-vmp);vp++)
+                  {
+                     i=2*t+fabs(m)-2*(u+v);
+                     j=2*(u+v);
+                     k=l-2*fabs(m);
+                     ll=2*tp+fabs(mp)-2*(up+vp);
+                     mm=2*(up+vp);
+                     n=lp-2*fabs(mp);
+                     C=(pow(-1.0,float(t)+float(v)-float(vm)))*(pow(0.25,t))*binomial(l,t)*binomial(l-t,abs(m)+t)*binomial(t,u)*binomial(fabs(m),2*v);
+                     Cp=(pow(-1.0,float(tp)+float(vp)-float(vmp)))*(pow(0.25,tp))*binomial(lp,tp)*binomial(lp-tp,abs(mp)+tp)*binomial(tp,up)*binomial(fabs(mp),2*vp);
+                     result+=C*Cp*mono_gauss_prod(i,j,k,ll,mm,n,d,dp,xa,ya,za,xb,yb,zb);
+
+                  }
+               }
+            }
+         }
+      }
+   }
+   return result*N*Np*Renorm*Renormp;
+}
+double spher_harmo_biel_gauss_int(int la1,int lb1, int la2,int lb2, int ma1,int mb1, int ma2,int mb2,double da1,double db1,double da2,double db2,double xa1,double ya1,double za1,double xb1,double yb1,double zb1,double xa2,double ya2,double za2,double xb2,double yb2,double zb2)
+{
+   double result=0;
+
+   double vma1=0.5*bool(ma1<0)
+   double vmb1=0.5*bool(mb1<0)
+   double vma2=0.5*bool(ma2<0)
+   double vmb2=0.5*bool(mb2<0)
+
+   double Na1=(1/(pow(2,fabs(ma1))*factorial(la1)))*sqrt(2*factorial(la1+fabs(ma1))*factorial(la1-fabs(ma1))/2*bool(ma1==0));
+   double Nb1=(1/(pow(2,fabs(mb1))*factorial(lb1)))*sqrt(2*factorial(lb1+fabs(mb1))*factorial(lb1-fabs(mb1))/2*bool(mb1==0));
+   double Na2=(1/(pow(2,fabs(ma2))*factorial(la2)))*sqrt(2*factorial(la2+fabs(ma2))*factorial(la2-fabs(ma2))/2*bool(ma2==0));
+   double Nb2=(1/(pow(2,fabs(mb2))*factorial(lb2)))*sqrt(2*factorial(lb2+fabs(mb2))*factorial(lb2-fabs(mb2))/2*bool(mb2==0));
+
+   double Renorma1(sqrt(0.5*intplushalf_gamma(1+la1)/(pow(2*da1,1.5+la1)))/pow(acos(-1)/(2*da1),0.75));
+   double Renormb1(sqrt(0.5*intplushalf_gamma(1+lb1)/(pow(2*db1,1.5+lb1)))/pow(acos(-1)/(2*db1),0.75));
+   double Renorma2(sqrt(0.5*intplushalf_gamma(1+la2)/(pow(2*da2,1.5+la2)))/pow(acos(-1)/(2*da2),0.75));
+   double Renormb2(sqrt(0.5*intplushalf_gamma(1+lb2)/(pow(2*db2,1.5+lb2)))/pow(acos(-1)/(2*db2),0.75));
+
+   double lxa1,lxa2,lya1,lya2,lza1,lza2,lxb1,lxb2,lyb1,lyb2,lzb1,lzb2;
+   
+   for(int ta1=0;ta1!=int((la1-fabs(ma1))/2)+1;ta1++)
+   {
+      for(int tb1=0;tb1!=int((lb1-fabs(mb1))/2)+1;tb1++)
+      {
+         for(int ta2=0;ta2!=int((la2-fabs(ma2))/2)+1;ta2++)
+         {
+            for(int tb2=0;tb2!=int((lb2-fabs(mb2))/2)+1;tb2++)
+            {
+               for(int ua1=0;ua1!=ta1+1;ua1++)
+               {
+                  for(int ub1=0;ub1!=tb1+1;ub1++)
+                  {
+                     for(int ua2=0;ua2!=ta2+1;ua2++)
+                     {
+                        for(int ub2=0;ub2!=tb2+1;ub2++)
+                        {
+                           for(int va1=0;va1!=int(fabs(ma1/2)-vma1);va1++)
+                           {
+                              for(int vb1=0;vb1!=int(fabs(mb1/2)-vmb1);vb1++)
+                              {
+                                 for(int va1=0;va1!=int(fabs(ma1/2)-vma1);va1++)
+                                 {
+                                    for(int vb1=0;vb1!=int(fabs(mb1/2)-vmb1);vb1++)
+                                    {
+                                       lxa1=2*ta1+fabs(ma1)-2*(ua1+va1);
+                                       lxb1=2*tb1+fabs(mb1)-2*(ub1+vb1);
+                                       lxa2=2*ta2+fabs(ma2)-2*(ua2+va2);
+                                       lxb2=2*tb2+fabs(mb2)-2*(ub2+vb2);
+                                       lya1=2*(ua1+va1);
+                                       lyb1=2*(ub1+vb1);
+                                       lya2=2*(ua2+va2);
+                                       lyb2=2*(ub2+vb2);
+                                       lza1=la1-2*fabs(ma1);
+                                       lzb1=lb1-2*fabs(mb1);
+                                       lza2=la2-2*fabs(ma2);
+                                       lzb2=lb2-2*fabs(mb2);
+                                       Ca1=(pow(-1.0,float(ta1)+float(va1)-float(vma1)))*(pow(0.25,ta1))*binomial(la1,ta1)*binomial(la1-ta1,abs(ma1)+ta1)*binomial(ta1,ua1)*binomial(fabs(ma1),2*va1);
+                                       Cb1=(pow(-1.0,float(tb1)+float(vb1)-float(vmb1)))*(pow(0.25,tb1))*binomial(lb1,tb1)*binomial(lb1-tb1,abs(mb1)+tb1)*binomial(tb1,ub1)*binomial(fabs(mb1),2*vb1);
+                                       Ca2=(pow(-1.0,float(ta2)+float(va2)-float(vma2)))*(pow(0.25,ta2))*binomial(la2,ta2)*binomial(la2-ta2,abs(ma2)+ta2)*binomial(ta2,ua2)*binomial(fabs(ma2),2*va2);
+                                       Cb2=(pow(-1.0,float(tb2)+float(vb2)-float(vmb2)))*(pow(0.25,tb2))*binomial(lb2,tb2)*binomial(lb2-tb2,abs(mb2)+tb2)*binomial(tb2,ub2)*binomial(fabs(mb2),2*vb2);
+                                       result+=Ca1*Cb1*Ca2*Cb2*bi_gauss_prod(lxa1,lya1,lza1,lxb1,lyb1,lzb1,lxa2,lya2,lza2,da1,db1,da2,db2,xa1,ya1,za1,xb1,yb1,zb1,xa2,ya2,za2,xb2,yb2,zb2);
+
+                                    }
+                                 }
+                              }
+                           }
+                        }
+                     }
+                  }
+               }
+            }
+         }
+      }
+   }
+   return result*Na1*Nb1*Na2*Nb2*Renorma1*Renormb1*Renorma2*Renormb2;
+}
+
+bool AO_mono_coulomb(double **AO_mono_coul_mat,int basis_size,int cont_num,int num_of_nucl, double **contraction_coeff_array,double **contraction_zeta_array,double **nucl_spher_pos,int *nucl_basis_func,int **angular_mom_numbers)
+{
+   double xa(0);
+   double ya(0);
+   double za(0);
+   double xb(0);
+   double yb(0);
+   double zb(0);
+   double xc(0);
+   double yc(0);
+   double zc(0);
+
+   for(int n=0;n!=num_of_nucl;n++)
+   {
+      xc=nucl_spher_pos[n][0]*sin(nucl_spher_pos[n][1])*cos(nucl_spher_pos[n][2]);
+      yc=nucl_spher_pos[n][0]*sin(nucl_spher_pos[n][1])*sin(nucl_spher_pos[n][2]);
+      zc=nucl_spher_pos[n][0]*cos(nucl_spher_pos[n][1]);
+
+      for(int i=0;i!=basis_size;i++)
+      {
+          xa=nucl_spher_pos[nucl_basis_func[i]][0]*sin(nucl_spher_pos[nucl_basis_func[i]][1])*cos(nucl_spher_pos[nucl_basis_func[i]][2]);
+          ya=nucl_spher_pos[nucl_basis_func[i]][0]*sin(nucl_spher_pos[nucl_basis_func[i]][1])*sin(nucl_spher_pos[nucl_basis_func[i]][2]);
+          za=nucl_spher_pos[nucl_basis_func[i]][0]*cos(nucl_spher_pos[nucl_basis_func[i]][1]);
+         for(int j=0;j!=basis_size;j++)
+         {
+             xb=nucl_spher_pos[nucl_basis_func[j]][0]*sin(nucl_spher_pos[nucl_basis_func[j]][1])*cos(nucl_spher_pos[nucl_basis_func[j]][2]);
+             yb=nucl_spher_pos[nucl_basis_func[j]][0]*sin(nucl_spher_pos[nucl_basis_func[j]][1])*sin(nucl_spher_pos[nucl_basis_func[j]][2]);
+             zb=nucl_spher_pos[nucl_basis_func[j]][0]*cos(nucl_spher_pos[nucl_basis_func[j]][1]);
+            AO_mono_coul_mat[n][i*basis_size+j]=0;
+
+            for(int p=0;p!=cont_num;p++)
+            {
+               for(int q=0;q!=cont_num;q++)
+               {
+                  AO_mono_coul_mat[n][i*basis_size+j]+=contraction_coeff_array[i][p]*contraction_coeff_array[j][q]*spher_harmo_mono_gauss_int(angular_mom_numbers[i][0],angular_mom_numbers[i][1],angular_mom_numbers[j][0],angular_mom_numbers[j][1],contraction_zeta_array[i][p],contraction_zeta_array[j][q],xa, ya, za, xb, yb, zb, xc, yc, zc);
+               }
+            }
+         }
+      }
+   }
+   return 1;
+}
+bool AO_biel_coulomb(double **AO_biel_coul_mat,int basis_size,int cont_num,int num_of_nucl, double **contraction_coeff_array,double **contraction_zeta_array,double **nucl_spher_pos,int *nucl_basis_func,int **angular_mom_numbers)
+{
+   double xa1(0);
+   double ya1(0);
+   double za1(0);
+   double xb1(0);
+   double yb1(0);
+   double zb1(0);
+   double xa2(0);
+   double ya2(0);
+   double za2(0);
+   double xb2(0);
+   double yb2(0);
+   double zb2(0);
+
+   for(int a1=0;a1!=basis_size;a1++)
+   {
+      xa1=nucl_spher_pos[nucl_basis_func[a1]][0]*sin(nucl_spher_pos[nucl_basis_func[a1]][1])*cos(nucl_spher_pos[nucl_basis_func[a1]][2]);
+      ya1=nucl_spher_pos[nucl_basis_func[a1]][0]*sin(nucl_spher_pos[nucl_basis_func[a1]][1])*sin(nucl_spher_pos[nucl_basis_func[a1]][2]);
+      za1=nucl_spher_pos[nucl_basis_func[a1]][0]*cos(nucl_spher_pos[nucl_basis_func[a1]][1]);
+      for(int b1=0;b1!=basis_size;b1++)
+      {
+         xb1=nucl_spher_pos[nucl_basis_func[b1]][0]*sin(nucl_spher_pos[nucl_basis_func[b1]][1])*cos(nucl_spher_pos[nucl_basis_func[b1]][2]);
+         yb1=nucl_spher_pos[nucl_basis_func[b1]][0]*sin(nucl_spher_pos[nucl_basis_func[b1]][1])*sin(nucl_spher_pos[nucl_basis_func[b1]][2]);
+         zb1=nucl_spher_pos[nucl_basis_func[b1]][0]*cos(nucl_spher_pos[nucl_basis_func[b1]][1]);
+         for(int a2=0;a2!=basis_size;a2++)
+         {
+            xa2=nucl_spher_pos[nucl_basis_func[a2]][0]*sin(nucl_spher_pos[nucl_basis_func[a2]][1])*cos(nucl_spher_pos[nucl_basis_func[a2]][2]);
+            ya2=nucl_spher_pos[nucl_basis_func[a2]][0]*sin(nucl_spher_pos[nucl_basis_func[a2]][1])*sin(nucl_spher_pos[nucl_basis_func[a2]][2]);
+            za2=nucl_spher_pos[nucl_basis_func[a2]][0]*cos(nucl_spher_pos[nucl_basis_func[a2]][1]);
+            for(int b2=0;b2!=basis_size;b2++)
+            {
+               xb2=nucl_spher_pos[nucl_basis_func[b2]][0]*sin(nucl_spher_pos[nucl_basis_func[b2]][1])*cos(nucl_spher_pos[nucl_basis_func[b2]][2]);
+               yb2=nucl_spher_pos[nucl_basis_func[b2]][0]*sin(nucl_spher_pos[nucl_basis_func[b2]][1])*sin(nucl_spher_pos[nucl_basis_func[b2]][2]);
+               zb2=nucl_spher_pos[nucl_basis_func[b2]][0]*cos(nucl_spher_pos[nucl_basis_func[b2]][1]);
+
+               AO_mono_coul_mat[a1*basis_size+b1][a2*basis_size+b2]=0;
+
+               for(int pa1=0;pa1!=cont_num;pa1++)
+               {
+                  for(int pb1=0;pb1!=cont_num;pb1++)
+                  {
+                     for(int pa2=0;pa2!=cont_num;pa2++)
+                     {
+                        for(int pb2=0;pb2!=cont_num;pb2++)
+                        {
+                           AO_biel_coul_mat[a1*basis_size+b1][a2*basis_size+b2]+=contraction_coeff_array[a1][pa1]*contraction_coeff_array[b1][pb1]*contraction_coeff_array[a2][pa2]*contraction_coeff_array[b2][pb2]*spher_harmo_biel_gauss_int(angular_mom_numbers[a1][0],angular_mom_numbers[b1][0],angular_mom_numbers[a2][0],angular_mom_numbers[b2][0],angular_mom_numbers[a1][1],angular_mom_numbers[b1][1],angular_mom_numbers[a2][1],angular_mom_numbers[b2][1],contraction_zeta_array[a1][pa1],contraction_zeta_array[b1][pb1],contraction_zeta_array[a2][pa2],contraction_zeta_array[b2][pb2],xa1, ya1, za1, xb1, yb1, zb1,xa2,ya2,za2,xb2,yb2,zb2);
+                        }
+                     }
+                  }
+               }
+            }
+         }
+      }
+   }
+   return 1;
 }

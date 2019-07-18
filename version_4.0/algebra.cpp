@@ -207,3 +207,10 @@ double cube_dot_product(double *cube1,double *cube2,int nx,int ny, int nz,double
    return 0;
    //return ddot(&num,cube1,&inc,cube2,&inc)*dx*dy*dz;
 }
+long int binomial(int n, int k)
+{
+   if(k == 0 || n-k == 0)
+      return 1;
+   else
+      return binomial(n-1,k-1)+binomial(n,k-1);
+}
