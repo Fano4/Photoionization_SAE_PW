@@ -1,7 +1,7 @@
 double M_hyperg(double a,double b,double z);
-double boys(int n_max,int n,double z, int boys_nmax);
-double hermite_coulomb( int n, int t, int u, int v, double p, double x,double y,double z,n_max,boys_nmax);
-double E( int i , int j , int t , double xa , double xb , double m , double p );
+double boys(int n_max,int n,double z, double boys_nmax=NAN);
+double hermite_coulomb( int n, int t, int u, int v, double p, double x,double y,double z,int n_max=-1,double boys_nmax=NAN);
+double E( int i , int j , int t , double xa , double xb , double xp , double m , double p );
 double mono_gauss_prod(int i,int j,int k,int l,int m,int n,double p,double q,double xa,double ya,double za,double xb,double yb,double zb, double xc,double yc,double zc);
 double bi_gauss_prod(int lxa1,int lya1,int lza1,int lxb1,int lyb1,int lzb1,int lxa2,int lya2,int lza2,int lxb2,int lyb2,int lzb2 ,double da1,double db1,double da2,double db2,double xa1,double ya1,double za1,double xb1,double yb1,double zb1,double xa2,double ya2,double za2,double xb2,double yb2,double zb2);
 double spher_harmo_mono_gauss_int(int l, int lp, int m, int mp,double d,double dp,double xa,double ya,double za,double xb,double yb,double zb,double xc,double yc,double zc);

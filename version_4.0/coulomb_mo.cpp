@@ -44,13 +44,13 @@ double M_hyperg(double a,double b,double z)
  *
  * F_(n-1)(z) = ( 2 * z * F_n (z) + exp(-z) ) / ( 2 * n - 1 )
  */
-double boys(int n_max,int n,double z, int boys_nmax=nan);
+double boys(int n_max,int n,double z, double boys_nmax)
 {
    if ( n < n_max)
       return ( 2 * z * boys( n_max , n+1 , z , boys_nmax) + exp(-z) ) / ( 2 * n + 1 );
    else
    {
-      if ( isnan(boys_max) )
+      if ( isnan(boys_nmax) )
       {
          boys_nmax = M_hyperg( n_max + 0.5 , n_max +1.5 , -z ) / ( 2 * n_max + 1 );
          return boys_nmax;
@@ -64,12 +64,13 @@ double boys(int n_max,int n,double z, int boys_nmax=nan);
  * Hermite Coulomb function is defined as the integral of the Hermite 
  * Gaussian corresponding to the product between cartesian basis functions
  */
-double hermite_coulomb( int n, int t, int u, int v, double p, double x,double y,double z,n_max=nan,boys_nmax=nan)
+double hermite_coulomb( int n, int t, int u, int v, double p, double x,double y,double z,int n_max,double boys_nmax)
 {
-   if(isnan(n_max))
+
+   if(n_max==-1)
       n_max=t+u+v;
 
-   r=sqrt(x*x+y*y+z*z);
+   double r(sqrt(x*x+y*y+z*z));
 
    if( t != 0 )
    {
@@ -104,7 +105,7 @@ double hermite_coulomb( int n, int t, int u, int v, double p, double x,double y,
    }
 }
 
-double E( int i , int j , int t , double xa , double xb , double m , double p )
+double E( int i , int j , int t , double xa , double xb,double xp , double m , double p )
 {
     if( t < 0 || t > i + j)
        return 0;
@@ -113,23 +114,23 @@ double E( int i , int j , int t , double xa , double xb , double m , double p )
     else if ( t == 0 )
     {
        if( i > 0 )
-          return ( xp - xb ) * E( i - 1 , j , 0 , xa , xb , xp , m , p ) + E( i - 1 , j , 1 , xa , xb , xp , m , p ) 
+          return ( xp - xb ) * E( i - 1 , j , 0 , xa , xb , xp , m , p ) + E( i - 1 , j , 1 , xa , xb , xp , m , p ) ;
        if( j > 0 )
-          return ( xp - xa ) * E( i , j - 1 , 0 , xa , xb , xp , m , p ) + E( i , j - 1 , 1 , xa , xb , xp , m , p ) 
+          return ( xp - xa ) * E( i , j - 1 , 0 , xa , xb , xp , m , p ) + E( i , j - 1 , 1 , xa , xb , xp , m , p ) ;
     }
     else
-       return ( 1 / ( 2 * p * t ) ) * ( i * E( i - 1 , j , t - 1 , xa , xb , xp , m , p ) + j * E( i , j - 1 , t - 1 , xa , xb , xp , m , p ) )
+       return ( 1 / ( 2 * p * t ) ) * ( i * E( i - 1 , j , t - 1 , xa , xb , xp , m , p ) + j * E( i , j - 1 , t - 1 , xa , xb , xp , m , p ) );
 
 }
 
 double mono_gauss_prod(int lx1,int ly1,int lz1,int lx2,int ly2,int lz2,double d1,double d2,double x1,double y1,double z1,double x2,double y2,double z2, double xc,double yc,double zc)
 {
    double result(0.0);
-   double p=d1+d2;
-   double mu=(d1*d2)/(d1+d2)
-   double xp(d1*xa+d2*xb)/(d1+d2);
-   double yp(d1*ya+d2*yb)/(d1+d2);
-   double zp(d1*za+d2*zb)/(d1+d2);
+   double p(d1+d2);
+   double mu((d1*d2)/(d1+d2));
+   double xp((d1*x1+d2*x2)/(d1+d2));
+   double yp((d1*y1+d2*y2)/(d1+d2));
+   double zp((d1*z1+d2*z2)/(d1+d2));
 
    for(int t=0;t!=lx1+lx2+1+1;t++)
    {
@@ -137,7 +138,7 @@ double mono_gauss_prod(int lx1,int ly1,int lz1,int lx2,int ly2,int lz2,double d1
       {
          for(int v=0;v!=lz1+lz2+1+1;v++)
          {
-            result+=E(lx1,lx2,t,x1,x2,xp,mu,p)*E(ly1,ly2,u,y1,y2,yp,mu,p)*E(lz1,lz2,v,z1,z2,zp,mu,p)*hermite_coulomb(0,t,u,v,p,xp-xc,yp-yc,zp-zc)
+            result+=E(lx1,lx2,t,x1,x2,xp,mu,p)*E(ly1,ly2,u,y1,y2,yp,mu,p)*E(lz1,lz2,v,z1,z2,zp,mu,p)*hermite_coulomb(0,t,u,v,p,xp-xc,yp-yc,zp-zc);
          }
       }
    }
@@ -175,11 +176,11 @@ double bi_gauss_prod(int lxa1,int lya1,int lza1,int lxb1,int lyb1,int lzb1,int l
                {
                   for(int vv=0;vv!=lza2+lzb2+1+1;vv++)
                   {
-                     temp+=pow(-1,tt+uu+vv)*E(lxa2,lxb2,tt,xa2,xb2,xp2,mu2,p2)*E(lya2,lyb2,uu,ya2,yb2,yp2,mu2,p2)*E(lza2,lzb2,za2,zb2,zp2,mu2,p2)*hermite_coulomb(0,tt+t,uu+u,vv+v,alpha, xp1-xp2,yp1-yp2,zp1-zp2)
+                     temp+=pow(-1,tt+uu+vv)*E(lxa2,lxb2,tt,xa2,xb2,xp2,mu2,p2)*E(lya2,lyb2,uu,ya2,yb2,yp2,mu2,p2)*E(lza2,lzb2,vv,za2,zb2,zp2,mu2,p2)*hermite_coulomb(0,tt+t,uu+u,vv+v,alpha, xp1-xp2,yp1-yp2,zp1-zp2);
                   }
                }
             }
-            temp*=E(lxa1,lxb1,t,xa1,xb1,xp1,mu1,p1)*E(lya1,lyb1,u,ya1,yb1,yp1,mu1,p1)*E(lza1,lzb1,za1,zb1,zp1,mu1,p1);
+            temp*=E(lxa1,lxb1,t,xa1,xb1,xp1,mu1,p1)*E(lya1,lyb1,u,ya1,yb1,yp1,mu1,p1)*E(lza1,lzb1,v,za1,zb1,zp1,mu1,p1);
             result+=temp;
          }
       }
@@ -193,11 +194,13 @@ double spher_harmo_mono_gauss_int(int l, int lp, int m, int mp,double d,double d
 {
    double result=0;
 
-   double vm=0.5*bool(m<0)
-   double vmp=0.5*bool(mp<0)
+   int i,j,k,ll,mm,n;
+   double C,Cp;
+   double vm=0.5*bool(m<0);
+   double vmp=0.5*bool(mp<0);
 
-   double N=(1/(pow(2,fabs(m))*factorial(l)))*sqrt(2*factorial(l+fabs(m))*factorial(l-fabs(m))/2*bool(m==0));
-   double Np=(1/(pow(2,fabs(mp))*factorial(lp)))*sqrt(2*factorial(lp+fabs(mp))*factorial(lp-fabs(mp))/2*bool(mp==0));
+   double N((1/(pow(2,fabs(m))*factorial(l)))*sqrt(2*factorial(l+fabs(m))*factorial(l-fabs(m))/2*bool(m==0)));
+   double Np((1/(pow(2,fabs(mp))*factorial(lp)))*sqrt(2*factorial(lp+fabs(mp))*factorial(lp-fabs(mp))/2*bool(mp==0)));
 
    double Renorm(sqrt(0.5*intplushalf_gamma(1+l)/(pow(2*d,1.5+l)))/pow(acos(-1)/(2*d),0.75));
    double Renormp(sqrt(0.5*intplushalf_gamma(1+lp)/(pow(2*dp,1.5+lp)))/pow(acos(-1)/(2*dp),0.75));
@@ -222,7 +225,7 @@ double spher_harmo_mono_gauss_int(int l, int lp, int m, int mp,double d,double d
                      n=lp-2*fabs(mp);
                      C=(pow(-1.0,float(t)+float(v)-float(vm)))*(pow(0.25,t))*binomial(l,t)*binomial(l-t,abs(m)+t)*binomial(t,u)*binomial(fabs(m),2*v);
                      Cp=(pow(-1.0,float(tp)+float(vp)-float(vmp)))*(pow(0.25,tp))*binomial(lp,tp)*binomial(lp-tp,abs(mp)+tp)*binomial(tp,up)*binomial(fabs(mp),2*vp);
-                     result+=C*Cp*mono_gauss_prod(i,j,k,ll,mm,n,d,dp,xa,ya,za,xb,yb,zb);
+                     result+=C*Cp*mono_gauss_prod(i,j,k,ll,mm,n,d,dp,xa,ya,za,xb,yb,zb,xc,yc,zc);
 
                   }
                }
@@ -236,10 +239,10 @@ double spher_harmo_biel_gauss_int(int la1,int lb1, int la2,int lb2, int ma1,int 
 {
    double result=0;
 
-   double vma1=0.5*bool(ma1<0)
-   double vmb1=0.5*bool(mb1<0)
-   double vma2=0.5*bool(ma2<0)
-   double vmb2=0.5*bool(mb2<0)
+   double vma1=0.5*bool(ma1<0);
+   double vmb1=0.5*bool(mb1<0);
+   double vma2=0.5*bool(ma2<0);
+   double vmb2=0.5*bool(mb2<0);
 
    double Na1=(1/(pow(2,fabs(ma1))*factorial(la1)))*sqrt(2*factorial(la1+fabs(ma1))*factorial(la1-fabs(ma1))/2*bool(ma1==0));
    double Nb1=(1/(pow(2,fabs(mb1))*factorial(lb1)))*sqrt(2*factorial(lb1+fabs(mb1))*factorial(lb1-fabs(mb1))/2*bool(mb1==0));
@@ -251,7 +254,9 @@ double spher_harmo_biel_gauss_int(int la1,int lb1, int la2,int lb2, int ma1,int 
    double Renorma2(sqrt(0.5*intplushalf_gamma(1+la2)/(pow(2*da2,1.5+la2)))/pow(acos(-1)/(2*da2),0.75));
    double Renormb2(sqrt(0.5*intplushalf_gamma(1+lb2)/(pow(2*db2,1.5+lb2)))/pow(acos(-1)/(2*db2),0.75));
 
-   double lxa1,lxa2,lya1,lya2,lza1,lza2,lxb1,lxb2,lyb1,lyb2,lzb1,lzb2;
+   int lxa1,lxa2,lya1,lya2,lza1,lza2,lxb1,lxb2,lyb1,lyb2,lzb1,lzb2;
+
+   double Ca1,Cb1,Ca2,Cb2;
    
    for(int ta1=0;ta1!=int((la1-fabs(ma1))/2)+1;ta1++)
    {
@@ -273,9 +278,9 @@ double spher_harmo_biel_gauss_int(int la1,int lb1, int la2,int lb2, int ma1,int 
                            {
                               for(int vb1=0;vb1!=int(fabs(mb1/2)-vmb1);vb1++)
                               {
-                                 for(int va1=0;va1!=int(fabs(ma1/2)-vma1);va1++)
+                                 for(int va2=0;va2!=int(fabs(ma2/2)-vma2);va2++)
                                  {
-                                    for(int vb1=0;vb1!=int(fabs(mb1/2)-vmb1);vb1++)
+                                    for(int vb2=0;vb2!=int(fabs(mb2/2)-vmb2);vb2++)
                                     {
                                        lxa1=2*ta1+fabs(ma1)-2*(ua1+va1);
                                        lxb1=2*tb1+fabs(mb1)-2*(ub1+vb1);
@@ -293,7 +298,7 @@ double spher_harmo_biel_gauss_int(int la1,int lb1, int la2,int lb2, int ma1,int 
                                        Cb1=(pow(-1.0,float(tb1)+float(vb1)-float(vmb1)))*(pow(0.25,tb1))*binomial(lb1,tb1)*binomial(lb1-tb1,abs(mb1)+tb1)*binomial(tb1,ub1)*binomial(fabs(mb1),2*vb1);
                                        Ca2=(pow(-1.0,float(ta2)+float(va2)-float(vma2)))*(pow(0.25,ta2))*binomial(la2,ta2)*binomial(la2-ta2,abs(ma2)+ta2)*binomial(ta2,ua2)*binomial(fabs(ma2),2*va2);
                                        Cb2=(pow(-1.0,float(tb2)+float(vb2)-float(vmb2)))*(pow(0.25,tb2))*binomial(lb2,tb2)*binomial(lb2-tb2,abs(mb2)+tb2)*binomial(tb2,ub2)*binomial(fabs(mb2),2*vb2);
-                                       result+=Ca1*Cb1*Ca2*Cb2*bi_gauss_prod(lxa1,lya1,lza1,lxb1,lyb1,lzb1,lxa2,lya2,lza2,da1,db1,da2,db2,xa1,ya1,za1,xb1,yb1,zb1,xa2,ya2,za2,xb2,yb2,zb2);
+                                       result+=Ca1*Cb1*Ca2*Cb2*bi_gauss_prod(lxa1,lya1,lza1,lxb1,lyb1,lzb1,lxa2,lya2,lza2,lxb2,lyb2,lzb2,da1,db1,da2,db2,xa1,ya1,za1,xb1,yb1,zb1,xa2,ya2,za2,xb2,yb2,zb2);
 
                                     }
                                  }
@@ -388,7 +393,7 @@ bool AO_biel_coulomb(double **AO_biel_coul_mat,int basis_size,int cont_num,int n
                yb2=nucl_spher_pos[nucl_basis_func[b2]][0]*sin(nucl_spher_pos[nucl_basis_func[b2]][1])*sin(nucl_spher_pos[nucl_basis_func[b2]][2]);
                zb2=nucl_spher_pos[nucl_basis_func[b2]][0]*cos(nucl_spher_pos[nucl_basis_func[b2]][1]);
 
-               AO_mono_coul_mat[a1*basis_size+b1][a2*basis_size+b2]=0;
+               AO_biel_coul_mat[a1*basis_size+b1][a2*basis_size+b2]=0;
 
                for(int pa1=0;pa1!=cont_num;pa1++)
                {
@@ -423,8 +428,8 @@ bool MO_mono_coulomb(double **MO_mono_coul_mat,int n_occ,int n_closed,int basis_
 
    for(int n=0;n!=num_of_nucl;n++)
    {
-      cblas_dgemm(CblasRowMajor,CblasNoTrans,CblasTrans,basis_size,n_occ+n_closed,basis_size,1,AO_mono_coul_mat[n],basis_size,lcao_coeff_array,(n_occ+n_closed),0,temp);
-      cblas_dgemm(CblasRowMajor,CblasNoTrans,CblasNoTrans,n_occ+n_closed,n_occ+n_closed,basis_size,1,lcao_coeff_array,basis_size,temp,n_occ+n_closed,0,MO_mono_coul_mat);
+      cblas_dgemm(CblasRowMajor,CblasNoTrans,CblasTrans,basis_size,n_occ+n_closed,basis_size,1,AO_mono_coul_mat[n],basis_size,lcao_coeff_array,(n_occ+n_closed),0,temp,(n_occ+n_closed));
+      cblas_dgemm(CblasRowMajor,CblasNoTrans,CblasNoTrans,n_occ+n_closed,n_occ+n_closed,basis_size,1,lcao_coeff_array,basis_size,temp,n_occ+n_closed,0,MO_mono_coul_mat[n],(n_occ+n_closed));
       /*
       for(int i=0;i!=n_occ+n_closed;i++)
       {
@@ -458,7 +463,7 @@ double MO_biel_coulomb(double **MO_biel_coul_mat,int n_occ,int n_closed,int basi
       AO_biel_coul_mat[n]=new double[basis_size*basis_size];
    }
 
-   AO_mono_coulomb(AO_mono_coul_mat,basis_size,cont_num,num_of_nucl,contraction_coeff_array,contraction_zeta_array,nucl_spher_pos,nucl_basis_func,angular_mom_numbers);
+   AO_biel_coulomb(AO_biel_coul_mat,basis_size,cont_num,num_of_nucl,contraction_coeff_array,contraction_zeta_array,nucl_spher_pos,nucl_basis_func,angular_mom_numbers);
 
       for(int moa1=0;moa1!=n_occ+n_closed;moa1++)
       {
@@ -478,7 +483,7 @@ double MO_biel_coulomb(double **MO_biel_coul_mat,int n_occ,int n_closed,int basi
                         {
                            for(int aob2=0;aob2!=basis_size;aob2++)
                            {
-                              MO_biel_coul_mat[moa1*(n_occ+n_closed)+mob1][moa2*(n_occ+n_closed)+mob2]+=AO_mono_coul_mat[aoa1*basis_size+aob1][aoa2*basis_size+aob2]*lcao_coeff_array[moa1*basis_size+aoa1]*lcao_coeff_array[mob1*basis_size+aob1]*lcao_coeff_array[moa2*basis_size+aoa2]*lcao_coeff_array[mob2*basis_size+aob2];
+                              MO_biel_coul_mat[moa1*(n_occ+n_closed)+mob1][moa2*(n_occ+n_closed)+mob2]+=AO_biel_coul_mat[aoa1*basis_size+aob1][aoa2*basis_size+aob2]*lcao_coeff_array[moa1*basis_size+aoa1]*lcao_coeff_array[mob1*basis_size+aob1]*lcao_coeff_array[moa2*basis_size+aoa2]*lcao_coeff_array[mob2*basis_size+aob2];
                            }
                         }
                      }
