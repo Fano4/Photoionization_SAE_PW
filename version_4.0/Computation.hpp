@@ -31,4 +31,5 @@ double associated_legendre(unsigned int l,int m,double x);
 double associated_legendre_nonorm(unsigned int l,int m,double x);
 double legendre_der(unsigned int l,double x);
 double associated_legendre_der(unsigned int l,int m,double x);
+double build_two_electron_dyson(int n_states_neut,int n_states_cat,int n_occ,int ci_size_neut,int ci_size_cat,int n_elec_neut,double **ci_vec_neut,double **ci_vec_cat,double *overlap,double *2eDyson_MO_basis_coeff);
 #endif /*Computation_hpp*/

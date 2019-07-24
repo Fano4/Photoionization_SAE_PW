@@ -6,7 +6,7 @@ bool dyson_mo_coeff_comp(int n_states_neut,int n_states_cat,int n_occ,int ci_siz
    int p;
    int q;
 
-   double *temp=new double[(n_elec_neut)*(n_elec_neut)];
+   double *temp=new double[(n_elec_neut-1)*(n_elec_neut-1)];
 
     for (int i=0; i!=n_states_neut; i++)//ELECTRONIC STATE N
     {
@@ -986,4 +986,95 @@ double build_reduced_determinant( int ai,int aj,int n_elec,int n_closed,int n_oc
   // if(prefactor != 0 )
   //    std::cout<<prefactor<<std::endl;
    return prefactor;
+}
+double build_two_electron_dyson(int n_states_neut,int n_states_cat,int n_occ,int ci_size_neut,int ci_size_cat,int n_elec_neut,double **ci_vec_neut,double **ci_vec_cat,double *overlap,double *2eDyson_MO_basis_coeff)
+{
+   bool test(0);
+   bool test2(0);
+   bool test3(0);
+
+   int e1(0);
+   int e2(0);
+   double prefactor(1.0);
+
+   int* new_vector_neut = new int [2*(n_occ+n_closed)];
+   int* new_vector_cat = new int [2*(n_occ+n_closed)];
+
+  
+
+   double *temp=new double[(n_elec_neut-2)*(n_elec_neut-2)];
+
+    for (int i=0; i!=n_states_neut; i++)//ELECTRONIC STATE N
+    {
+        for (int j=0; j!=n_states_cat; j++)//ELECTRONIC STATE K
+        {
+            for (int k=0; k!=n_occ+n_closed; k++)//MOLECULAR ORBITAL k COEFF. FOR THE 2eDYSON
+            {
+               for (int kp=0; kp!=n_occ+n_closed; kp++)//MOLECULAR ORBITAL k COEFF. FOR THE 2eDYSON
+               {
+                   2eDyson_MO_basis_coeff[(n_occ+n_closed)*(n_closed+n_occ)*n_states_cat*i+(n_closed+n_occ)*(n_closed+n_occ)*j+(n_closed+n_occ)*k+kp]=0;
+                
+                   for (int n=0; n!=ci_size_neut; n++)//   over configurations of the neutral
+                   {
+                       for (int l=0; l!=ci_size_cat; l++)//  over configuration of the cation
+                       {
+                          for(int kc=0;kc!=n_occ+n_closed;kc++)
+                          {
+                             prefactor=1.0;
+                             for(int v=0;v!=2*(n_occ+n_closed);v++)
+                             {
+                                new_vector_neut[v]=0;
+                                new_vector_cat[v]=0;
+                             }
+                             for(int m=0;m!=n_elec_neut;m++)
+                             {
+                                new_vector_neut[int(2*ci_vec_neut[0][(n_elec_neut+n_states_neut)*n+m])+int(ci_vec_neut[1][n_elec_neut*n+m])]+=1;
+                                if(m < n_elec_neut-1)
+                                   new_vector_cat[int(2*ci_vec_cat[0][(n_elec_neut-1+n_states_cat)*l+m]+int(ci_vec_cat[1][(n_elec_cat-1)*l+m])]+=1
+                             }
+                             prefactor*=sqrt(new_vector_neut[2*k]+new_vector_neut[2*k+1]);
+                             if(new_vector_neut[2*k]!=0)
+                                new_vector_neut[2*k]-=1;
+                             else if(new_vector_neut[2*k+1]!=0)
+                                new_vector_neut[2*k+1]-=1;
+                             prefactor*=sqrt(new_vector_neut[2*kp]+new_vector_neut[2*kp+1]);
+                             if(new_vector_neut[2*kp]!=0)
+                                new_vector_neut[2*kp]-=1;
+                             else if(new_vector_neut[2*kp+1]!=0)
+                                new_vector_neut[2*kp+1]-=1;
+                             prefactor*=sqrt(new_vector_cat[2*kc]+new_vector_cat[2*kc+1]);
+                             if(new_vector_cat[2*kc]!=0)
+                                new_vector_cat[2*kc]-=1;
+                             else if(new_vector_cat[2*kc+1]!=0)
+                                new_vector_cat[2*kc+1]-=1;
+                             e1=0;e2=0;
+                             for(int mm=0;mm!=2*(n_occ+n_closed);mm++)
+                             {
+                                if(new_vector_neut[mm])
+                                {
+                                      for(int nn=0;nn!=2*(n_occ+n_closed);nn++)
+                                      {
+                                         if(new_vector_cat[nn])
+                                         {
+                                               temp[e1*(n_elec_neut-2)+e2]=overlap[int(mm/2)*(n_occ+n_closed)+int(nn/2)]*bool(mm%2==nn%2);
+                                               e2++;
+                                         }
+                                      }
+                                      e1++;
+                                }
+                             }
+                             2eDyson_MO_basis_coeff[(n_occ+n_closed)*(n_closed+n_occ)*n_states_cat*i+(n_closed+n_occ)*(n_closed+n_occ)*j+(n_closed+n_occ)*k+kp]+=(ci_vec_neut[0][(n_elec_neut+n_states_neut)*n+n_elec_neut+i]*ci_vec_cat[0][(n_elec_neut-1+n_states_cat)*l+n_elec_neut-1+j]*determinant(temp,(n_elec_neut-2)));
+                          }
+                      } 
+                  }
+                     
+               }
+            }
+        }
+    }
+
+
+    delete [] temp;
+
+    return 1;
 }
