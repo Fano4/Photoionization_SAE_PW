@@ -1,7 +1,7 @@
 #!/bin/bash
 
-DEFAULT=/data1/home/stephan/Photoionization_SAE_PW/version_3.0
-SOURCE=/data1/home/stephan/Photoionization_SAE_PW/version_3.0
+DEFAULT=/data1/home/stephan/Photoionization_SAE_PW/version_4.0
+SOURCE=/data1/home/stephan/Photoionization_SAE_PW/version_4.0
 
 GSL_ROOT=data1/home/stephan/gsl
 HF5_ROOT=data1/home/stephan/libraries/cpp/hdf5
