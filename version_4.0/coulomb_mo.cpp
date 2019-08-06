@@ -414,7 +414,7 @@ bool AO_biel_coulomb(double **AO_biel_coul_mat,int basis_size,int cont_num,int n
    }
    return 1;
 }
-bool MO_mono_coulomb(double **MO_mono_coul_mat,int n_occ,int n_closed,int basis_size,int cont_num,int num_of_nucl,double *lcao_coeff_array, double **contraction_coeff_array,double **contraction_zeta_array,double **nucl_spher_pos,int *nucl_basis_func,int **angular_mom_numbers)
+bool MO_mono_coulomb(double **MO_mono_coul_mat,int n_occ,int n_closed,int basis_size,int cont_num,int num_of_nucl,double *lcao_coeff_array_bra,double *lcao_coeff_array_ket, double **contraction_coeff_array,double **contraction_zeta_array,double **nucl_spher_pos,int *nucl_basis_func,int **angular_mom_numbers)
 {
    double **AO_mono_coul_mat=new double*[num_of_nucl];
    double *temp=new double[basis_size*(n_occ+n_closed)];
@@ -428,8 +428,8 @@ bool MO_mono_coulomb(double **MO_mono_coul_mat,int n_occ,int n_closed,int basis_
 
    for(int n=0;n!=num_of_nucl;n++)
    {
-      cblas_dgemm(CblasRowMajor,CblasNoTrans,CblasTrans,basis_size,n_occ+n_closed,basis_size,1,AO_mono_coul_mat[n],basis_size,lcao_coeff_array,(n_occ+n_closed),0,temp,(n_occ+n_closed));
-      cblas_dgemm(CblasRowMajor,CblasNoTrans,CblasNoTrans,n_occ+n_closed,n_occ+n_closed,basis_size,1,lcao_coeff_array,basis_size,temp,n_occ+n_closed,0,MO_mono_coul_mat[n],(n_occ+n_closed));
+      cblas_dgemm(CblasRowMajor,CblasNoTrans,CblasTrans,basis_size,n_occ+n_closed,basis_size,1,AO_mono_coul_mat[n],basis_size,lcao_coeff_array_ket,(n_occ+n_closed),0,temp,(n_occ+n_closed));
+      cblas_dgemm(CblasRowMajor,CblasNoTrans,CblasNoTrans,n_occ+n_closed,n_occ+n_closed,basis_size,1,lcao_coeff_array_bra,basis_size,temp,n_occ+n_closed,0,MO_mono_coul_mat[n],(n_occ+n_closed));
       /*
       for(int i=0;i!=n_occ+n_closed;i++)
       {
@@ -455,7 +455,7 @@ bool MO_mono_coulomb(double **MO_mono_coul_mat,int n_occ,int n_closed,int basis_
    return 1;
 }
 
-double MO_biel_coulomb(double **MO_biel_coul_mat,int n_occ,int n_closed,int basis_size,int cont_num,int num_of_nucl,double *lcao_coeff_array, double **contraction_coeff_array,double **contraction_zeta_array,double **nucl_spher_pos,int *nucl_basis_func,int **angular_mom_numbers)
+double MO_biel_coulomb(double **MO_biel_coul_mat,int n_occ,int n_closed,int basis_size,int cont_num,int num_of_nucl,double *lcao_coeff_array_bra,double *lcao_coeff_array_ket, double **contraction_coeff_array,double **contraction_zeta_array,double **nucl_spher_pos,int *nucl_basis_func,int **angular_mom_numbers)
 {
    double **AO_biel_coul_mat=new double*[basis_size*basis_size];
    for(int n=0;n!=basis_size*basis_size;n++)
@@ -483,7 +483,7 @@ double MO_biel_coulomb(double **MO_biel_coul_mat,int n_occ,int n_closed,int basi
                         {
                            for(int aob2=0;aob2!=basis_size;aob2++)
                            {
-                              MO_biel_coul_mat[moa1*(n_occ+n_closed)+mob1][moa2*(n_occ+n_closed)+mob2]+=AO_biel_coul_mat[aoa1*basis_size+aob1][aoa2*basis_size+aob2]*lcao_coeff_array[moa1*basis_size+aoa1]*lcao_coeff_array[mob1*basis_size+aob1]*lcao_coeff_array[moa2*basis_size+aoa2]*lcao_coeff_array[mob2*basis_size+aob2];
+                              MO_biel_coul_mat[moa1*(n_occ+n_closed)+mob1][moa2*(n_occ+n_closed)+mob2]+=AO_biel_coul_mat[aoa1*basis_size+aob1][aoa2*basis_size+aob2]*lcao_coeff_array_bra[moa1*basis_size+aoa1]*lcao_coeff_array_ket[mob1*basis_size+aob1]*lcao_coeff_array_bra[moa2*basis_size+aoa2]*lcao_coeff_array_ket[mob2*basis_size+aob2];
                            }
                         }
                      }

@@ -6,7 +6,7 @@ bool dyson_mo_coeff_comp(int n_states_neut,int n_states_cat,int n_occ,int ci_siz
    int p;
    int q;
 
-   double *temp=new double[(n_elec_neut)*(n_elec_neut)];
+   double *temp=new double[(n_elec_neut-1)*(n_elec_neut-1)];
 
     for (int i=0; i!=n_states_neut; i++)//ELECTRONIC STATE N
     {
@@ -624,7 +624,7 @@ std::complex<double> contraction_FT_grad_phi( double k, double thet, double phi,
    return std::conj(value);
 }
 
-double MO_value( int mo_index, double x, double y, double z,double **nucl_spher_pos,int *nucl_basis_func,int* contraction_number,double **contraction_coeff,double **contraction_zeta,std::string *basis_func_type,double *MO_neut_basis_coeff,int basis_size,int **angular_mom_numbers)
+double MO_value( int mo_index, double x, double y, double z,double **nucl_spher_pos,int *nucl_basis_func,int* contraction_number,double **contraction_coeff,double **contraction_zeta,int **angular_mom_numbers,double *MO_neut_basis_coeff,int basis_size)
 {
    double value(0);
    double xp(0);
@@ -665,34 +665,73 @@ double MO_value( int mo_index, double x, double y, double z,double **nucl_spher_
          phi=atan2(yp,xp);
       }
    }
-      value+=MO_neut_basis_coeff[mo_index*basis_size+i]*AO_value(i,r,thet,phi,contraction_number,nucl_spher_pos[nucl_basis_func[i]-1],contraction_coeff,contraction_zeta,basis_func_type,angular_mom_numbers);
-//      std::cout<<"==>"<<MO_neut_basis_coeff[mo_index*basis_size+i]<<"*"<<AO_value(i,r,thet,phi,contraction_number,nucl_spher_pos[nucl_basis_func[i]-1],contraction_coeff,contraction_zeta,basis_func_type,angular_mom_numbers)<<std::endl;
+      value+=MO_neut_basis_coeff[mo_index*basis_size+i]*AO_value(i,r,thet,phi,contraction_number,nucl_spher_pos[nucl_basis_func[i]-1],contraction_coeff,contraction_zeta,angular_mom_numbers[i]);
+//      if( x == 0 && y == 0)
+//      {
+//         std::cout<<"coord "<<r<<","<<thet<<","<<phi<<std::endl;
+//          std::cout<<"==>"<<MO_neut_basis_coeff[mo_index*basis_size+i]<<"*"<<AO_value(i,r,thet,phi,contraction_number,nucl_spher_pos[nucl_basis_func[i]-1],contraction_coeff,contraction_zeta,angular_mom_numbers[i])<<std::endl;
+//      }
    }
    return value;
 }
-double AO_value(int ao_index,double r, double thet, double phi,int *contraction_number,double *nucl_spher_pos,double **contraction_coeff,double **contraction_zeta,std::string *basis_func_type,int **angular_mom_numbers)
+double AO_value(int ao_index,double r, double thet, double phi,int *contraction_number,double *nucl_spher_pos,double **contraction_coeff,double **contraction_zeta,int *angular_mom_numbers)
 {
 
    double value(0);
    double norm(0);
    for(int i=0;i!=contraction_number[ao_index];i++)
    {
-         value+=contraction_coeff[ao_index][i]*contraction_value(r,thet,phi,nucl_spher_pos,contraction_zeta[ao_index][i],basis_func_type[ao_index],angular_mom_numbers[ao_index]);
-//         if(value>=1)
-//            std::cout<<"==>==>"<<contraction_coeff[ao_index][i]<<" * "<<contraction_value(r,thet,phi,nucl_spher_pos,contraction_zeta[ao_index][i],basis_func_type[ao_index],angular_mom_numbers[ao_index])<<" = "<<contraction_coeff[ao_index][i]*contraction_value(r,thet,phi,nucl_spher_pos,contraction_zeta[ao_index][i],basis_func_type[ao_index],angular_mom_numbers[ao_index])<<std::endl;
+         value+=contraction_coeff[ao_index][i]*contraction_value(r,thet,phi,nucl_spher_pos,contraction_zeta[ao_index][i],angular_mom_numbers);
+//         if(thet = 0 || thet == acos(-1))
+//            std::cout<<"==>==>"<<contraction_coeff[ao_index][i]<<" * "<<contraction_value(r,thet,phi,nucl_spher_pos,contraction_zeta[ao_index][i],angular_mom_numbers)<<" = "<<contraction_coeff[ao_index][i]*contraction_value(r,thet,phi,nucl_spher_pos,contraction_zeta[ao_index][i],angular_mom_numbers)<<std::endl;
    }
    return value;
 
 }
-double contraction_value( double r, double thet, double phi,double* nucl_spher_pos,double contraction_zeta,std::string basis_func_type,int* angular_mom_numbers)
+double contraction_value( double r, double thet, double phi,double* nucl_spher_pos,double contraction_zeta,int* angular_mom_numbers)
 {
    using namespace std;
+   /*
+    * EVALUATION OF CONTRACTION VALUE USING SPHERICAL HARMONICS COMPUTED USING ABRAMOWITZ FORMULAE
+    */
 
+   int l(angular_mom_numbers[0]);
+   int ml(angular_mom_numbers[1]);
+   double value;
+
+   if(ml<0)
+   {
+      value=
+         (sqrt(2)*associated_legendre(l,-ml,cos(thet))*sin(-ml*phi)) // Real spherical harmonics
+         *(pow(r,l)*exp(-contraction_zeta*r*r)) // Radial part
+         ;
+   }
+   else if(ml>0)
+   {
+   value=
+      (sqrt(2)*associated_legendre(l,ml,cos(thet))*cos(ml*phi)) // Real spherical harmonics
+      *(pow(r,l)*exp(-contraction_zeta*r*r)) // Radial part
+      ;
+      //std::cout<<thet<<";"<<phi<<" : probe! => "<<value<<std::endl;
+   }
+   else
+   {
+   value=
+      (associated_legendre(l,ml,cos(thet))) // Real spherical harmonics
+      *(pow(r,l)*exp(-contraction_zeta*r*r)) // Radial part
+      ;
+   }
+
+   return value;
+   
+   /*
+    * EVALUATION OF CONTRACTION VALUE USING EXPLICIT SPHERICAL HARMONICS VALUES
+    */
 //   if(exp(-contraction_zeta*pow(r,2))*pow(r,2) > 1)
 //      std::cout<<"****"<<exp(-contraction_zeta*pow(r,2))<<","<<r<<std::endl<<"==>"<<exp(-contraction_zeta*pow(r,2))*pow(r,2)<<std::endl;
 
 //   std::cout<<basis_func_type.c_str()<<" - l = "<<angular_mom_numbers[0]<<" ; ml = "<<angular_mom_numbers[1]<<std::endl;
-
+/*
    switch(angular_mom_numbers[0])
    {
       case 0:
@@ -746,6 +785,7 @@ double contraction_value( double r, double thet, double phi,double* nucl_spher_p
    }
    exit(EXIT_FAILURE);
    return 0;
+   */
 /*
    double temp(0);
    if(basis_func_type=="1s")
@@ -946,4 +986,95 @@ double build_reduced_determinant( int ai,int aj,int n_elec,int n_closed,int n_oc
   // if(prefactor != 0 )
   //    std::cout<<prefactor<<std::endl;
    return prefactor;
+}
+double build_two_electron_dyson(int n_states_neut,int n_states_cat,int n_occ,int ci_size_neut,int ci_size_cat,int n_elec_neut,double **ci_vec_neut,double **ci_vec_cat,double *overlap,double *2eDyson_MO_basis_coeff)
+{
+   bool test(0);
+   bool test2(0);
+   bool test3(0);
+
+   int e1(0);
+   int e2(0);
+   double prefactor(1.0);
+
+   int* new_vector_neut = new int [2*(n_occ+n_closed)];
+   int* new_vector_cat = new int [2*(n_occ+n_closed)];
+
+  
+
+   double *temp=new double[(n_elec_neut-2)*(n_elec_neut-2)];
+
+    for (int i=0; i!=n_states_neut; i++)//ELECTRONIC STATE N
+    {
+        for (int j=0; j!=n_states_cat; j++)//ELECTRONIC STATE K
+        {
+            for (int k=0; k!=n_occ+n_closed; k++)//MOLECULAR ORBITAL k COEFF. FOR THE 2eDYSON
+            {
+               for (int kp=0; kp!=n_occ+n_closed; kp++)//MOLECULAR ORBITAL k COEFF. FOR THE 2eDYSON
+               {
+                   2eDyson_MO_basis_coeff[(n_occ+n_closed)*(n_closed+n_occ)*n_states_cat*i+(n_closed+n_occ)*(n_closed+n_occ)*j+(n_closed+n_occ)*k+kp]=0;
+                
+                   for (int n=0; n!=ci_size_neut; n++)//   over configurations of the neutral
+                   {
+                       for (int l=0; l!=ci_size_cat; l++)//  over configuration of the cation
+                       {
+                          for(int kc=0;kc!=n_occ+n_closed;kc++)
+                          {
+                             prefactor=1.0;
+                             for(int v=0;v!=2*(n_occ+n_closed);v++)
+                             {
+                                new_vector_neut[v]=0;
+                                new_vector_cat[v]=0;
+                             }
+                             for(int m=0;m!=n_elec_neut;m++)
+                             {
+                                new_vector_neut[int(2*ci_vec_neut[0][(n_elec_neut+n_states_neut)*n+m])+int(ci_vec_neut[1][n_elec_neut*n+m])]+=1;
+                                if(m < n_elec_neut-1)
+                                   new_vector_cat[int(2*ci_vec_cat[0][(n_elec_neut-1+n_states_cat)*l+m]+int(ci_vec_cat[1][(n_elec_cat-1)*l+m])]+=1
+                             }
+                             prefactor*=sqrt(new_vector_neut[2*k]+new_vector_neut[2*k+1]);
+                             if(new_vector_neut[2*k]!=0)
+                                new_vector_neut[2*k]-=1;
+                             else if(new_vector_neut[2*k+1]!=0)
+                                new_vector_neut[2*k+1]-=1;
+                             prefactor*=sqrt(new_vector_neut[2*kp]+new_vector_neut[2*kp+1]);
+                             if(new_vector_neut[2*kp]!=0)
+                                new_vector_neut[2*kp]-=1;
+                             else if(new_vector_neut[2*kp+1]!=0)
+                                new_vector_neut[2*kp+1]-=1;
+                             prefactor*=sqrt(new_vector_cat[2*kc]+new_vector_cat[2*kc+1]);
+                             if(new_vector_cat[2*kc]!=0)
+                                new_vector_cat[2*kc]-=1;
+                             else if(new_vector_cat[2*kc+1]!=0)
+                                new_vector_cat[2*kc+1]-=1;
+                             e1=0;e2=0;
+                             for(int mm=0;mm!=2*(n_occ+n_closed);mm++)
+                             {
+                                if(new_vector_neut[mm])
+                                {
+                                      for(int nn=0;nn!=2*(n_occ+n_closed);nn++)
+                                      {
+                                         if(new_vector_cat[nn])
+                                         {
+                                               temp[e1*(n_elec_neut-2)+e2]=overlap[int(mm/2)*(n_occ+n_closed)+int(nn/2)]*bool(mm%2==nn%2);
+                                               e2++;
+                                         }
+                                      }
+                                      e1++;
+                                }
+                             }
+                             2eDyson_MO_basis_coeff[(n_occ+n_closed)*(n_closed+n_occ)*n_states_cat*i+(n_closed+n_occ)*(n_closed+n_occ)*j+(n_closed+n_occ)*k+kp]+=(ci_vec_neut[0][(n_elec_neut+n_states_neut)*n+n_elec_neut+i]*ci_vec_cat[0][(n_elec_neut-1+n_states_cat)*l+n_elec_neut-1+j]*determinant(temp,(n_elec_neut-2)));
+                          }
+                      } 
+                  }
+                     
+               }
+            }
+        }
+    }
+
+
+    delete [] temp;
+
+    return 1;
 }
