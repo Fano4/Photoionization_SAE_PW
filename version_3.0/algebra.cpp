@@ -223,7 +223,7 @@ double w3j(int l1,int l2,int l3,int m1,int m2,int m3)
    int tmin(0);
    int tmax(l2+l1-l3);
 
-   if(l2-l3+m1>tmin)
+   if(l2-l3-m1>tmin)
       tmin=l2-l3+m1;
    if(l1-l3+m2>tmin)
       tmin=l1-l3+m2;
