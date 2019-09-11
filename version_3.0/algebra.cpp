@@ -207,3 +207,21 @@ double cube_dot_product(double *cube1,double *cube2,int nx,int ny, int nz,double
    return 0;
    //return ddot(&num,cube1,&inc,cube2,&inc)*dx*dy*dz;
 }
+
+double wigner3j(int l1,int l2,int l3,int m1,int m2,int m3)
+{
+   return pow(-1,l1-l2-m3)*wdelta();
+}
+double wdelta(int a,int b,int c)
+{
+   return sqrt(factorial(a+b-c)*factorial(a-b+c)*factorial(-a+b+c)/factorial(a+b+c+1));
+}
+double w3j(int l1,int l2,int l3,int m1,int m2,int m3)
+{
+   double sum(0);
+
+   int numin(0);
+   int numax(0);
+
+   return sqrt(factorial(l1+m1)*factorial(l1-m1)*factorial(l2+m2)*factorial(l2-m2)*factorial(l3+m3)*factorial(l3-m3))*sum
+}
