@@ -210,7 +210,7 @@ double cube_dot_product(double *cube1,double *cube2,int nx,int ny, int nz,double
 
 double wigner3j(int l1,int l2,int l3,int m1,int m2,int m3)
 {
-   return pow(-1,l1-l2-m3)*wdelta();
+   return pow(-1,l1-l2-m3)*wdelta(l1,l2,l3)*w3j(l1,l2,l3,m1,m2,m3);
 }
 double wdelta(int a,int b,int c)
 {
@@ -220,8 +220,22 @@ double w3j(int l1,int l2,int l3,int m1,int m2,int m3)
 {
    double sum(0);
 
-   int numin(0);
-   int numax(0);
+   int tmin(0);
+   int tmax(l2+l1-l3);
 
+   if(l2-l3+m1>tmin)
+      tmin=l2-l3+m1;
+   if(l1-l3+m2>tmin)
+      tmin=l1-l3+m2;
+   
+   if(l1-m1<tmax)
+      tmax=l1-m1;
+   if(l2+m2<tmax)
+      tmax=l2+m2;
+
+   for(int t=tmin;t!=tmax+1;t++)
+   {
+      sum+=pow(-1,t)/(factorial(t)*factorial(l3-l2+t+m1)*factorial(l3-l1+t-m2)*factorial(l3+l1-t-l3)*factorial(l1-t-m1)*factorial(l2-t+m2));
+   }
    return sqrt(factorial(l1+m1)*factorial(l1-m1)*factorial(l2+m2)*factorial(l2-m2)*factorial(l3+m3)*factorial(l3-m3))*sum
 }
