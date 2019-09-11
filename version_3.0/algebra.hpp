@@ -24,5 +24,7 @@ long double intplushalf_gamma(int n); //(Gamma(n+1/2))
 double w3j(int l1,int l2,int l3,int m1,int m2,int m3);
 double wdelta(int a,int b,int c);
 double wigner3j(int l1,int l2,int l3,int m1,int m2,int m3);
+double j_l(int l,double z);//spherical bessel function of order l
+double dj_ldz(int l,double z); //Derivative of the spherical bessel function of order l
 
 #endif /* computation_hpp */

@@ -239,3 +239,18 @@ double w3j(int l1,int l2,int l3,int m1,int m2,int m3)
    }
    return sqrt(factorial(l1+m1)*factorial(l1-m1)*factorial(l2+m2)*factorial(l2-m2)*factorial(l3+m3)*factorial(l3-m3))*sum
 }
+double j_l(int l,double z) //spherical bessel function of order l
+{
+   if (l<0)
+      return 0;
+   else if(l == 0)
+      return sin(z)/z;
+   else if( l == 1 )
+      return sin(z)/(z*z)-cos(z)/z;
+   else
+      return (2*l-1)*j_l(l-1,z)/z-j_l(l-2,z);
+}
+double dj_ldz(int l,double z) //Derivative of the spherical bessel function of order l
+{
+   return (l*j_l(l-1,z)-(l+1)*j_l(l+1,z))/(2*l+1);
+}
