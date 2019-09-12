@@ -947,3 +947,68 @@ double build_reduced_determinant( int ai,int aj,int n_elec,int n_closed,int n_oc
   //    std::cout<<prefactor<<std::endl;
    return prefactor;
 }
+
+std::complex<double> bessel_MO_overlap( int mo_index, double k, int jl, int jml,double **nucl_spher_pos,int *nucl_basis_func,int* contraction_number,double **contraction_coeff,double **contraction_zeta,int **angular_mom_numbers,double *MO_neut_basis_coeff,int basis_size)
+{
+   std::complex<double> value(0);
+   for(int i=0;i!=basis_size;i++)
+   {
+      if(MO_neut_basis_coeff[mo_index*basis_size+i] != 0)
+      {
+         value+=MO_neut_basis_coeff[mo_index*basis_size+i]*bessel_AO_overlap(i,k,jl,jml,contraction_number,nucl_spher_pos[nucl_basis_func[i]-1],contraction_coeff,contraction_zeta,angular_mom_numbers[i]);
+      }
+   }
+   return value;
+}
+std::complex<double> bessel_AO_overlap(int ao_index,double k, int jl, int jml,int *contraction_number,double *nucl_spher_pos,double **contraction_coeff,double **contraction_zeta,int* angular_mom_numbers)
+{
+   std::complex<double> value(0);
+   for(int i=0;i!=contraction_number[ao_index];i++)
+   {
+      if(contraction_coeff[ao_index][i] != 0)
+      {
+         value+=contraction_coeff[ao_index][i]*bessel_contraction_overlap(k,jl,jml,nucl_spher_pos,contraction_zeta[ao_index][i],angular_mom_numbers);
+      }
+   }
+   return value;
+
+}
+std::complex<double> bessel_contraction_overlap( double k, int jl,int jml,double* nucl_spher_pos,double contraction_zeta,int* angular_mom_numbers)
+{
+   using namespace std;
+
+   int l(angular_mom_numbers[0]);
+   int ml(angular_mom_numbers[1]);
+   std::complex<double> value;
+   complex<double> f(sin(thet)*sin(nucl_spher_pos[1])*cos(phi-nucl_spher_pos[2])+cos(thet)*cos(nucl_spher_pos[1]));
+   complex<double> phase_factor(exp(std::complex<double>(0,-1)*k*nucl_spher_pos[0]*f));
+
+   if(ml<0)
+   {
+   value=
+      (sqrt(2)*associated_legendre(l,-ml,cos(thet))*sin(-ml*phi)) // Real spherical harmonics
+      *((pow(std::complex<double>(0,-k),l)*exp(-k*k/(4*contraction_zeta)))/(pow(2*contraction_zeta,1.5+l))) // Radial part
+      *phase_factor // phase factor
+      ;
+   }
+   else if(ml>0)
+   {
+   value=
+      (sqrt(2)*associated_legendre(l,ml,cos(thet))*cos(ml*phi)) // Real spherical harmonics
+      *((pow(std::complex<double>(0,-k),l)*exp(-k*k/(4*contraction_zeta)))/(pow(2*contraction_zeta,1.5+l))) // Radial part
+      *phase_factor // phase factor
+      ;
+      //std::cout<<thet<<";"<<phi<<" : probe! => "<<value<<std::endl;
+   }
+   else
+   {
+   value=
+      (associated_legendre(l,ml,cos(thet))) // Real spherical harmonics
+      *((pow(std::complex<double>(0,-k),l)*exp(-k*k/(4*contraction_zeta)))/(pow(2*contraction_zeta,1.5+l))) // Radial part
+      *phase_factor // phase factor
+      ;
+   }
+
+   return std::conj(value);
+
+}
