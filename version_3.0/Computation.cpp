@@ -977,38 +977,119 @@ std::complex<double> bessel_contraction_overlap( double k, int jl,int jml,double
 {
    using namespace std;
 
-   int l(angular_mom_numbers[0]);
-   int ml(angular_mom_numbers[1]);
-   std::complex<double> value;
-   complex<double> f(sin(thet)*sin(nucl_spher_pos[1])*cos(phi-nucl_spher_pos[2])+cos(thet)*cos(nucl_spher_pos[1]));
-   complex<double> phase_factor(exp(std::complex<double>(0,-1)*k*nucl_spher_pos[0]*f));
+   int l1(jl);
+   int l2(angular_mom_numbers[0]);
+   int m1(jml);
+   int m2(angular_mom_numbers[1]);
+   int l3(0);
+   int m3(0);
 
-   if(ml<0)
+   std::complex<double> sum(0);
+
+   std::complex<double> Kl2( pow(std::complex<double>(0,k),l2) * exp( - k * k / (4 * contraction_zeta) ) / ( pow(2*contraction_zeta,1.5+l2) ) );
+
+   for(int l3=int(fabs(l1-l2));l3!=l1+l2+1;l3++)
    {
-   value=
-      (sqrt(2)*associated_legendre(l,-ml,cos(thet))*sin(-ml*phi)) // Real spherical harmonics
-      *((pow(std::complex<double>(0,-k),l)*exp(-k*k/(4*contraction_zeta)))/(pow(2*contraction_zeta,1.5+l))) // Radial part
-      *phase_factor // phase factor
-      ;
+      for(int m3=-l3;m3!=l3+1;l3++)
+      {
+         sum+=pow(std::complex<double>(0,-1),l3)*j_l(l3,k*nucl_spher_pos[0])*rYlm(l3,m3,nucl_spher_pos[1],nucl_spher_pos[2])*Dint(l1,l2,l3,m1,m2,m3);
+      }
    }
-   else if(ml>0)
+
+   return sum*pow(std::complex<double>(0,-1),l1)*acos(-1)*k*Kl2;
+}
+std::complex<double> bessel_radialder_contraction_overlap( double k, int jl,int jml,double* nucl_spher_pos,double contraction_zeta,int* angular_mom_numbers)
+{
+   using namespace std;
+
+   int l1(jl);
+   int l2(angular_mom_numbers[0]);
+   int m1(jml);
+   int m2(angular_mom_numbers[1]);
+   int l3(0);
+   int m3(0);
+
+   std::complex<double> sum(0);
+   std::complex<double> sum2(0);
+
+   std::complex<double> Kl2( pow(std::complex<double>(0,k),l2) * exp( - k*k / (4 * contraction_zeta) ) / ( pow(2*contraction_zeta,1.5+l2) ) );
+   std::complex<double> dKl2dk( l2 * Kl2 / k - k * Kl2 / ( 2 * contraction_zeta) );
+
+   for(int l3=int(fabs(l1-l2));l3!=l1+l2+1;l3++)
    {
-   value=
-      (sqrt(2)*associated_legendre(l,ml,cos(thet))*cos(ml*phi)) // Real spherical harmonics
-      *((pow(std::complex<double>(0,-k),l)*exp(-k*k/(4*contraction_zeta)))/(pow(2*contraction_zeta,1.5+l))) // Radial part
-      *phase_factor // phase factor
-      ;
-      //std::cout<<thet<<";"<<phi<<" : probe! => "<<value<<std::endl;
+      for(int m3=-l3;m3!=l3+1;l3++)
+      {
+         sum+=pow(std::complex<double>(0,-1),l3)*j_l(l3,k*nucl_spher_pos[0])*rYlm(l3,m3,nucl_spher_pos[1],nucl_spher_pos[2])*Dint(l1,l2,l3,m1,m2,m3);
+         sum2+=k*nucl_spher_pos[0]*pow(std::complex<double>(0,-1),l3)*dj_ldz(l3,k*nucl_spher_pos[0])*rYlm(l3,m3,nucl_spher_pos[1],nucl_spher_pos[2])*Dint(l1,l2,l3,m1,m2,m3);
+      }
+   }
+
+   return sum * pow(std::complex<double>(0,-1),l1) * acos(-1) * k * dKl2dk 
+      + sum2 * pow(std::complex<double>(0,-1),l1) * acos(-1) * k * Kl2;
+}
+std::complex<double> bessel_polarder_contraction_overlap( double k, int jl,int jml,double* nucl_spher_pos,double contraction_zeta,int* angular_mom_numbers)
+{
+   using namespace std;
+
+   int l1(jl);
+   int l2(angular_mom_numbers[0]);
+   int m1(jml);
+   int m2(angular_mom_numbers[1]);
+   int l3(0);
+   int m3(0);
+
+   std::complex<double> sum(0);
+
+   std::complex<double> Kl2( pow(std::complex<double>(0,k),l2) * exp( - k*k / (4 * contraction_zeta) ) / ( pow(2*contraction_zeta,1.5+l2) ) );
+
+   for(int l3=int(fabs(l1-l2));l3!=l1+l2+1;l3++)
+   {
+      for(int m3=-l3;m3!=l3+1;l3++)
+      {
+         sum+=;
+      }
+   }
+
+   return 
+}
+double azim_integ(int m1,int m2,int m3)
+{
+   return 0.25*( sin(2*acos(-1)*(m1-m2-m3)) / (m1-m2-m3) + sin(2*acos(-1)*(m1+m2-m3)) / (m1+m2-m3) 
+         - sin(2*acos(-1)*(m1-m2+m3)) / (m1-m2+m3) - sin(2*acos(-1)*(m1+m2+m3)) / (m1+m2+m3) );
+}
+double rYlm (int l,int m,double thet,double phi)
+{
+   if(m<0)
+   {
+      return sqrt(2)*associated_legendre(l,-m,cos(thet))*sin(-m*phi);
+   }
+   else if(m>0)
+   {
+      return sqrt(2)*associated_legendre(l,m,cos(thet))*cos(m*phi);
    }
    else
    {
-   value=
-      (associated_legendre(l,ml,cos(thet))) // Real spherical harmonics
-      *((pow(std::complex<double>(0,-k),l)*exp(-k*k/(4*contraction_zeta)))/(pow(2*contraction_zeta,1.5+l))) // Radial part
-      *phase_factor // phase factor
-      ;
+      return associated_legendre(l,m,cos(thet));
    }
+}
+double prefactor_rYlm(int l,int m)
+{
+   int sign(-bool( m % 2 != 0 ) + bool( m % 2 == 0 ));
 
-   return std::conj(value);
-
+   if(m == 0)
+   {
+      return sqrt((2*l+1)/(4*acos(-1)));
+   }
+   else if(m > 0)
+   {
+      return sign * sqrt((2*l+1) * factorial(l-m) / (4*acos(-1) * factorial(l+m)));
+   }
+   else 
+   {
+      return sign * factorial(l+m)*prefactor_rYlm(l,-m)/factorial(l-m);
+   }
+}
+double Dint(int l1,int l2,int l3,int m1,int m2,int m3)
+{
+   return sqrt(((2*l1+1)*(2*l2+1)*(2*l3+1))/(4*acos(-1)))*wigner3j(l1,l2,l3,0,0,0)*wigner3j(l1,l2,l3,m1,m2,m3);
 }

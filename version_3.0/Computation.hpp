@@ -33,6 +33,11 @@ double associated_legendre_nonorm(unsigned int l,int m,double x);
 double associated_legendre_der(unsigned int l,int m,double x);
 double legendre(unsigned int l,double x);
 double legendre_der(unsigned int l,double x);
+std::complex<double> bessel_MO_overlap( int mo_index, double k, int jl, int jml,double **nucl_spher_pos,int *nucl_basis_func,int* contraction_number,double **contraction_coeff,double **contraction_zeta,int **angular_mom_numbers,double *MO_neut_basis_coeff,int basis_size);
+std::complex<double> bessel_AO_overlap(int ao_index,double k, int jl, int jml,int *contraction_number,double *nucl_spher_pos,double **contraction_coeff,double **contraction_zeta,int* angular_mom_numbers);
+std::complex<double> bessel_contraction_overlap( double k, int jl,int jml,double* nucl_spher_pos,double contraction_zeta,int* angular_mom_numbers);
+double rYlm (int l,int m,double thet,double phi);
+double Dint(int l1,int l2,int l3,int m1,int m2,int m3);
 
 #include "Legendre_functions.cpp"
 #endif /*Computation_hpp*/
