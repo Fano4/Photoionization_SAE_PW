@@ -38,6 +38,22 @@ std::complex<double> bessel_AO_overlap(int ao_index,double k, int jl, int jml,in
 std::complex<double> bessel_contraction_overlap( double k, int jl,int jml,double* nucl_spher_pos,double contraction_zeta,int* angular_mom_numbers);
 double rYlm (int l,int m,double thet,double phi);
 double Dint(int l1,int l2,int l3,int m1,int m2,int m3);
+double gaunt_formula(int l1,int l2,int l3,int m1,int m2,int m3);
+double prefactor_rYlm(int l,int m);
+double azim_integ(int m1,int m2,int m3);
+std::complex<double> bessel_azimder_contraction_overlap( double k, int jl,int jml,double* nucl_spher_pos,double contraction_zeta,int* angular_mom_numbers);
+std::complex<double> bessel_polarder_contraction_overlap( double k, int jl,int jml,double* nucl_spher_pos,double contraction_zeta,int* angular_mom_numbers);
+std::complex<double> bessel_radialder_contraction_overlap( double k, int jl,int jml,double* nucl_spher_pos,double contraction_zeta,int* angular_mom_numbers);
+std::complex<double> bessel_ddx_contraction_overlap( double k, int jl,int jml,double* nucl_spher_pos,double contraction_zeta,int* angular_mom_numbers);
+std::complex<double> bessel_ddx_contraction_overlap( double k, int jl,int jml,double* nucl_spher_pos,double contraction_zeta,int* angular_mom_numbers);
+std::complex<double> bessel_ddy_contraction_overlap( double k, int jl,int jml,double* nucl_spher_pos,double contraction_zeta,int* angular_mom_numbers);
+std::complex<double> bessel_ddz_contraction_overlap( double k, int jl,int jml,double* nucl_spher_pos,double contraction_zeta,int* angular_mom_numbers);
+std::complex<double> bessel_AO_ddx_overlap(int ao_index,double k, int jl, int jml,int *contraction_number,double *nucl_spher_pos,double **contraction_coeff,double **contraction_zeta,int* angular_mom_numbers);
+std::complex<double> bessel_AO_ddy_overlap(int ao_index,double k, int jl, int jml,int *contraction_number,double *nucl_spher_pos,double **contraction_coeff,double **contraction_zeta,int* angular_mom_numbers);
+std::complex<double> bessel_AO_ddz_overlap(int ao_index,double k, int jl, int jml,int *contraction_number,double *nucl_spher_pos,double **contraction_coeff,double **contraction_zeta,int* angular_mom_numbers);
+std::complex<double> bessel_MO_ddx_overlap( int mo_index, double k, int jl, int jml,double **nucl_spher_pos,int *nucl_basis_func,int* contraction_number,double **contraction_coeff,double **contraction_zeta,int **angular_mom_numbers,double *MO_neut_basis_coeff,int basis_size);
+std::complex<double> bessel_MO_ddy_overlap( int mo_index, double k, int jl, int jml,double **nucl_spher_pos,int *nucl_basis_func,int* contraction_number,double **contraction_coeff,double **contraction_zeta,int **angular_mom_numbers,double *MO_neut_basis_coeff,int basis_size);
+std::complex<double> bessel_MO_ddz_overlap( int mo_index, double k, int jl, int jml,double **nucl_spher_pos,int *nucl_basis_func,int* contraction_number,double **contraction_coeff,double **contraction_zeta,int **angular_mom_numbers,double *MO_neut_basis_coeff,int basis_size);
 
 #include "Legendre_functions.cpp"
 #endif /*Computation_hpp*/

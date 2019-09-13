@@ -960,6 +960,81 @@ std::complex<double> bessel_MO_overlap( int mo_index, double k, int jl, int jml,
    }
    return value;
 }
+std::complex<double> bessel_MO_ddx_overlap( int mo_index, double k, int jl, int jml,double **nucl_spher_pos,int *nucl_basis_func,int* contraction_number,double **contraction_coeff,double **contraction_zeta,int **angular_mom_numbers,double *MO_neut_basis_coeff,int basis_size)
+{
+   std::complex<double> value(0);
+   for(int i=0;i!=basis_size;i++)
+   {
+      if(MO_neut_basis_coeff[mo_index*basis_size+i] != 0)
+      {
+         value+=MO_neut_basis_coeff[mo_index*basis_size+i]*bessel_AO_ddx_overlap(i,k,jl,jml,contraction_number,nucl_spher_pos[nucl_basis_func[i]-1],contraction_coeff,contraction_zeta,angular_mom_numbers[i]);
+      }
+   }
+   return value;
+}
+std::complex<double> bessel_MO_ddy_overlap( int mo_index, double k, int jl, int jml,double **nucl_spher_pos,int *nucl_basis_func,int* contraction_number,double **contraction_coeff,double **contraction_zeta,int **angular_mom_numbers,double *MO_neut_basis_coeff,int basis_size)
+{
+   std::complex<double> value(0);
+   for(int i=0;i!=basis_size;i++)
+   {
+      if(MO_neut_basis_coeff[mo_index*basis_size+i] != 0)
+      {
+         value+=MO_neut_basis_coeff[mo_index*basis_size+i]*bessel_AO_ddy_overlap(i,k,jl,jml,contraction_number,nucl_spher_pos[nucl_basis_func[i]-1],contraction_coeff,contraction_zeta,angular_mom_numbers[i]);
+      }
+   }
+   return value;
+}
+std::complex<double> bessel_MO_ddz_overlap( int mo_index, double k, int jl, int jml,double **nucl_spher_pos,int *nucl_basis_func,int* contraction_number,double **contraction_coeff,double **contraction_zeta,int **angular_mom_numbers,double *MO_neut_basis_coeff,int basis_size)
+{
+   std::complex<double> value(0);
+   for(int i=0;i!=basis_size;i++)
+   {
+      if(MO_neut_basis_coeff[mo_index*basis_size+i] != 0)
+      {
+         value+=MO_neut_basis_coeff[mo_index*basis_size+i]*bessel_AO_ddz_overlap(i,k,jl,jml,contraction_number,nucl_spher_pos[nucl_basis_func[i]-1],contraction_coeff,contraction_zeta,angular_mom_numbers[i]);
+      }
+   }
+   return value;
+}
+std::complex<double> bessel_AO_ddx_overlap(int ao_index,double k, int jl, int jml,int *contraction_number,double *nucl_spher_pos,double **contraction_coeff,double **contraction_zeta,int* angular_mom_numbers)
+{
+   std::complex<double> value(0);
+   for(int i=0;i!=contraction_number[ao_index];i++)
+   {
+      if(contraction_coeff[ao_index][i] != 0)
+      {
+         value+=contraction_coeff[ao_index][i]*bessel_ddx_contraction_overlap(k,jl,jml,nucl_spher_pos,contraction_zeta[ao_index][i],angular_mom_numbers);
+      }
+   }
+   return value;
+
+}
+std::complex<double> bessel_AO_ddy_overlap(int ao_index,double k, int jl, int jml,int *contraction_number,double *nucl_spher_pos,double **contraction_coeff,double **contraction_zeta,int* angular_mom_numbers)
+{
+   std::complex<double> value(0);
+   for(int i=0;i!=contraction_number[ao_index];i++)
+   {
+      if(contraction_coeff[ao_index][i] != 0)
+      {
+         value+=contraction_coeff[ao_index][i]*bessel_ddy_contraction_overlap(k,jl,jml,nucl_spher_pos,contraction_zeta[ao_index][i],angular_mom_numbers);
+      }
+   }
+   return value;
+
+}
+std::complex<double> bessel_AO_ddz_overlap(int ao_index,double k, int jl, int jml,int *contraction_number,double *nucl_spher_pos,double **contraction_coeff,double **contraction_zeta,int* angular_mom_numbers)
+{
+   std::complex<double> value(0);
+   for(int i=0;i!=contraction_number[ao_index];i++)
+   {
+      if(contraction_coeff[ao_index][i] != 0)
+      {
+         value+=contraction_coeff[ao_index][i]*bessel_ddz_contraction_overlap(k,jl,jml,nucl_spher_pos,contraction_zeta[ao_index][i],angular_mom_numbers);
+      }
+   }
+   return value;
+
+}
 std::complex<double> bessel_AO_overlap(int ao_index,double k, int jl, int jml,int *contraction_number,double *nucl_spher_pos,double **contraction_coeff,double **contraction_zeta,int* angular_mom_numbers)
 {
    std::complex<double> value(0);
@@ -1116,7 +1191,7 @@ std::complex<double> bessel_ddx_contraction_overlap( double k, int jl,int jml,do
                * prefactor_rYlm(l1,m1)*prefactor_rYlm(l2,m2)*prefactor_rYlm(l3,m3)
                * (0.5 * fabs(m2) * ( azim_integ(m1,-m2,-m3-1) - azim_integ(m1,m2,-m3+1) )
                + 0.5 * fabs(m3) * ( azim_integ(m1,-m2-1,-m3) - azim_integ(m1,-m2+1,-m3) ))
-               * (1./(2.*m3)) * ( 
+               * (1./(2.*fabs(m3))) * ( 
                      gaunt_formula(l1,l2,l3-1,fabs(m1),fabs(m2),fabs(m3)+1) 
                    + (l3+m3)*(l3+m3-1)*gaunt_formula(l1,l2,l3-1,fabs(m1),fabs(m2),fabs(m3)-1) 
                  );
@@ -1139,13 +1214,14 @@ std::complex<double> bessel_ddx_contraction_overlap( double k, int jl,int jml,do
                      * 0.5 * ( azim_integ(m1,m2,m3+1) + azim_integ(m1,m2,m3-1) )
 
                      * (
-                           (1./(2.*l3+1.)) * ( gaunt_formula(l1,l2,l3-1,fabs(m1),1,fabs(m3)+1) 
-                      + gaunt_formula(l1,l2,l3+1,fabs(m1),1,fabs(m3)+1) 
+                           (1./(2.*l3+1.)) 
+                           * ( (l3-fabs(m3)+1)*gaunt_formula(l1,l2,l3+1,fabs(m1),1,fabs(m3)) 
+                      + (l3+fabs(m3))*gaunt_formula(l1,l2,l3-1,fabs(m1),1,fabs(m3)) 
                                              )
 
                         +(1./(2.*l2+1.)) * ( 
-                       gaunt_formula(l1,l2-1,l3,fabs(m1),fabs(m2)+1,1) 
-                      + gaunt_formula(l1,l2+1,l3,fabs(m1),fabs(m2)+1,1) 
+                       (l2-fabs(m2)+1)*gaunt_formula(l1,l2+1,l3,fabs(m1),fabs(m2),1) 
+                      + (l2+fabs(m2))*gaunt_formula(l1,l2-1,l3,fabs(m1),fabs(m2),1) 
                                           )
                        );
                }
@@ -1159,17 +1235,17 @@ std::complex<double> bessel_ddx_contraction_overlap( double k, int jl,int jml,do
 
                      * (
                            (1./(2.*l3+1.)) * ( 
-                        gaunt_formula(l1,l2,l3-1,fabs(m1),1,fabs(m3)+1) 
-                      +  gaunt_formula(l1,l2,l3+1,fabs(m1),1,fabs(m3)+1) 
+                        (l3-fabs(m3)+1)*gaunt_formula(l1,l2,l3+1,fabs(m1),1,fabs(m3)) 
+                      +  (l3+fabs(m3))*gaunt_formula(l1,l2,l3-1,fabs(m1),1,fabs(m3)) 
                                              )
 
                         +(1./(2.*l2+1.)) * ( 
-                       (1./fabs(m3) - 3./2.) * gaunt_formula(l1,l2-1,l3,fabs(m1),fabs(m2)+1,fabs(m3)+1) 
-                      + (1./fabs(m3) - 3./2.) * gaunt_formula(l1,l2+1,l3,fabs(m1),fabs(m2)+1,fabs(m3)+1) 
-                      + (1./fabs(m3) - 1./2.) * (l3+fabs(m3)) * (l3-fabs(m3)+1) 
-                        * gaunt_formula(l1,l2-1,l3-1,fabs(m1),fabs(m2)+1,fabs(m3)) 
-                      + (1./fabs(m3) - 1./2.) * (l3+fabs(m3)) * (l3-fabs(m3)+1)
-                        * gaunt_formula(l1,l2+1,l3-1,fabs(m1),fabs(m2)+1,fabs(m3)) 
+                       (1./fabs(m3) - 3./2.) * (l2-fabs(m2)+1)* gaunt_formula(l1,l2+1,l3,fabs(m1),fabs(m2),fabs(m3)+1) 
+                      + (1./fabs(m3) - 3./2.) * (l2+fabs(m2))*gaunt_formula(l1,l2-1,l3,fabs(m1),fabs(m2),fabs(m3)+1) 
+                      + (1./fabs(m3) - 1./2.) * (l3+fabs(m3)) * (l3-fabs(m3)+1) *(l2-fabs(m2)+1)
+                        * gaunt_formula(l1,l2+1,l3-1,fabs(m1),fabs(m2),fabs(m3)) 
+                      + (1./fabs(m3) - 1./2.) * (l3+fabs(m3)) * (l3-fabs(m3)+1)*(l2+fabs(m2))
+                        * gaunt_formula(l1,l2-1,l3-1,fabs(m1),fabs(m2),fabs(m3)) 
                                              )
                        );
                }
@@ -1181,8 +1257,8 @@ std::complex<double> bessel_ddx_contraction_overlap( double k, int jl,int jml,do
                      * 0.5 * ( azim_integ(m1,m2,m3+1) + azim_integ(m1,m2,m3-1) )
                      * (
                            (1./(2.*l3+1.)) * ( 
-                        gaunt_formula(l1,l2,l3-1,fabs(m1),1,fabs(m3)+1) 
-                      +  gaunt_formula(l1,l2,l3+1,fabs(m1),1,fabs(m3)+1) 
+                        (l3-fabs(m3)+1)*gaunt_formula(l1,l2,l3+1,fabs(m1),1,fabs(m3)) 
+                      +  (l3+fabs(m3))*gaunt_formula(l1,l2,l3-1,fabs(m1),1,fabs(m3)) 
                                              )
                        );
                }
@@ -1198,17 +1274,17 @@ std::complex<double> bessel_ddx_contraction_overlap( double k, int jl,int jml,do
 
                      * (
                            (1./(2.*l3+1.)) * ( 
-                       (1./fabs(m2) - 3./2.) * gaunt_formula(l1,l2,l3-1,fabs(m1),fabs(m2)+1,fabs(m3)+1) 
-                      + (1./fabs(m2) - 3./2.) * gaunt_formula(l1,l2,l3+1,fabs(m1),fabs(m2)+1,fabs(m3)+1) 
-                      + (1./fabs(m2) - 1./2.) * (l2+fabs(m2)) * (l2-fabs(m2)+1) 
-                        * gaunt_formula(l1,l2-1,l3-1,fabs(m1),fabs(m2),fabs(m3)+1) 
-                      + (1./fabs(m2) - 1./2.) * (l2+fabs(m2)) * (l2-fabs(m2)+1)
-                        * gaunt_formula(l1,l2-1,l3+1,fabs(m1),fabs(m2),fabs(m3)+1) 
+                       (1./fabs(m2) - 3./2.) * (l3-fabs(m3)+1)*gaunt_formula(l1,l2,l3+1,fabs(m1),fabs(m2)+1,fabs(m3)) 
+                      + (1./fabs(m2) - 3./2.) * (l3+fabs(m3))*gaunt_formula(l1,l2,l3-1,fabs(m1),fabs(m2)+1,fabs(m3)) 
+                      + (1./fabs(m2) - 1./2.) * (l2+fabs(m2)) * (l2-fabs(m2)+1)* (l3-fabs(m3)+1) 
+                        * gaunt_formula(l1,l2-1,l3+1,fabs(m1),fabs(m2),fabs(m3)) 
+                      + (1./fabs(m2) - 1./2.) * (l2+fabs(m2)) * (l2-fabs(m2)+1)* (l3+fabs(m3))
+                        * gaunt_formula(l1,l2-1,l3-1,fabs(m1),fabs(m2),fabs(m3)) 
                                              )
 
                         +(1./(2.*l2+1.)) * ( 
-                       gaunt_formula(l1,l2-1,l3,fabs(m1),fabs(m2)+1,1) 
-                      + gaunt_formula(l1,l2+1,l3,fabs(m1),fabs(m2)+1,1) 
+                       (l2-fabs(m2)+1)*gaunt_formula(l1,l2+1,l3,fabs(m1),fabs(m2),1) 
+                      + (l2+fabs(m2))*gaunt_formula(l1,l2-1,l3,fabs(m1),fabs(m2),1) 
                                              )
                        );
                }
@@ -1222,21 +1298,21 @@ std::complex<double> bessel_ddx_contraction_overlap( double k, int jl,int jml,do
 
                      * (
                            (1./(2.*l3+1.)) * ( 
-                       (1./fabs(m2) - 3./2.) * gaunt_formula(l1,l2,l3-1,fabs(m1),fabs(m2)+1,fabs(m3)+1) 
-                      + (1./fabs(m2) - 3./2.) * gaunt_formula(l1,l2,l3+1,fabs(m1),fabs(m2)+1,fabs(m3)+1) 
-                      + (1./fabs(m2) - 1./2.) * (l2+fabs(m2)) * (l2-fabs(m2)+1) 
-                        * gaunt_formula(l1,l2-1,l3-1,fabs(m1),fabs(m2),fabs(m3)+1) 
-                      + (1./fabs(m2) - 1./2.) * (l2+fabs(m2)) * (l2-fabs(m2)+1)
-                        * gaunt_formula(l1,l2-1,l3+1,fabs(m1),fabs(m2),fabs(m3)+1) 
+                       (1./fabs(m2) - 3./2.) * (l3-fabs(m3)+1)*gaunt_formula(l1,l2,l3+1,fabs(m1),fabs(m2)+1,fabs(m3)) 
+                      + (1./fabs(m2) - 3./2.) * (l3+fabs(m3))*gaunt_formula(l1,l2,l3-1,fabs(m1),fabs(m2)+1,fabs(m3)) 
+                      + (1./fabs(m2) - 1./2.) * (l2+fabs(m2)) * (l2-fabs(m2)+1) * (l3-fabs(m3)+1)
+                        * gaunt_formula(l1,l2-1,l3+1,fabs(m1),fabs(m2),fabs(m3)) 
+                      + (1./fabs(m2) - 1./2.) * (l2+fabs(m2)) * (l2-fabs(m2)+1) * (l3+fabs(m3))
+                        * gaunt_formula(l1,l2-1,l3-1,fabs(m1),fabs(m2),fabs(m3)) 
                                              )
 
                         +(1./(2.*l2+1.)) * ( 
-                       (1./fabs(m3) - 3./2.) * gaunt_formula(l1,l2-1,l3,fabs(m1),fabs(m2)+1,fabs(m3)+1) 
-                      + (1./fabs(m3) - 3./2.) * gaunt_formula(l1,l2+1,l3,fabs(m1),fabs(m2)+1,fabs(m3)+1) 
-                      + (1./fabs(m3) - 1./2.) * (l3+fabs(m3)) * (l3-fabs(m3)+1) 
-                        * gaunt_formula(l1,l2-1,l3-1,fabs(m1),fabs(m2)+1,fabs(m3)) 
-                      + (1./fabs(m3) - 1./2.) * (l3+fabs(m3)) * (l3-fabs(m3)+1)
+                       (1./fabs(m3) - 3./2.) *(l2-fabs(m2)+1)* gaunt_formula(l1,l2+1,l3,fabs(m1),fabs(m2),fabs(m3)+1) 
+                      + (1./fabs(m3) - 3./2.) * (l2+fabs(m2)) *gaunt_formula(l1,l2-1,l3,fabs(m1),fabs(m2),fabs(m3)+1) 
+                      + (1./fabs(m3) - 1./2.) * (l2-fabs(m2)+1)*(l3+fabs(m3)) * (l3-fabs(m3)+1) 
                         * gaunt_formula(l1,l2+1,l3-1,fabs(m1),fabs(m2)+1,fabs(m3)) 
+                      + (1./fabs(m3) - 1./2.) * (l3+fabs(m3)) * (l3-fabs(m3)+1)*(l2+fabs(m2)) 
+                        * gaunt_formula(l1,l2-1,l3-1,fabs(m1),fabs(m2),fabs(m3)) 
                                              )
                        );
                }
@@ -1249,12 +1325,12 @@ std::complex<double> bessel_ddx_contraction_overlap( double k, int jl,int jml,do
 
                      * (
                            (1./(2.*l3+1.)) * ( 
-                      + (1./fabs(m2) - 3./2.) * gaunt_formula(l1,l2,l3-1,fabs(m1),fabs(m2)+1,fabs(m3)+1) 
-                      + (1./fabs(m2) - 3./2.) * gaunt_formula(l1,l2,l3+1,fabs(m1),fabs(m2)+1,fabs(m3)+1) 
-                      + (1./fabs(m2) - 1./2.) * (l2+fabs(m2)) * (l2-fabs(m2)+1) 
-                        * gaunt_formula(l1,l2-1,l3-1,fabs(m1),fabs(m2),fabs(m3)+1) 
-                      + (1./fabs(m2) - 1./2.) * (l2+fabs(m2)) * (l2-fabs(m2)+1)
-                        * gaunt_formula(l1,l2-1,l3+1,fabs(m1),fabs(m2),fabs(m3)+1) 
+                      + (1./fabs(m2) - 3./2.) * (l3-fabs(m3)+1)*gaunt_formula(l1,l2,l3+1,fabs(m1),fabs(m2)+1,fabs(m3)) 
+                      + (1./fabs(m2) - 3./2.) * (l3+fabs(m3))*gaunt_formula(l1,l2,l3-1,fabs(m1),fabs(m2)+1,fabs(m3)) 
+                      + (1./fabs(m2) - 1./2.) * (l3-fabs(m3)+1)*(l2+fabs(m2)) * (l2-fabs(m2)+1) 
+                        * gaunt_formula(l1,l2-1,l3+1,fabs(m1),fabs(m2),fabs(m3)) 
+                      + (1./fabs(m2) - 1./2.) * (l3+fabs(m3))*(l2+fabs(m2)) * (l2-fabs(m2)+1)
+                        * gaunt_formula(l1,l2-1,l3-1,fabs(m1),fabs(m2),fabs(m3)) 
                                              )
                        );
                }
@@ -1270,8 +1346,8 @@ std::complex<double> bessel_ddx_contraction_overlap( double k, int jl,int jml,do
 
                      * (
                         (1./(2.*l2+1.)) * ( 
-                      + gaunt_formula(l1,l2-1,l3,fabs(m1),fabs(m2)+1,1) 
-                      + gaunt_formula(l1,l2+1,l3,fabs(m1),fabs(m2)+1,1) 
+                      + (l2-fabs(m2)+1)*gaunt_formula(l1,l2+1,l3,fabs(m1),fabs(m2),1) 
+                      + (l2+fabs(m2)) *gaunt_formula(l1,l2-1,l3,fabs(m1),fabs(m2),1) 
                                              )
                        );
                }
@@ -1285,12 +1361,12 @@ std::complex<double> bessel_ddx_contraction_overlap( double k, int jl,int jml,do
                      * (
 
                         (1./(2.*l2+1.)) * ( 
-                      + (1./fabs(m3) - 3./2.) * gaunt_formula(l1,l2-1,l3,fabs(m1),fabs(m2)+1,fabs(m3)+1) 
-                      + (1./fabs(m3) - 3./2.) * gaunt_formula(l1,l2+1,l3,fabs(m1),fabs(m2)+1,fabs(m3)+1) 
-                      + (1./fabs(m3) - 1./2.) * (l3+fabs(m3)) * (l3-fabs(m3)+1) 
-                        * gaunt_formula(l1,l2-1,l3-1,fabs(m1),fabs(m2)+1,fabs(m3)) 
-                      + (1./fabs(m3) - 1./2.) * (l3+fabs(m3)) * (l3-fabs(m3)+1)
-                        * gaunt_formula(l1,l2+1,l3-1,fabs(m1),fabs(m2)+1,fabs(m3)) 
+                      + (1./fabs(m3) - 3./2.) * (l2-fabs(m2)+1)*gaunt_formula(l1,l2+1,l3,fabs(m1),fabs(m2),fabs(m3)+1) 
+                      + (1./fabs(m3) - 3./2.) *(l2+fabs(m2)) * gaunt_formula(l1,l2-1,l3,fabs(m1),fabs(m2),fabs(m3)+1) 
+                      + (1./fabs(m3) - 1./2.) * (l3+fabs(m3)) * (l3-fabs(m3)+1) *(l2-fabs(m2)+1)
+                        * gaunt_formula(l1,l2+1,l3-1,fabs(m1),fabs(m2),fabs(m3)) 
+                      + (1./fabs(m3) - 1./2.) * (l2+fabs(m2)) *(l3+fabs(m3)) * (l3-fabs(m3)+1)
+                        * gaunt_formula(l1,l2-1,l3-1,fabs(m1),fabs(m2),fabs(m3)) 
                                              )
                        );
                }
@@ -1348,7 +1424,211 @@ std::complex<double> bessel_ddy_contraction_overlap( double k, int jl,int jml,do
                   sum2+= acos(-1) * pow(std::complex<double>(0,-1),l3-l1) * rYlm(l3,m3,nucl_spher_pos[1],nucl_spher_pos[2]) 
                      *  j_l(l3,k*nucl_spher_pos[0]) * Kl2 
                      * prefactor_rYlm(l1,m1)*prefactor_rYlm(l2,m2)*prefactor_rYlm(l3,m3)
-                     * 0.5 * ( azim_integ(m1,m2,m3-1) - azim_integ(m1,m2,m3+1) )
+                     * 0.5 * ( azim_integ(m1,m2,-m3-1) - azim_integ(m1,m2,-m3+1) )
+
+                     * (
+                           (1./(2.*l3+1.)) 
+                           * ( (l3-fabs(m3)+1)*gaunt_formula(l1,l2,l3+1,fabs(m1),1,fabs(m3)) 
+                      + (l3+fabs(m3))*gaunt_formula(l1,l2,l3-1,fabs(m1),1,fabs(m3)) 
+                                             )
+
+                        +(1./(2.*l2+1.)) * ( 
+                       (l2-fabs(m2)+1)*gaunt_formula(l1,l2+1,l3,fabs(m1),fabs(m2),1) 
+                      + (l2+fabs(m2))*gaunt_formula(l1,l2-1,l3,fabs(m1),fabs(m2),1) 
+                                          )
+                       );
+               }
+               else if(l3>0 && m3!=0)
+               {
+                  //sum2 represents the cos(thet)cos(phi) Dthet term
+                  sum2+= acos(-1) * pow(std::complex<double>(0,-1),l3-l1) * rYlm(l3,m3,nucl_spher_pos[1],nucl_spher_pos[2]) 
+                     *  j_l(l3,k*nucl_spher_pos[0]) * Kl2 
+                     * prefactor_rYlm(l1,m1)*prefactor_rYlm(l2,m2)*prefactor_rYlm(l3,m3)
+                     * 0.5 * ( azim_integ(m1,m2,-m3-1) - azim_integ(m1,m2,-m3+1) )
+
+                     * (
+                           (1./(2.*l3+1.)) * ( 
+                        (l3-fabs(m3)+1)*gaunt_formula(l1,l2,l3+1,fabs(m1),1,fabs(m3)) 
+                      +  (l3+fabs(m3))*gaunt_formula(l1,l2,l3-1,fabs(m1),1,fabs(m3)) 
+                                             )
+
+                        +(1./(2.*l2+1.)) * ( 
+                       (1./fabs(m3) - 3./2.) * (l2-fabs(m2)+1)* gaunt_formula(l1,l2+1,l3,fabs(m1),fabs(m2),fabs(m3)+1) 
+                      + (1./fabs(m3) - 3./2.) * (l2+fabs(m2))*gaunt_formula(l1,l2-1,l3,fabs(m1),fabs(m2),fabs(m3)+1) 
+                      + (1./fabs(m3) - 1./2.) * (l3+fabs(m3)) * (l3-fabs(m3)+1) *(l2-fabs(m2)+1)
+                        * gaunt_formula(l1,l2+1,l3-1,fabs(m1),fabs(m2),fabs(m3)) 
+                      + (1./fabs(m3) - 1./2.) * (l3+fabs(m3)) * (l3-fabs(m3)+1)*(l2+fabs(m2))
+                        * gaunt_formula(l1,l2-1,l3-1,fabs(m1),fabs(m2),fabs(m3)) 
+                                             )
+                       );
+               }
+               else //l3 == 0
+               {
+                  sum2+= acos(-1) * pow(std::complex<double>(0,-1),l3-l1) * rYlm(l3,m3,nucl_spher_pos[1],nucl_spher_pos[2]) 
+                     *  j_l(l3,k*nucl_spher_pos[0]) * Kl2 
+                     * prefactor_rYlm(l1,m1)*prefactor_rYlm(l2,m2)*prefactor_rYlm(l3,m3)
+                     * 0.5 * ( azim_integ(m1,m2,-m3-1) - azim_integ(m1,m2,-m3+1) )
+                     * (
+                           (1./(2.*l3+1.)) * ( 
+                        (l3-fabs(m3)+1)*gaunt_formula(l1,l2,l3+1,fabs(m1),1,fabs(m3)) 
+                      +  (l3+fabs(m3))*gaunt_formula(l1,l2,l3-1,fabs(m1),1,fabs(m3)) 
+                                             )
+                       );
+               }
+            }
+            else if(l2 > 0 && m2 != 0)
+            {
+               if(l3 > 0 && m3 == 0)
+               {
+                  sum2+= acos(-1) * pow(std::complex<double>(0,-1),l3-l1) * rYlm(l3,m3,nucl_spher_pos[1],nucl_spher_pos[2]) 
+                     *  j_l(l3,k*nucl_spher_pos[0]) * Kl2 
+                     * prefactor_rYlm(l1,m1)*prefactor_rYlm(l2,m2)*prefactor_rYlm(l3,m3)
+                     * 0.5 * ( azim_integ(m1,m2,-m3-1) - azim_integ(m1,m2,-m3+1) )
+
+                     * (
+                           (1./(2.*l3+1.)) * ( 
+                       (1./fabs(m2) - 3./2.) * (l3-fabs(m3)+1)*gaunt_formula(l1,l2,l3+1,fabs(m1),fabs(m2)+1,fabs(m3)) 
+                      + (1./fabs(m2) - 3./2.) * (l3+fabs(m3))*gaunt_formula(l1,l2,l3-1,fabs(m1),fabs(m2)+1,fabs(m3)) 
+                      + (1./fabs(m2) - 1./2.) * (l2+fabs(m2)) * (l2-fabs(m2)+1)* (l3-fabs(m3)+1) 
+                        * gaunt_formula(l1,l2-1,l3+1,fabs(m1),fabs(m2),fabs(m3)) 
+                      + (1./fabs(m2) - 1./2.) * (l2+fabs(m2)) * (l2-fabs(m2)+1)* (l3+fabs(m3))
+                        * gaunt_formula(l1,l2-1,l3-1,fabs(m1),fabs(m2),fabs(m3)) 
+                                             )
+
+                        +(1./(2.*l2+1.)) * ( 
+                       (l2-fabs(m2)+1)*gaunt_formula(l1,l2+1,l3,fabs(m1),fabs(m2),1) 
+                      + (l2+fabs(m2))*gaunt_formula(l1,l2-1,l3,fabs(m1),fabs(m2),1) 
+                                             )
+                       );
+               }
+               else if(l3>0 && m3!=0)
+               {
+                  //sum2 represents the cos(thet)cos(phi) Dthet term
+                  sum2+= acos(-1) * pow(std::complex<double>(0,-1),l3-l1) * rYlm(l3,m3,nucl_spher_pos[1],nucl_spher_pos[2]) 
+                     *  j_l(l3,k*nucl_spher_pos[0]) * Kl2 
+                     * prefactor_rYlm(l1,m1)*prefactor_rYlm(l2,m2)*prefactor_rYlm(l3,m3)
+                     * 0.5 * ( azim_integ(m1,m2,-m3-1) - azim_integ(m1,m2,-m3+1) )
+
+                     * (
+                           (1./(2.*l3+1.)) * ( 
+                       (1./fabs(m2) - 3./2.) * (l3-fabs(m3)+1)*gaunt_formula(l1,l2,l3+1,fabs(m1),fabs(m2)+1,fabs(m3)) 
+                      + (1./fabs(m2) - 3./2.) * (l3+fabs(m3))*gaunt_formula(l1,l2,l3-1,fabs(m1),fabs(m2)+1,fabs(m3)) 
+                      + (1./fabs(m2) - 1./2.) * (l2+fabs(m2)) * (l2-fabs(m2)+1) * (l3-fabs(m3)+1)
+                        * gaunt_formula(l1,l2-1,l3+1,fabs(m1),fabs(m2),fabs(m3)) 
+                      + (1./fabs(m2) - 1./2.) * (l2+fabs(m2)) * (l2-fabs(m2)+1) * (l3+fabs(m3))
+                        * gaunt_formula(l1,l2-1,l3-1,fabs(m1),fabs(m2),fabs(m3)) 
+                                             )
+
+                        +(1./(2.*l2+1.)) * ( 
+                       (1./fabs(m3) - 3./2.) *(l2-fabs(m2)+1)* gaunt_formula(l1,l2+1,l3,fabs(m1),fabs(m2),fabs(m3)+1) 
+                      + (1./fabs(m3) - 3./2.) * (l2+fabs(m2)) *gaunt_formula(l1,l2-1,l3,fabs(m1),fabs(m2),fabs(m3)+1) 
+                      + (1./fabs(m3) - 1./2.) * (l2-fabs(m2)+1)*(l3+fabs(m3)) * (l3-fabs(m3)+1) 
+                        * gaunt_formula(l1,l2+1,l3-1,fabs(m1),fabs(m2)+1,fabs(m3)) 
+                      + (1./fabs(m3) - 1./2.) * (l3+fabs(m3)) * (l3-fabs(m3)+1)*(l2+fabs(m2)) 
+                        * gaunt_formula(l1,l2-1,l3-1,fabs(m1),fabs(m2),fabs(m3)) 
+                                             )
+                       );
+               }
+               else
+               {
+                  sum2+= acos(-1) * pow(std::complex<double>(0,-1),l3-l1) * rYlm(l3,m3,nucl_spher_pos[1],nucl_spher_pos[2]) 
+                     *  j_l(l3,k*nucl_spher_pos[0]) * Kl2 
+                     * prefactor_rYlm(l1,m1)*prefactor_rYlm(l2,m2)*prefactor_rYlm(l3,m3)
+                     * 0.5 * ( azim_integ(m1,m2,-m3-1) - azim_integ(m1,m2,-m3+1) )
+
+                     * (
+                           (1./(2.*l3+1.)) * ( 
+                      + (1./fabs(m2) - 3./2.) * (l3-fabs(m3)+1)*gaunt_formula(l1,l2,l3+1,fabs(m1),fabs(m2)+1,fabs(m3)) 
+                      + (1./fabs(m2) - 3./2.) * (l3+fabs(m3))*gaunt_formula(l1,l2,l3-1,fabs(m1),fabs(m2)+1,fabs(m3)) 
+                      + (1./fabs(m2) - 1./2.) * (l3-fabs(m3)+1)*(l2+fabs(m2)) * (l2-fabs(m2)+1) 
+                        * gaunt_formula(l1,l2-1,l3+1,fabs(m1),fabs(m2),fabs(m3)) 
+                      + (1./fabs(m2) - 1./2.) * (l3+fabs(m3))*(l2+fabs(m2)) * (l2-fabs(m2)+1)
+                        * gaunt_formula(l1,l2-1,l3-1,fabs(m1),fabs(m2),fabs(m3)) 
+                                             )
+                       );
+               }
+            }
+            else
+            {
+               if(l3 > 0 && m3 == 0)
+               {
+                  sum2+= acos(-1) * pow(std::complex<double>(0,-1),l3-l1) * rYlm(l3,m3,nucl_spher_pos[1],nucl_spher_pos[2]) 
+                     *  j_l(l3,k*nucl_spher_pos[0]) * Kl2 
+                     * prefactor_rYlm(l1,m1)*prefactor_rYlm(l2,m2)*prefactor_rYlm(l3,m3)
+                     * 0.5 * ( azim_integ(m1,m2,-m3-1) - azim_integ(m1,m2,-m3+1) )
+
+                     * (
+                        (1./(2.*l2+1.)) * ( 
+                      + (l2-fabs(m2)+1)*gaunt_formula(l1,l2+1,l3,fabs(m1),fabs(m2),1) 
+                      + (l2+fabs(m2)) *gaunt_formula(l1,l2-1,l3,fabs(m1),fabs(m2),1) 
+                                             )
+                       );
+               }
+               else if(l3>0 && m3!=0)
+               {
+                  sum2+= acos(-1) * pow(std::complex<double>(0,-1),l3-l1) * rYlm(l3,m3,nucl_spher_pos[1],nucl_spher_pos[2]) 
+                     *  j_l(l3,k*nucl_spher_pos[0]) * Kl2 
+                     * prefactor_rYlm(l1,m1)*prefactor_rYlm(l2,m2)*prefactor_rYlm(l3,m3)
+                     * 0.5 * ( azim_integ(m1,m2,-m3-1) - azim_integ(m1,m2,-m3+1) )
+
+                     * (
+
+                        (1./(2.*l2+1.)) * ( 
+                      + (1./fabs(m3) - 3./2.) * (l2-fabs(m2)+1)*gaunt_formula(l1,l2+1,l3,fabs(m1),fabs(m2),fabs(m3)+1) 
+                      + (1./fabs(m3) - 3./2.) *(l2+fabs(m2)) * gaunt_formula(l1,l2-1,l3,fabs(m1),fabs(m2),fabs(m3)+1) 
+                      + (1./fabs(m3) - 1./2.) * (l3+fabs(m3)) * (l3-fabs(m3)+1) *(l2-fabs(m2)+1)
+                        * gaunt_formula(l1,l2+1,l3-1,fabs(m1),fabs(m2),fabs(m3)) 
+                      + (1./fabs(m3) - 1./2.) * (l2+fabs(m2)) *(l3+fabs(m3)) * (l3-fabs(m3)+1)
+                        * gaunt_formula(l1,l2-1,l3-1,fabs(m1),fabs(m2),fabs(m3)) 
+                                             )
+                       );
+               }
+               else// Both terms are zero.
+               {
+               }
+            }
+      }
+   }
+
+   return sum+sum2+sum3;
+}
+std::complex<double> bessel_ddz_contraction_overlap( double k, int jl,int jml,double* nucl_spher_pos,double contraction_zeta,int* angular_mom_numbers)
+{
+   using namespace std;
+
+   int l1(jl);
+   int l2(angular_mom_numbers[0]);
+   int m1(jml);
+   int m2(angular_mom_numbers[1]);
+   std::complex<double> sum(0);
+   std::complex<double> sum2(0);
+   std::complex<double> sum3(0);
+
+   std::complex<double> Kl2( pow(std::complex<double>(0,k),l2) * exp( - k*k / (4 * contraction_zeta) ) / ( pow(2*contraction_zeta,1.5+l2) ) );
+   std::complex<double> dKl2dk( double(l2) * Kl2 / k - k * Kl2 / ( 2 * contraction_zeta) );
+
+   for(int l3=int(fabs(l1-l2));l3!=l1+l2+2;l3++)
+   {
+      for(int m3=-l3;m3!=l3+1;m3++)
+      {
+         //sum3 represents the sin(phi) Dphi term
+         //sum represents the cos(thet)Dk term
+            sum+= acos(-1) * pow(std::complex<double>(0,-1),l3-l1) * k * rYlm(l3,m3,nucl_spher_pos[1],nucl_spher_pos[2]) 
+               * ( j_l(l3,k*nucl_spher_pos[0]) * dKl2dk + Kl2 * nucl_spher_pos[0] * dj_ldz(l3,k*nucl_spher_pos[0]))
+               * prefactor_rYlm(l1,m1)*prefactor_rYlm(l2,m2)*prefactor_rYlm(l3,m3)
+               * ( azim_integ(m1,m2,m3))
+               * (1./(2.*l3+1.)) * ( 
+                     (l3-m3+1)*gaunt_formula(l1,l2,l3+1,fabs(m1),fabs(m2),fabs(m3)) 
+                   + (l3+m3)*gaunt_formula(l1,l2,l3-1,fabs(m1),fabs(m2),fabs(m3)) 
+                 );
+            if(l2 > 0 && m2 == 0)
+            {
+               if(l3 > 0 && m3 == 0)
+               {
+                  sum2+= acos(-1) * pow(std::complex<double>(0,-1),l3-l1) * rYlm(l3,m3,nucl_spher_pos[1],nucl_spher_pos[2]) 
+                     *  j_l(l3,k*nucl_spher_pos[0]) * Kl2 
+                     * prefactor_rYlm(l1,m1)*prefactor_rYlm(l2,m2)*prefactor_rYlm(l3,m3)
+                     * ( azim_integ(m1,m2,m3))
 
                      * (
                            (1./(2.*l3+1.)) * ( gaunt_formula(l1,l2,l3-1,fabs(m1),1,fabs(m3)+1) 
@@ -1514,10 +1794,6 @@ std::complex<double> bessel_ddy_contraction_overlap( double k, int jl,int jml,do
    }
 
    return sum+sum2+sum3;
-}
-std::complex<double> bessel_ddz_contraction_overlap( double k, int jl,int jml,double* nucl_spher_pos,double contraction_zeta,int* angular_mom_numbers)
-{
-   return 0;
 }
 std::complex<double> bessel_azimder_contraction_overlap( double k, int jl,int jml,double* nucl_spher_pos,double contraction_zeta,int* angular_mom_numbers)
 {
