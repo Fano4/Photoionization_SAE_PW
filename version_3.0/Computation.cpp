@@ -1108,6 +1108,38 @@ std::complex<double> bessel_azimder_contraction_overlap( double k, int jl,int jm
 
    std::complex<double> Kl2( pow(std::complex<double>(0,k),l2) * exp( - k*k / (4 * contraction_zeta) ) / ( pow(2*contraction_zeta,1.5+l2) ) );
 
+   for(int l3=int(fabs(l1-l2));l3!=l1+l2+2;l3++)
+   {
+      for(int m3=-l3;m3!=l3+1;l3++)
+      {
+         if( m3 != 0 )
+         {
+            sum+= 4 * acos(-1) * pow(std::complex<double>(0,-1),l3) * j_l(l3,k*nucl_spher_pos[0])*rYlm(l3,m3,nucl_spher_pos[1],nucl_spher_pos[2])
+               *prefactor_rYlm(l1,m1)*prefactor_rYlm(l2,m2)*prefactor_rYlm(l3,m3)
+               * azim_integ(m1,m2,-m3) * 0.5 * fabs(m3) * ( 
+                     * gaunt_formula(l1,l2,l3+1,fabs(m1),fabs(m2),fabs(m3)+1) 
+                     + (l3 - m3 + 2 ) * (l3 - m3 + 1) * gaunt_formula(l1,l2,l3+1,fabs(m1),fabs(m2),fabs(m3)-1) 
+                     );
+         }
+         else
+         {
+            sum+=0
+         }
+         if(m2 != 0)
+         {
+            sum2+= 4 * acos(-1) * pow(std::complex<double>(0,-1),l3) * j_l(l3,k*nucl_spher_pos[0])*rYlm(l3,m3,nucl_spher_pos[1],nucl_spher_pos[2])
+               *prefactor_rYlm(l1,m1)*prefactor_rYlm(l2,m2)*prefactor_rYlm(l3,m3)
+               * azim_integ(m1,-m2,m3) * ( 
+                     * gaunt_formula(l1,l2+1,l3,fabs(m1),fabs(m2)+1,fabs(m3)) 
+                     + (l2 - m2 + 2 ) * (l2 - m2 + 1) * gaunt_formula(l1,l2+1,l3,fabs(m1),fabs(m2)-1,fabs(m3)) 
+                     );
+         }
+         else
+               sum+=0;
+         }
+   }
+
+   return pow(std::complex<double>(0,1),l1)*k*(sum+sum2)*Kl2/4;
 }
 double azim_integ(int m1,int m2,int m3)
 {
