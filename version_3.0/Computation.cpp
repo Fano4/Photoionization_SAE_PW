@@ -1089,6 +1089,9 @@ double prefactor_rYlm(int l,int m)
       return sign * factorial(l+m)*prefactor_rYlm(l,-m)/factorial(l-m);
    }
 }
+double gaunt_formula(int l1,int l2,int l3,int m1,int m2,int m3)
+{
+}
 double Dint(int l1,int l2,int l3,int m1,int m2,int m3)
 {
    return sqrt(((2*l1+1)*(2*l2+1)*(2*l3+1))/(4*acos(-1)))*wigner3j(l1,l2,l3,0,0,0)*wigner3j(l1,l2,l3,m1,m2,m3);
