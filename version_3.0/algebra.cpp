@@ -115,7 +115,15 @@ void transpose(double *A,double *B, int dim1, int dim2)
 
 long int factorial(int n)
 {
-    if (n>1)
+   if(n>20)
+      std::cout<<"WARNING LARGE FACTORIAL ARGUMENT : N ="<<n<<std::endl;
+   if(n<0)
+   {
+      std::cout<<"FATAL ERROR! NEGATIVE ARGUMENT IN FACTORIAL"<<std::endl<<"N = "<<n<<std::endl<<"EXIT"<<std::endl;
+//      return 0;
+      exit(EXIT_SUCCESS);
+   }
+   else if (n>1)
     return n*factorial(n-1);
     
     else
@@ -210,6 +218,7 @@ double cube_dot_product(double *cube1,double *cube2,int nx,int ny, int nz,double
 
 double wigner3j(int l1,int l2,int l3,int m1,int m2,int m3)
 {
+//   std::cout<<"probe ! Accessing Wigner 3j"<<std::endl;
    return pow(-1,l1-l2-m3)*wdelta(l1,l2,l3)*w3j(l1,l2,l3,m1,m2,m3);
 }
 double wdelta(int a,int b,int c)
@@ -221,10 +230,10 @@ double w3j(int l1,int l2,int l3,int m1,int m2,int m3)
    double sum(0);
 
    int tmin(0);
-   int tmax(l2+l1-l3);
+   int tmax(1000);
 
    if(l2-l3-m1>tmin)
-      tmin=l2-l3+m1;
+      tmin=l2-l3-m1;
    if(l1-l3+m2>tmin)
       tmin=l1-l3+m2;
    
@@ -232,12 +241,21 @@ double w3j(int l1,int l2,int l3,int m1,int m2,int m3)
       tmax=l1-m1;
    if(l2+m2<tmax)
       tmax=l2+m2;
+   if(l2+l1-l3<tmax)
+      tmax=l2+l1-l3;
 
-   for(int t=tmin;t!=tmax+1;t++)
+//   std::cout<<"tmin = "<<tmin<<" ; tmax = "<<tmax<<std::endl;
+   if(tmin < tmax)
    {
-      sum+=pow(-1,t)/(factorial(t)*factorial(l3-l2+t+m1)*factorial(l3-l1+t-m2)*factorial(l3+l1-t-l3)*factorial(l1-t-m1)*factorial(l2-t+m2));
+      for(int t=tmin;t!=tmax+1;t++)
+      {
+//         std::cout<<t<<","<<l3-l2+t+m1<<","<<(l3-l1+t-m2)<<","<<l2+l1-t-l3<<","<<l1-t-m1<<","<<l2-t+m2<<std::endl;
+         sum+=pow(-1,t)/(factorial(t)*factorial(l3-l2+t+m1)*factorial(l3-l1+t-m2)*factorial(l2+l1-t-l3)*factorial(l1-t-m1)*factorial(l2-t+m2));
+      }
    }
-   return sqrt(factorial(l1+m1)*factorial(l1-m1)*factorial(l2+m2)*factorial(l2-m2)*factorial(l3+m3)*factorial(l3-m3))*sum
+   else
+      sum=0;
+   return sqrt(factorial(l1+m1)*factorial(l1-m1)*factorial(l2+m2)*factorial(l2-m2)*factorial(l3+m3)*factorial(l3-m3))*sum;
 }
 double j_l(int l,double z) //spherical bessel function of order l
 {

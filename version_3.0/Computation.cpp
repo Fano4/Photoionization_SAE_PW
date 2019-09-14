@@ -963,13 +963,17 @@ std::complex<double> bessel_MO_overlap( int mo_index, double k, int jl, int jml,
 std::complex<double> bessel_MO_ddx_overlap( int mo_index, double k, int jl, int jml,double **nucl_spher_pos,int *nucl_basis_func,int* contraction_number,double **contraction_coeff,double **contraction_zeta,int **angular_mom_numbers,double *MO_neut_basis_coeff,int basis_size)
 {
    std::complex<double> value(0);
+//   std::cout<<"probe entering MO "<<mo_index<<std::endl;
    for(int i=0;i!=basis_size;i++)
    {
       if(MO_neut_basis_coeff[mo_index*basis_size+i] != 0)
       {
+//         std::cout<<"test..."<<i<<"==>"<<MO_neut_basis_coeff[mo_index*basis_size+i]<<";;;"<<value<<std::endl;
          value+=MO_neut_basis_coeff[mo_index*basis_size+i]*bessel_AO_ddx_overlap(i,k,jl,jml,contraction_number,nucl_spher_pos[nucl_basis_func[i]-1],contraction_coeff,contraction_zeta,angular_mom_numbers[i]);
+//         std::cout<<"probe"<<std::endl;
       }
    }
+//   std::cout<<"probe done MO "<<mo_index<<std::endl;
    return value;
 }
 std::complex<double> bessel_MO_ddy_overlap( int mo_index, double k, int jl, int jml,double **nucl_spher_pos,int *nucl_basis_func,int* contraction_number,double **contraction_coeff,double **contraction_zeta,int **angular_mom_numbers,double *MO_neut_basis_coeff,int basis_size)
@@ -998,6 +1002,7 @@ std::complex<double> bessel_MO_ddz_overlap( int mo_index, double k, int jl, int 
 }
 std::complex<double> bessel_AO_ddx_overlap(int ao_index,double k, int jl, int jml,int *contraction_number,double *nucl_spher_pos,double **contraction_coeff,double **contraction_zeta,int* angular_mom_numbers)
 {
+//   std::cout<<"probe entering AO "<<ao_index<<"...";
    std::complex<double> value(0);
    for(int i=0;i!=contraction_number[ao_index];i++)
    {
@@ -1006,6 +1011,7 @@ std::complex<double> bessel_AO_ddx_overlap(int ao_index,double k, int jl, int jm
          value+=contraction_coeff[ao_index][i]*bessel_ddx_contraction_overlap(k,jl,jml,nucl_spher_pos,contraction_zeta[ao_index][i],angular_mom_numbers);
       }
    }
+//   std::cout<<"Done!"<<std::endl;
    return value;
 
 }
@@ -1174,9 +1180,9 @@ std::complex<double> bessel_ddx_contraction_overlap( double k, int jl,int jml,do
    int l2(angular_mom_numbers[0]);
    int m1(jml);
    int m2(angular_mom_numbers[1]);
-   std::complex<double> sum(0);
-   std::complex<double> sum2(0);
-   std::complex<double> sum3(0);
+   std::complex<double> sum(0,0);
+   std::complex<double> sum2(0,0);
+   std::complex<double> sum3(0,0);
 
    std::complex<double> Kl2( pow(std::complex<double>(0,k),l2) * exp( - k*k / (4 * contraction_zeta) ) / ( pow(2*contraction_zeta,1.5+l2) ) );
    std::complex<double> dKl2dk( double(l2) * Kl2 / k - k * Kl2 / ( 2 * contraction_zeta) );
@@ -1186,15 +1192,42 @@ std::complex<double> bessel_ddx_contraction_overlap( double k, int jl,int jml,do
       for(int m3=-l3;m3!=l3+1;m3++)
       {
          //sum represents the -sin(phi) Dphi term
+         if(m3!=0 && m2!=0)
+         {
          sum3+=acos(-1) * pow(std::complex<double>(0,-1),l3-l1) *rYlm(l3,m3,nucl_spher_pos[1],nucl_spher_pos[2])
                *  j_l(l3,k*nucl_spher_pos[0]) * Kl2 
                * prefactor_rYlm(l1,m1)*prefactor_rYlm(l2,m2)*prefactor_rYlm(l3,m3)
                * (0.5 * fabs(m2) * ( azim_integ(m1,-m2,-m3-1) - azim_integ(m1,m2,-m3+1) )
                + 0.5 * fabs(m3) * ( azim_integ(m1,-m2-1,-m3) - azim_integ(m1,-m2+1,-m3) ))
-               * (1./(2.*fabs(m3))) * ( 
+               * (1./(2.*m3)) * ( 
                      gaunt_formula(l1,l2,l3-1,fabs(m1),fabs(m2),fabs(m3)+1) 
                    + (l3+m3)*(l3+m3-1)*gaunt_formula(l1,l2,l3-1,fabs(m1),fabs(m2),fabs(m3)-1) 
                  );
+         }
+         else if (m3 == 0 && m2 != 0 )
+         {
+         sum3+=acos(-1) * pow(std::complex<double>(0,-1),l3-l1) *rYlm(l3,m3,nucl_spher_pos[1],nucl_spher_pos[2])
+               *  j_l(l3,k*nucl_spher_pos[0]) * Kl2 
+               * prefactor_rYlm(l1,m1)*prefactor_rYlm(l2,m2)*prefactor_rYlm(l3,m3)
+               * (0.5 * fabs(m2) * ( azim_integ(m1,-m2,-m3-1) - azim_integ(m1,m2,-m3+1) ))
+               * (1./(2.*m2)) * ( 
+                     gaunt_formula(l1,l2-1,l3,fabs(m1),fabs(m2)+1,fabs(m3)) 
+                   + (l2+m2)*(l2+m2-1)*gaunt_formula(l1,l2-1,l3,fabs(m1),fabs(m2)-1,fabs(m3)) 
+                 );
+         }
+         else if ( m3 !=0 && m2 == 0 )
+         {
+         sum3+=acos(-1) * pow(std::complex<double>(0,-1),l3-l1) *rYlm(l3,m3,nucl_spher_pos[1],nucl_spher_pos[2])
+               *  j_l(l3,k*nucl_spher_pos[0]) * Kl2 
+               * prefactor_rYlm(l1,m1)*prefactor_rYlm(l2,m2)*prefactor_rYlm(l3,m3)
+               *( 0.5 * fabs(m3) * ( azim_integ(m1,-m2-1,-m3) - azim_integ(m1,-m2+1,-m3) ))
+               * (1./(2.*m3)) * ( 
+                     gaunt_formula(l1,l2,l3-1,fabs(m1),fabs(m2),fabs(m3)+1) 
+                   + (l3+m3)*(l3+m3-1)*gaunt_formula(l1,l2,l3-1,fabs(m1),fabs(m2),fabs(m3)-1) 
+                 );
+         }
+         else
+         {}
          //sum represents the sin(thet)cos(phi) Dk term
             sum+= acos(-1) * pow(std::complex<double>(0,-1),l3-l1) * k * rYlm(l3,m3,nucl_spher_pos[1],nucl_spher_pos[2]) 
                * ( j_l(l3,k*nucl_spher_pos[0]) * dKl2dk + Kl2 * nucl_spher_pos[0] * dj_ldz(l3,k*nucl_spher_pos[0]))
@@ -1399,6 +1432,8 @@ std::complex<double> bessel_ddy_contraction_overlap( double k, int jl,int jml,do
       for(int m3=-l3;m3!=l3+1;m3++)
       {
          //sum3 represents the sin(phi) Dphi term
+         if(m3!=0 && m2!=0)
+         {
          sum3+=acos(-1) * pow(std::complex<double>(0,-1),l3-l1) *rYlm(l3,m3,nucl_spher_pos[1],nucl_spher_pos[2])
                *  j_l(l3,k*nucl_spher_pos[0]) * Kl2 
                * prefactor_rYlm(l1,m1)*prefactor_rYlm(l2,m2)*prefactor_rYlm(l3,m3)
@@ -1408,6 +1443,31 @@ std::complex<double> bessel_ddy_contraction_overlap( double k, int jl,int jml,do
                      gaunt_formula(l1,l2,l3-1,fabs(m1),fabs(m2),fabs(m3)+1) 
                    + (l3+m3)*(l3+m3-1)*gaunt_formula(l1,l2,l3-1,fabs(m1),fabs(m2),fabs(m3)-1) 
                  );
+         }
+         else if (m3 == 0 && m2 != 0 )
+         {
+         sum3+=acos(-1) * pow(std::complex<double>(0,-1),l3-l1) *rYlm(l3,m3,nucl_spher_pos[1],nucl_spher_pos[2])
+               *  j_l(l3,k*nucl_spher_pos[0]) * Kl2 
+               * prefactor_rYlm(l1,m1)*prefactor_rYlm(l2,m2)*prefactor_rYlm(l3,m3)
+               * (-0.5 * fabs(m2) * ( azim_integ(m1,-m2,-m3-1) + azim_integ(m1,m2,-m3+1) ))
+               * (1./(2.*m2)) * ( 
+                     gaunt_formula(l1,l2-1,l3,fabs(m1),fabs(m2)+1,fabs(m3)) 
+                   + (l2+m2)*(l2+m2-1)*gaunt_formula(l1,l2-1,l3,fabs(m1),fabs(m2)-1,fabs(m3)) 
+                 );
+         }
+         else if ( m3 !=0 && m2 == 0 )
+         {
+         sum3+=acos(-1) * pow(std::complex<double>(0,-1),l3-l1) *rYlm(l3,m3,nucl_spher_pos[1],nucl_spher_pos[2])
+               *  j_l(l3,k*nucl_spher_pos[0]) * Kl2 
+               * prefactor_rYlm(l1,m1)*prefactor_rYlm(l2,m2)*prefactor_rYlm(l3,m3)
+               *(- 0.5 * fabs(m3) * ( azim_integ(m1,m2-1,-m3) + azim_integ(m1,m2+1,-m3) ))
+               * (1./(2.*m3)) * ( 
+                     gaunt_formula(l1,l2,l3-1,fabs(m1),fabs(m2),fabs(m3)+1) 
+                   + (l3+m3)*(l3+m3-1)*gaunt_formula(l1,l2,l3-1,fabs(m1),fabs(m2),fabs(m3)-1) 
+                 );
+         }
+         else
+         {}
          //sum represents the sin(thet)cos(phi) Dk term
             sum+= acos(-1) * pow(std::complex<double>(0,-1),l3-l1) * k * rYlm(l3,m3,nucl_spher_pos[1],nucl_spher_pos[2]) 
                * ( j_l(l3,k*nucl_spher_pos[0]) * dKl2dk + Kl2 * nucl_spher_pos[0] * dj_ldz(l3,k*nucl_spher_pos[0]))
@@ -1793,6 +1853,7 @@ std::complex<double> bessel_ddz_contraction_overlap( double k, int jl,int jml,do
       }
    }
 
+//   std::cout<<sum<<","<<sum2<<","<<sum3<<std::endl;
    return sum+sum2+sum3;
 }
 std::complex<double> bessel_azimder_contraction_overlap( double k, int jl,int jml,double* nucl_spher_pos,double contraction_zeta,int* angular_mom_numbers)
@@ -1844,8 +1905,24 @@ std::complex<double> bessel_azimder_contraction_overlap( double k, int jl,int jm
 }
 double azim_integ(int m1,int m2,int m3)
 {
-   return 0.25*( sin(2*acos(-1)*(m1-m2-m3)) / (m1-m2-m3) + sin(2*acos(-1)*(m1+m2-m3)) / (m1+m2-m3) 
-         - sin(2*acos(-1)*(m1-m2+m3)) / (m1-m2+m3) - sin(2*acos(-1)*(m1+m2+m3)) / (m1+m2+m3) );
+   using namespace std;
+   double sum(0);
+
+   if(m1 ==0 && m2 ==0 && m3 ==0)
+      return 2*acos(-1);
+   else if(m1<0 && m2 < 0)
+      sum=0.5*(bool(m3==fabs(m1-m2))-bool(m3==fabs(m1+m2)));
+   else if(m1<0 && m2>=0)
+      sum=0.5*(bool(m3==-fabs(m1-m2))+bool(m3==-fabs(m1+m2)));
+   else if(m1>=0 && m2<0)
+      sum=0.5*(bool(m3==-fabs(m1-m2))-bool(m3==-fabs(m1+m2)));
+   else
+      sum=0.5*(bool(m3==fabs(m1-m2))+bool(m3==fabs(m1+m2)));
+
+//   std::cout<<"azimint probe : "<<sum<<std::endl;
+//   std::cout<<m1<<","<<m2<<","<<m3<<std::endl;
+
+   return 2*acos(-1)*sum;
 }
 double rYlm (int l,int m,double thet,double phi)
 {
@@ -1867,6 +1944,12 @@ double prefactor_rYlm(int l,int m)
 {
    int sign(-bool( m % 2 != 0 ) + bool( m % 2 == 0 ));
 
+   if(fabs(m) > fabs(l))
+   {
+      std::cout<<"FATAL ERROR IN SPHERICAL HARMONICS PREFACTOR. M>L:"<<m<<">"<<l<<std::endl;
+      exit(EXIT_SUCCESS);
+   }
+
    if(m == 0)
    {
       return sqrt((2*l+1)/(4*acos(-1)));
@@ -1884,6 +1967,7 @@ double gaunt_formula(int l1,int l2,int l3,int m1,int m2,int m3)
 {
    //DETERMINE THE LARGEST ORDER
    int temp(0);
+   double dtemp(0);
    int u(0);
    int v(0);
    int w(0);
@@ -1932,8 +2016,14 @@ double gaunt_formula(int l1,int l2,int l3,int m1,int m2,int m3)
       w=temp;
    }
 
+   if(fabs(m1) > l1 || fabs(m2) > l2 || fabs(m3) > l3)
+   {
+//      std::cout<<"FATAL ERROR: ORDER LARGER THAN DEGREE IN GAUNT FORMULA"<<std::endl;
+//      std::cout<<m1<<"<"<<l1<<","<<m2<<"<"<<l2<<","<<m3<<"<"<<l3<<std::endl;
+      return 0;
+   }
    //CHECK THAT THE PARAMETERS RESPECT THE CONDITIONS
-   if( m1 < 0 || m2 < 0 || m3 < 0)
+   else if( m1 < 0 || m2 < 0 || m3 < 0)
    {
       std::cout<<"WARNING !! NEGATIVE ORDERS IN GAUNT FORMULA !! "<<std::endl;
       return 0;
@@ -1942,24 +2032,31 @@ double gaunt_formula(int l1,int l2,int l3,int m1,int m2,int m3)
       return 0;
    else if( (l+m+n) % 2 != 0)
       return 0;
-   else if( l > m + n || l < m - n )
+   else if( l3 > l1 + l2 || l3 < fabs(l1- l2) )
       return 0;
    else if (u != v + w)
       return 0;
-
+   else
+   {
    //IF THE INTEGRAL IS NOT DEFINED ZERO, COMPUTE THE ACTUAL VALUE
+//   std::cout<<"gaunt probe...";
    int s((l+m+n)/2);
    int p(std::max(0,n-m-u));
    int q(std::min(m+n-u,std::min(l-u,n-w)));
 
    double sum(0);
 
-   for(int t=p;t!=q;t++)
+//   std::cout<<u<<","<<v<<","<<w<<","<<l<<","<<m<<","<<n<<std::endl<<s<<","<<p<<","<<q<<std::endl;
+   for(int t=p;t<q+1;t++)
    {
+//      std::cout<<t<<std::endl;
       sum+=pow(-1,t)*factorial(l+u+t)*factorial(m+n-u-t)/(factorial(t)*factorial(l-u-t)*factorial(m-n+u+t)*factorial(n-w-t));
    }
-   return 2*pow(-1,s-m-w)*sum*factorial(m+v)*factorial(n+w)*factorial(2*s-2*n)*factorial(s)/( factorial(m-v)*factorial(s-l)*factorial(s-m)*factorial(s-n)*factorial(2*s+1));
-
+//   std::cout<<m-v<<","<<s-l<<","<<s-m<<","<<s-n<<","<<2*s+1<<std::endl;
+   dtemp=2*pow(-1,s-m-w)*sum*factorial(m+v)*factorial(n+w)*factorial(2*s-2*n)*factorial(s)/( factorial(m-v)*factorial(s-l)*factorial(s-m)*factorial(s-n)*factorial(2*s+1));
+//   std::cout<<dtemp<<std::endl;
+   return dtemp;
+   }
 }
 double Dint(int l1,int l2,int l3,int m1,int m2,int m3)
 {

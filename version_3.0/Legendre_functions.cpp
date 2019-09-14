@@ -2,7 +2,12 @@ double associated_legendre(unsigned int l,int m,double x)
 {
    int sign(-bool( m % 2 != 0 ) + bool( m % 2 == 0 ));
 
-   if(x==1)
+   if(fabs(m) > fabs(l))
+   {
+      std::cout<<"FATAL ERROR IN ASSOCIATED LEGENDRE COMPUTATION. M>L:"<<m<<">"<<l<<std::endl;
+      return 0;
+   }
+   else if(fabs(x)==1 && m!=0)
       return 0;
    else
    {

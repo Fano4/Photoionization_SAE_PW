@@ -586,7 +586,7 @@ std::cout<<"********"<<std::endl;
     double int_cs(0);
     double thet(0);
     double phi(0);
-    int nk=56;
+    int nk=256;
     int position(0);
     std::complex<double> *temp=new std::complex<double>[3];
 //    std::complex<double> temp;
@@ -595,14 +595,15 @@ std::cout<<"********"<<std::endl;
     std::complex<double> sinep;
     std::complex<double> cosinep;
     std::complex<double> modulus;
-    int n_theta=1;
-    int n_phi=1;
+//    int n_theta=1;
+//    int n_phi=1;
     //double efield[3]={1,0,0};//SPHERICAL COORDINATES
     double efield[3]={0,0,1};//CARTESIAN COORDINATES
     int i(0);
-    int t(0);
-    int p(0);
+    int jl(0);
+    int jml(0);
     int j(0);
+    int jl_max(5);
 //    int basis_fun_index(7);
 //    int contraction_index(1);
 
@@ -632,27 +633,27 @@ exit(EXIT_SUCCESS);
     stringstream pice_out_ss;
     string pice_out_s;
     
-    const int n_angles(2048);
-    distrib_file.open("/data1/home/stephan/Wavepack_1D/wavepack_int_input/sphere_dist_2048.txt");
-    double **distrib=new double*[2];
-    distrib[0]=new double[n_angles];
-    distrib[1]=new double[n_angles];
+//    const int n_angles(2048);
+//    distrib_file.open("/data1/home/stephan/Wavepack_1D/wavepack_int_input/sphere_dist_2048.txt");
+//    double **distrib=new double*[2];
+//    distrib[0]=new double[n_angles];
+//    distrib[1]=new double[n_angles];
 //    double *distrib_cart=new double[3];
 
-    for(t=0;t!=n_angles;t++)
-    {
+//    for(t=0;t!=n_angles;t++)
+//    {
 //       distrib_file>>temp_int;
 //       distrib_file>>distrib_cart[0];
 //       distrib_file>>distrib_cart[1];
 //       distrib_file>>distrib_cart[2];
 
-       distrib_file>>distrib[0][t];
-       distrib_file>>distrib[1][t];
+//       distrib_file>>distrib[0][t];
+//       distrib_file>>distrib[1][t];
 //       distrib[0][t]=acos(distrib_cart[2]);
 //       distrib[1][t]=atan2(distrib_cart[1],distrib_cart[0]);
 //       if(distrib[1][t]<0)
 //          distrib[1][t]+=2*acos(-1);
-    }
+//    }
     
       int sc=0;
 //      int sn=0;
@@ -661,7 +662,7 @@ for(int sn=0;sn!=n_states_neut;sn++)
 //   for(int sc=0;sc!=n_states_cat;sc++)
    {
       pice_out_ss.str("");
-      pice_out_ss<<"/data1/home/stephan/wavepack_test_continuum_2048/PICE_orth_neut_"<<sn<<"_"<<sc<<".txt";
+      pice_out_ss<<"/data1/home/stephan/test_bessel_coupling/PICE_"<<sn<<"_"<<sc<<".txt";
       pice_out_s=pice_out_ss.str();
       pice_out.open(pice_out_s.c_str());
       std::cout<<" Writing PICE in file "<<pice_out_s<<std::endl;
@@ -673,16 +674,16 @@ for(int sn=0;sn!=n_states_neut;sn++)
        int_cs=0;
 //#pragma omp parallel for reduction(+:int_cs) private (i,j,t,p,temp,thet,phi)
 //       for( t=0;t<n_theta;t++)
-       for(t=0;t!=n_angles;t++)
-       {
-          thet=distrib[0][t];
-          phi=distrib[1][t];
-      //    kp=kmax*(t+1)/nk;
+       for(jl=0;jl!=jl_max+1;jl++)
+//       {
+//          thet=distrib[0][t];
+//          phi=distrib[1][t];
+//    kp=kmax*(t+1)/nk;
 //          std::cout<<t<<std::endl;
 //          thet=t*(acos(-1))/n_theta;
-//          for( p=0;p<n_phi;p++)
+          for( jml=-jl;jml<jl+1;jml++)
           {
-            std::cout<<"point!"<<k<<","<<t<<std::endl;
+            std::cout<<"point!"<<k<<","<<jl<<","<<jml<<std::endl;
 //             phi=2*p*acos(-1)/n_phi;
              temp[0]=0;
              temp[1]=0;
@@ -693,9 +694,26 @@ for(int sn=0;sn!=n_states_neut;sn++)
                 // df/dx = df/dk dk/dx + df/dthet dthet/dx + df/dphi dphi/dx 
                 // df/dy = df/dk dk/dy + df/dthet dthet/dy + df/dphi dphi/dy 
                 // df/dz = df/dk dk/dz + df/dthet dthet/dz + df/dphi dphi/dz 
-                
+//                temp[0]=bessel_MO_ddz_overlap(i,kp,1,0,nucl_spher_pos[position],nucl_basis_func,contraction_number,contraction_coeff,contraction_zeta,angular_mom_numbers,MO_coeff_neutral[position],basis_size);
+//                std::cout<<"MO "<<i<<" : "<<kp<<","<<temp[0]<<std::endl;
                 if(dyson_mo_basis_coeff[position][sn*n_states_cat*n_occ+sc*n_occ+i] != 0)
                 {
+                   temp[0]-=std::complex<double>(0,1)*dyson_mo_basis_coeff[position][sn*n_states_cat*n_occ+sc*n_occ+i]
+                       *bessel_MO_ddx_overlap(i,kp,jl,jml,nucl_spher_pos[position],nucl_basis_func,contraction_number,contraction_coeff,contraction_zeta,angular_mom_numbers,MO_coeff_neutral[position],basis_size);
+                   temp[1]-=std::complex<double>(0,1)*dyson_mo_basis_coeff[position][sn*n_states_cat*n_occ+sc*n_occ+i]
+                       *bessel_MO_ddy_overlap(i,kp,jl,jml,nucl_spher_pos[position],nucl_basis_func,contraction_number,contraction_coeff,contraction_zeta,angular_mom_numbers,MO_coeff_neutral[position],basis_size);
+                   temp[2]-=std::complex<double>(0,1)*dyson_mo_basis_coeff[position][sn*n_states_cat*n_occ+sc*n_occ+i]
+                       *bessel_MO_ddz_overlap(i,kp,jl,jml,nucl_spher_pos[position],nucl_basis_func,contraction_number,contraction_coeff,contraction_zeta,angular_mom_numbers,MO_coeff_neutral[position],basis_size);
+                for(int j=0;j!=n_occ;j++)
+                {
+                   temp[0]-=dyson_mo_basis_coeff[0][sn*n_states_cat*n_occ+sc*n_occ+j]
+                      *bessel_MO_overlap(j,kp,jl,jml,nucl_spher_pos[0],nucl_basis_func,contraction_number,contraction_coeff,contraction_zeta,angular_mom_numbers,MO_coeff_neutral[0],basis_size)*mo_dipole[position][0][i*n_occ+j];
+                   temp[1]-=dyson_mo_basis_coeff[0][sn*n_states_cat*n_occ+sc*n_occ+j]
+                      *bessel_MO_overlap(j,kp,jl,jml,nucl_spher_pos[0],nucl_basis_func,contraction_number,contraction_coeff,contraction_zeta,angular_mom_numbers,MO_coeff_neutral[0],basis_size)*mo_dipole[position][1][i*n_occ+j];
+                   temp[2]-=dyson_mo_basis_coeff[0][sn*n_states_cat*n_occ+sc*n_occ+j]
+                      *bessel_MO_overlap(j,kp,jl,jml,nucl_spher_pos[0],nucl_basis_func,contraction_number,contraction_coeff,contraction_zeta,angular_mom_numbers,MO_coeff_neutral[0],basis_size)*mo_dipole[position][2][i*n_occ+j];
+                }
+                   /*
                    temp[0]-=std::complex<double>(0,1)*dyson_mo_basis_coeff[position][sn*n_states_cat*n_occ+sc*n_occ+i]
                       *(
                          sin(thet) * cos(phi) * MO_Fourier_transform_grad(i,0,kp,thet,phi,nucl_spher_pos[position],nucl_basis_func,contraction_number,contraction_coeff,contraction_zeta,angular_mom_numbers,MO_coeff_neutral[position],basis_size)
@@ -728,10 +746,10 @@ for(int sn=0;sn!=n_states_neut;sn++)
                       *MO_Fourier_transform(j,kp,thet,phi,nucl_spher_pos[0],nucl_basis_func,contraction_number,contraction_coeff,contraction_zeta,angular_mom_numbers,MO_coeff_neutral[0],basis_size)*mo_dipole[position][2][i*n_occ+j];
  //                  exit(EXIT_SUCCESS);
                  }
- //             
+ //             */
              }
-//             std::cout<<kp<<"    "<<thet<<"    "<<phi<<"    "<<real(temp[0])<<"   "<<imag(temp[0])<<"  "<<real(temp[1])<<"  "<<imag(temp[1])<<"   "<<real(temp[2])<<"  "<<imag(temp[2])<<std::endl;
-             pice_out<<"    "<<real(temp[0])<<"   "<<imag(temp[0])<<"  "<<real(temp[1])<<"  "<<imag(temp[1])<<"   "<<real(temp[2])<<"  "<<imag(temp[2])<<std::endl;
+             std::cout<<kp<<"    "<<jl<<"    "<<jml<<"    "<<real(temp[0])<<"   "<<imag(temp[0])<<"  "<<real(temp[1])<<"  "<<imag(temp[1])<<"   "<<real(temp[2])<<"  "<<imag(temp[2])<<std::endl;
+//             pice_out<<"    "<<real(temp[0])<<"   "<<imag(temp[0])<<"  "<<real(temp[1])<<"  "<<imag(temp[1])<<"   "<<real(temp[2])<<"  "<<imag(temp[2])<<std::endl;
             // std::cout<<kp<<","<<t<<std::endl;
             // std::cout<<"    "<<real(temp[0])<<"   "<<imag(temp[0])<<"  "<<real(temp[1])<<"  "<<imag(temp[1])<<"   "<<real(temp[2])<<"  "<<imag(temp[2])<<std::endl;
 //             std::cout<<thet<<","<<phi<<","<<pow(abs(temp),2)*pow(kp,2)*sin(thet)*(acos(-1)/n_theta)*(2*acos(-1)/n_phi)<<std::endl;
