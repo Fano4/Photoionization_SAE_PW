@@ -4,6 +4,18 @@ int main(int argc,char* argv[])
 {
    int photoion_comp(int argc, char* argv[]);
    omp_set_num_threads(1); 
+
+      double* pp=new double[3];
+      pp[0]=0.0;
+      pp[1]=0.0;
+      pp[2]=0.0;
+      int* nnn=new int[2];
+      nnn[0]=0;
+      nnn[1]=0;
+      std::cout<<bessel_ddz_contraction_overlap(0.18284,1,1,pp,0.023,nnn)<<std::endl;
+//      std::cout<<azim_integ(1,1,2)<<std::endl;
+//      std::cout<<gaunt_formula(3,1,3,1,1,2)<<std::endl;
+      exit(EXIT_SUCCESS);
 /*
    int na(3);
    int nes(1);
@@ -654,6 +666,7 @@ exit(EXIT_SUCCESS);
 //       if(distrib[1][t]<0)
 //          distrib[1][t]+=2*acos(-1);
 //    }
+
     
       int sc=0;
 //      int sn=0;
