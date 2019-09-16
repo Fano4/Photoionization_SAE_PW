@@ -259,20 +259,33 @@ double w3j(int l1,int l2,int l3,int m1,int m2,int m3)
 }
 double j_l(int l,double z) //spherical bessel function of order l
 {
+   if(z==0)
+   {
+      if(l==0)
+         return 1;
+      else
+         return 0;
+   }
+   else
+   {
    if (l<0)
       return 0;
-   else if(l == 0 && z != 0)
+   else if(l == 0)
       return sin(z)/z;
-   else if(l == 0 && z == 0)
+   else if(l == 0)
       return 1;
-   else if( l == 1 && z != 0)
+   else if( l == 1)
       return sin(z)/(z*z)-cos(z)/z;
-   else if ( l > 1 && z !=0) 
+   else if ( l > 1) 
       return (2*l-1)*j_l(l-1,z)/z-j_l(l-2,z);
    else
       return 0;
+   }
 }
 double dj_ldz(int l,double z) //Derivative of the spherical bessel function of order l
 {
-   return (l*j_l(l-1,z)-(l+1)*j_l(l+1,z))/(2*l+1);
+   if(z==0)
+      return 0;
+   else
+      return (l*j_l(l-1,z)-(l+1)*j_l(l+1,z))/(2*l+1);
 }

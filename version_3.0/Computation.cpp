@@ -1793,7 +1793,7 @@ double rYlm (int l,int m,double thet,double phi)
 //   std::cout<<"Entering rYlm with parameters "<<l<<","<<m<<","<<thet<<","<<phi<<std::endl;
    if(m<0)
    {
-      return sqrt(2)*associated_legendre(l,m,cos(thet))*sin(-m*phi);
+      return sqrt(2)*associated_legendre(l,-m,cos(thet))*sin(-m*phi);
    }
    else if(m>0)
    {
@@ -1824,7 +1824,8 @@ double prefactor_rYlm(int l,int m)
    }
    else 
    {
-      return sign * factorial(l+m)*prefactor_rYlm(l,-m)/factorial(l-m);
+      return sign * sqrt((2*l+1) * factorial(l+m) / (4*acos(-1) * factorial(l-m)));
+//      return sign * factorial(l+m)*prefactor_rYlm(l,-m)/factorial(l-m);
    }
 }
 double gaunt_formula(int l1,int l2,int l3,int m1,int m2,int m3)
