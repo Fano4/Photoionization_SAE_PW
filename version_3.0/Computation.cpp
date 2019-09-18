@@ -1763,8 +1763,8 @@ std::complex<double> bessel_ddz_contraction_overlap( double k, int jl,int jml,do
       }
    }
 
-   if( std::abs(sum+sum2+sum3) != 0)
-      std::cout<<sum<<","<<sum2<<","<<sum3<<std::endl;
+   //if( std::abs(sum+sum2+sum3) != 0)
+   //   std::cout<<sum<<","<<sum2<<","<<sum3<<std::endl;
    return sum+sum2+sum3;
 }
 double azim_integ(int m1,int m2,int m3)
@@ -1920,6 +1920,8 @@ double gaunt_formula(int l1,int l2,int l3,int m1,int m2,int m3)
 //   std::cout<<m-v<<","<<s-l<<","<<s-m<<","<<s-n<<","<<2*s+1<<std::endl;
    dtemp=2*pow(-1,s-m-w)*sum*factorial(m+v)*factorial(n+w)*factorial(2*s-2*n)*factorial(s)/( factorial(m-v)*factorial(s-l)*factorial(s-m)*factorial(s-n)*factorial(2*s+1));
 //   std::cout<<"Gaunt val"<<dtemp<<std::endl;
+   if(isnan(dtemp))
+       std::cout<<" ERROR ! GAUNT FUNCTION IS NAN"<<std::endl;
    return dtemp;
    }
 }

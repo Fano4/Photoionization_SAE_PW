@@ -219,15 +219,23 @@ double cube_dot_product(double *cube1,double *cube2,int nx,int ny, int nz,double
 double wigner3j(int l1,int l2,int l3,int m1,int m2,int m3)
 {
 //   std::cout<<"probe ! Accessing Wigner 3j"<<std::endl;
-   return pow(-1,l1-l2-m3)*wdelta(l1,l2,l3)*w3j(l1,l2,l3,m1,m2,m3);
+   double val(pow(-1,l1-l2-m3)*wdelta(l1,l2,l3)*w3j(l1,l2,l3,m1,m2,m3));
+
+   if(isnan(val))
+       std::cout<<" ERROR ! WIGNER3J FUNCTION IS NAN"<<std::endl;
+   return val;
 }
 double wdelta(int a,int b,int c)
 {
-   return sqrt(factorial(a+b-c)*factorial(a-b+c)*factorial(-a+b+c)/factorial(a+b+c+1));
+   double val( sqrt(factorial(a+b-c)*factorial(a-b+c)*factorial(-a+b+c)/factorial(a+b+c+1)));
+   if(isnan(val))
+       std::cout<<" ERROR ! WDelta FUNCTION IS NAN"<<std::endl;
+   return val;
 }
 double w3j(int l1,int l2,int l3,int m1,int m2,int m3)
 {
    double sum(0);
+   double val(0);
 
    int tmin(0);
    int tmax(1000);
@@ -249,16 +257,30 @@ double w3j(int l1,int l2,int l3,int m1,int m2,int m3)
    {
       for(int t=tmin;t!=tmax+1;t++)
       {
-//         std::cout<<t<<","<<l3-l2+t+m1<<","<<(l3-l1+t-m2)<<","<<l2+l1-t-l3<<","<<l1-t-m1<<","<<l2-t+m2<<std::endl;
          sum+=pow(-1,t)/(factorial(t)*factorial(l3-l2+t+m1)*factorial(l3-l1+t-m2)*factorial(l2+l1-t-l3)*factorial(l1-t-m1)*factorial(l2-t+m2));
+         if(isnan(sum))
+            std::cout<<t<<","<<l3-l2+t+m1<<","<<(l3-l1+t-m2)<<","<<l2+l1-t-l3<<","<<l1-t-m1<<","<<l2-t+m2<<std::endl;
       }
    }
    else
       sum=0;
-   return sqrt(factorial(l1+m1)*factorial(l1-m1)*factorial(l2+m2)*factorial(l2-m2)*factorial(l3+m3)*factorial(l3-m3))*sum;
+   val=sqrt(factorial(l1+m1))*sqrt(factorial(l1-m1))*sqrt(factorial(l2+m2))*sqrt(factorial(l2-m2))*sqrt(factorial(l3+m3))*sqrt(factorial(l3-m3))*sum;
+   if(isnan(val))
+   {
+       std::cout<<" ERROR ! W3j FUNCTION IS NAN"<<std::endl<<l1<<","<<l2<<","<<l3<<";"<<m1<<","<<m2<<","<<m3<<std::endl;
+       std::cout<<sum<<std::endl;
+       std::cout<<factorial(l1+m1)<<","<<factorial(l1-m1)<<","<<factorial(l2+m2)<<","<<factorial(l2-m2)<<","<<factorial(l3+m3)<<","<<factorial(l3-m3)<<std::endl;
+       exit(EXIT_SUCCESS);
+   }
+   return val;
 }
 double j_l(int l,double z) //spherical bessel function of order l
 {
+   double test(1);
+   double val(0);
+   double valm1(0);
+   int i(0);
+
    if(z==0)
    {
       if(l==0)
@@ -268,24 +290,44 @@ double j_l(int l,double z) //spherical bessel function of order l
    }
    else
    {
-   if (l<0)
-      return 0;
-   else if(l == 0)
-      return sin(z)/z;
-   else if(l == 0)
-      return 1;
-   else if( l == 1)
-      return sin(z)/(z*z)-cos(z)/z;
-   else if ( l > 1) 
-      return (2*l-1)*j_l(l-1,z)/z-j_l(l-2,z);
-   else
-      return 0;
+        if(l<0)
+            return 0;
+        else if(l==0)
+            return 1;
+        else
+        {
+            val=0;
+            i=0; 
+            while(test>=1e-15)
+            {
+                valm1=val;
+                val+=pow(-1,i)*pow(z*z/2,i)/double(factorial(i)*dfactorial(2*l+2*i+1));
+                i++;
+                test=fabs((val-valm1));
+            }
+
+            if(isnan(val))
+               std::cout<<" ERROR ! BESSEL FUNCTION IS NAN"<<std::endl;
+
+            return val*pow(z,l);
+        }
    }
 }
 double dj_ldz(int l,double z) //Derivative of the spherical bessel function of order l
 {
-   if(z==0)
+   if(z==0 || l == 0)
       return 0;
    else
+   {
+      if(isnan(l*j_l(l-1,z)-(l+1)*j_l(l+1,z))/(2*l+1))
+          std::cout<<" ERROR ! BESSEL DERIVATIVE FUNCTION IS NAN"<<std::endl;
       return (l*j_l(l-1,z)-(l+1)*j_l(l+1,z))/(2*l+1);
+   }
+}
+int dfactorial(int n)
+{
+   if(n<=1)
+      return 1;
+   else
+      return n-2;
 }

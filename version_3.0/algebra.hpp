@@ -26,5 +26,6 @@ double wdelta(int a,int b,int c);
 double wigner3j(int l1,int l2,int l3,int m1,int m2,int m3);
 double j_l(int l,double z);//spherical bessel function of order l
 double dj_ldz(int l,double z); //Derivative of the spherical bessel function of order l
+int dfactorial(int n);
 
 #endif /* computation_hpp */

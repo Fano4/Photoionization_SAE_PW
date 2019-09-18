@@ -5,17 +5,17 @@ int main(int argc,char* argv[])
    int photoion_comp(int argc, char* argv[]);
    omp_set_num_threads(1); 
 
-      double* pp=new double[3];
+/*      double* pp=new double[3];
       pp[0]=0.0;
       pp[1]=0.0;
       pp[2]=0.0;
       int* nnn=new int[2];
       nnn[0]=0;
-      nnn[1]=0;
-      std::cout<<bessel_ddz_contraction_overlap(0.18284,1,1,pp,0.023,nnn)<<std::endl;
+      nnn[1]=0;*/
+//      std::cout<<bessel_ddz_contraction_overlap(0.18284,1,1,pp,0.023,nnn)<<std::endl;
 //      std::cout<<azim_integ(1,1,2)<<std::endl;
 //      std::cout<<gaunt_formula(3,1,3,1,1,2)<<std::endl;
-      exit(EXIT_SUCCESS);
+//      exit(EXIT_SUCCESS);
 /*
    int na(3);
    int nes(1);
@@ -669,8 +669,8 @@ exit(EXIT_SUCCESS);
 
     
       int sc=0;
-//      int sn=0;
-for(int sn=0;sn!=n_states_neut;sn++)
+      int sn=1;
+//for(int sn=0;sn!=n_states_neut;sn++)
 {
 //   for(int sc=0;sc!=n_states_cat;sc++)
    {
@@ -687,16 +687,18 @@ for(int sn=0;sn!=n_states_neut;sn++)
        int_cs=0;
 //#pragma omp parallel for reduction(+:int_cs) private (i,j,t,p,temp,thet,phi)
 //       for( t=0;t<n_theta;t++)
-       for(jl=0;jl!=jl_max+1;jl++)
+       int jl=1;
+//       for(jl=0;jl!=jl_max+1;jl++)
 //       {
 //          thet=distrib[0][t];
 //          phi=distrib[1][t];
 //    kp=kmax*(t+1)/nk;
 //          std::cout<<t<<std::endl;
+            int jml(0); 
 //          thet=t*(acos(-1))/n_theta;
-          for( jml=-jl;jml<jl+1;jml++)
+//          for( jml=-jl;jml<jl+1;jml++)
           {
-            std::cout<<"point!"<<k<<","<<jl<<","<<jml<<std::endl;
+//            std::cout<<"point!"<<k<<","<<jl<<","<<jml<<std::endl;
 //             phi=2*p*acos(-1)/n_phi;
              temp[0]=0;
              temp[1]=0;
@@ -761,7 +763,6 @@ for(int sn=0;sn!=n_states_neut;sn++)
                  }
  //             */
              }
-             std::cout<<kp<<"    "<<jl<<"    "<<jml<<"    "<<real(temp[0])<<"   "<<imag(temp[0])<<"  "<<real(temp[1])<<"  "<<imag(temp[1])<<"   "<<real(temp[2])<<"  "<<imag(temp[2])<<std::endl;
 //             pice_out<<"    "<<real(temp[0])<<"   "<<imag(temp[0])<<"  "<<real(temp[1])<<"  "<<imag(temp[1])<<"   "<<real(temp[2])<<"  "<<imag(temp[2])<<std::endl;
             // std::cout<<kp<<","<<t<<std::endl;
             // std::cout<<"    "<<real(temp[0])<<"   "<<imag(temp[0])<<"  "<<real(temp[1])<<"  "<<imag(temp[1])<<"   "<<real(temp[2])<<"  "<<imag(temp[2])<<std::endl;
@@ -773,6 +774,7 @@ for(int sn=0;sn!=n_states_neut;sn++)
 //             std::cout<<"small loop "<<p<<std::endl;
           }//pice_out<<std::endl;
 //             std::cout<<"LARGE loop "<<t<<std::endl<<"##################################################################"<<std::endl;
+             std::cout<<kp<<"    "<<jl<<"    "<<jml<<"    "<<real(temp[0])<<"   "<<imag(temp[0])<<"  "<<real(temp[1])<<"  "<<imag(temp[1])<<"   "<<real(temp[2])<<"  "<<imag(temp[2])<<std::endl;
        }pice_out<<std::endl;
     }
        pice_out.close();
