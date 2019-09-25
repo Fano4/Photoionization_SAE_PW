@@ -42,36 +42,79 @@ std::complex<double> bessel_cont_angleint(int jl,int jml,double* nucl_spher_pos,
       {
          result[0][l3][m3]=rYlm(l3,m3,nucl_spher_pos[1],nucl_spher_pos[2])*Dint(l1,l2,l3,m1,m2,m3);
 
-         if(m3!=0 && m2!=0)
+         result[1][l3][m3]=rYlm(l3,m3,nucl_spher_pos[1],nucl_sph[0])*prefactor_rYlm(l1,m1)*prefactor_rYlm(l2,m2)*prefactor_rYlm(l3,m3)
+               * 0.5 * ( azim_integ(m1,m2,m3+1) + azim_integ(m1,m2,m3-1) )
+               * (1./(2.*l3+1.)) * ( 
+                     gaunt_formula(l1,l2,l3+1,fabs(m1),fabs(m2),fabs(m3)+1) 
+                   - gaunt_formula(l1,l2,l3-1,fabs(m1),fabs(m2),fabs(m3)+1) 
+                 );
+         result[4][l3][m3]=rYlm(l3,m3,nucl_spher_pos[1],nucl_sph[0]) * prefactor_rYlm(l1,m1)*prefactor_rYlm(l2,m2)*prefactor_rYlm(l3,m3)
+               * 0.5 * ( azim_integ(m1,m2,-m3-1) - azim_integ(m1,m2,-m3+1) )
+               * (1./(2.*l3+1.)) * ( 
+                     gaunt_formula(l1,l2,l3+1,fabs(m1),fabs(m2),fabs(m3)+1) 
+                   - gaunt_formula(l1,l2,l3-1,fabs(m1),fabs(m2),fabs(m3)+1) 
+                 );
+         result[7][l3][m3]=rYlm(l3,m3,nucl_spher_pos[1],nucl_spher_pos[2]) * prefactor_rYlm(l1,m1)*prefactor_rYlm(l2,m2)*prefactor_rYlm(l3,m3)
+               * ( azim_integ(m1,m2,m3))
+               * (-1./(2.*l3+1.)) * ( 
+                     (l3-m3+1)*gaunt_formula(l1,l2,l3+1,fabs(m1),fabs(m2),fabs(m3)) 
+                   + (l3+m3)*gaunt_formula(l1,l2,l3-1,fabs(m1),fabs(m2),fabs(m3)) 
+                 );
+         if(m1 != 0 )
          {
             result[3][l3][m3]=rYlm(l3,m3,nucl_spher_pos[1],nucl_spher_pos[2])*prefactor_rYlm(l1,m1)*prefactor_rYlm(l2,m2)*prefactor_rYlm(l3,m3)
-               *(0.5  * (-m2) * ( azim_integ(m1,-m2,fabs(m3)-1) +(m3/fabs(m3))* azim_integ(m1,-m2,fabs(m3)+1))
-                  +0.5 * (-m3) * ( azim_integ(m1,fabs(m2)-1,-m3) +(m2/fabs(m2))*azim_integ(m1,fabs(m2)+1,-m3) ))
-               * (1./(2.*m3)) * ( 
-                  gaunt_formula(l1,l2,l3-1,fabs(m1),fabs(m2),fabs(m3)+1) 
-                  + (l3+m3)*(l3+m3-1)*gaunt_formula(l1,l2,l3-1,fabs(m1),fabs(m2),fabs(m3)-1) 
+               *(m1/fabs(m1))
+               *(0.5  * (-m2) * ( azim_integ(-m1+1,-m2,m3) - azim_integ(-m1-1,-m2,m3) ) 
+                  +0.5 * (-m3) * (azim_integ(-m1+1,m2,-m3) - azim_integ(-m1-1,m2,-m3))
+                )
+               * (1./(2.*m1)) * ( 
+                  gaunt_formula(l1-1,l2,l3,fabs(m1)+1,fabs(m2),fabs(m3)) 
+                  + (l1+m1)*(l1+m1-1)*gaunt_formula(l1-1,l2,l3,fabs(m1)-1,fabs(m2),fabs(m3)) 
                                 );    
+            result[6][l3][m3]=rYlm(l3,m3,nucl_spher_pos[1],nucl_spher_pos[2])*prefactor_rYlm(l1,m1)*prefactor_rYlm(l2,m2)*prefactor_rYlm(l3,m3)
+               *(0.5  * (-m2) * ( azim_integ(m1+1,-m2,m3) + azim_integ(m1-1,-m2,m3) ) 
+                  +0.5 * (-m3) * (azim_integ(m1+1,m2,-m3) + azim_integ(m1-1,m2,-m3))
+                )
+               * (1./(2.*m1)) * ( 
+                  gaunt_formula(l1-1,l2,l3,fabs(m1)+1,fabs(m2),fabs(m3)) 
+                  + (l1+m1)*(l1+m1-1)*gaunt_formula(l1-1,l2,l3,fabs(m1)-1,fabs(m2),fabs(m3)) 
+                                );    
+
          }
-         else if (m3 == 0 && m2 != 0 )
+         else if ( m2 != 0 )
          {
             result[3][l3][m3]=rYlm(l3,m3,nucl_spher_pos[1],nucl_spher_pos[2])*prefactor_rYlm(l1,m1)*prefactor_rYlm(l2,m2)*prefactor_rYlm(l3,m3)
-               *(0.5  * (-m2) * ( azim_integ(m1,-m2,fabs(m3)-1)))
+               *( (-m2) * ( azim_integ(-1,-m2,m3) ) + (-m3) * (azim_integ(-1,m2,-m3)) );
+               * (1./(2.*m2)) * ( 
+                  gaunt_formula(l1,l2-1,l3,fabs(m1),fabs(m2)+1,fabs(m3)) 
+                  + (l2+m2)*(l2+m2-1)*gaunt_formula(l1,l2-1,l3,fabs(m1),fabs(m2)-1,fabs(m3)) 
+                                );    
+            result[6][l3][m3]=rYlm(l3,m3,nucl_spher_pos[1],nucl_spher_pos[2])*prefactor_rYlm(l1,m1)*prefactor_rYlm(l2,m2)*prefactor_rYlm(l3,m3)
+               *( (-m2) * ( azim_integ(1,-m2,m3) ) + (-m3) * (azim_integ(-1,m2,-m3)) );
                * (1./(2.*m2)) * ( 
                   gaunt_formula(l1,l2-1,l3,fabs(m1),fabs(m2)+1,fabs(m3)) 
                   + (l2+m2)*(l2+m2-1)*gaunt_formula(l1,l2-1,l3,fabs(m1),fabs(m2)-1,fabs(m3)) 
                                 );    
          }
-         else if ( m3 !=0 && m2 == 0 )
+         else if(m3 != 0)
          {
             result[3][l3][m3]=rYlm(l3,m3,nucl_spher_pos[1],nucl_spher_pos[2])*prefactor_rYlm(l1,m1)*prefactor_rYlm(l2,m2)*prefactor_rYlm(l3,m3)
-               *( 0.5 * (-m3) * ( azim_integ(m1,fabs(m2)-1,-m3) )
+               *( (-m2) * ( azim_integ(-1,-m2,m3) ) + (-m3) * (azim_integ(-1,m2,-m3)) );
+               * (1./(2.*m3)) * ( 
+                  gaunt_formula(l1,l2,l3-1,fabs(m1),fabs(m2),fabs(m3)+1) 
+                  + (l3+m3)*(l3+m3-1)*gaunt_formula(l1,l2,l3-1,fabs(m1),fabs(m2),fabs(m3)-1) 
+                                );    
+            result[6][l3][m3]=rYlm(l3,m3,nucl_spher_pos[1],nucl_spher_pos[2])*prefactor_rYlm(l1,m1)*prefactor_rYlm(l2,m2)*prefactor_rYlm(l3,m3)
+               *( (-m2) * ( azim_integ(1,-m2,m3) ) + (-m3) * (azim_integ(1,m2,-m3)) );
                * (1./(2.*m3)) * ( 
                   gaunt_formula(l1,l2,l3-1,fabs(m1),fabs(m2),fabs(m3)+1) 
                   + (l3+m3)*(l3+m3-1)*gaunt_formula(l1,l2,l3-1,fabs(m1),fabs(m2),fabs(m3)-1) 
                                 );    
          }
          else 
-         {}
+         {
+            result[3][l3][m3]=0;
+         }
 
 
 
