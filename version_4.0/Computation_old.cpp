@@ -19,41 +19,9 @@ bool dyson_mo_coeff_comp(int n_states_neut,int n_states_cat,int n_occ,int ci_siz
                 
                 for (int n=0; n!=ci_size_neut; n++)//   over configurations of the neutral
                 {
-                    //std::cout<<"New configuration of the neutral : "<<n<<std::endl;
                     for (int l=0; l!=ci_size_cat; l++)//  over configuration of the cation
                     {
                         test2=0;
-                     //========================VVVVVVVVVVVVV Overlap matrix for a given configuration VVVVVVVVVVVVVVVVV==================   
-                     /*
-                        for (int m=0; m!=n_elec_neut; m++)  //Over the electrons of the neutral
-                        {
-                            for (int p=0; p!=n_occ; p++)//Over the MO of the neutral
-                            {
-                                    if(int(ci_vec_neut[0][(n_elec_neut+n_states_neut)*n+m])==p)
-                                    {
-                                        if (ci_vec_neut[0][(n_elec_neut+n_states_neut)*n+m]==k && !test2);//&& !ci_vec_neut[1][(n_elec_neut)*n+m])
-                                        {
-//                                            std::cout<<" p = "<<p<<" k = "<<k<<" =>  taking electron ß"<<std::endl;
-                                            test=1;
-                                            test2=1;
-                                            continue;
-                                        }
-                                        
-                                        for (int o=0; o!=n_elec_neut-1; o++)//Over the electrons of the cation
-                                        {
-                                            for (int q=0; q!=n_occ; q++)//Over the MO of the cation
-                                            {
-                                                if(int(ci_vec_cat[0][(n_elec_neut-1+n_states_cat)*l+o])==q)
-                                                {
-                                                    temp[(n_elec_neut-1)*(m-test2)+o]=overlap[n_occ*p+q]*kronecker_delta(ci_vec_neut[1][n_elec_neut*n+(m-test2)], ci_vec_cat[1][(n_elec_neut-1)*l+o]);
-                                                }
-                                            }
-                                        }
-                                        
-                                    }
-                            }
-                        }
-                        */
                         for(int m=0; m!=n_elec_neut; m++)//Over the electrons of the neutral
                         {
                            if (ci_vec_neut[0][(n_elec_neut+n_states_neut)*n+m]==k && !test2)
@@ -66,57 +34,13 @@ bool dyson_mo_coeff_comp(int n_states_neut,int n_states_cat,int n_occ,int ci_siz
                            {
                               p=ci_vec_neut[0][(n_elec_neut+n_states_neut)*n+m];
                               q=ci_vec_cat[0][(n_elec_neut-1+n_states_cat)*l+o];
-//                            std::cout<<"overlap between orbitals "<<p<<" (electron"<<m-test2<<" )"<<" and "<<q<<" (electron"<<o<<" )"<<" : "<<overlap[n_occ*p+q]<<std::endl;
                               temp[(n_elec_neut-1)*(m-test2)+o]=overlap[n_occ*p+q]*kronecker_delta(ci_vec_neut[1][n_elec_neut*n+(m-test2)], ci_vec_cat[1][(n_elec_neut-1)*l+o]);;
                            }
                         }
-                        /*
-                        for(int m=0;m!=n_elec_neut-1;m++)
-                        {
-                           for (int o=0; o!=n_elec_neut-1; o++)
-                           {
-                              std::cout<<std::setw(15)<<std::setprecision(8)<<temp[(n_elec_neut-1)*m+o];
-                           }std::cout<<std::endl;
-                        }*/
-                        //========================^^^^^^^^^^^^^^ Overlap matrix for a given configuration ^^^^^^^^^^^^^================== 
- /*                       if( n==0 && l==1)
-                        {
-                           std::cout<<"Electron taken from MO "<<k<<": Determinant value for conf "<<n<<" and "<<l<<" : "<<determinant(temp,(n_elec_neut-1))<<std::endl;
-                        exit(EXIT_SUCCESS);
-                        }*/
-/*                        //====================CHECKING DETERMINANT===============
-                        
-                        for (int m=0; m!=n_elec_neut; m++)
-                        {
-                            std::cout<<(ci_vec_neut[1][n_elec_neut*n+m])<<"    ";
-                            
-                        }std::cout<<std::endl;
-                        for (int m=0; m!=n_elec_neut-1; m++)
-                        {
-                            std::cout<<(ci_vec_cat[1][(n_elec_neut-1)*l+m])<<"    ";
-                            
-                        }std::cout<<std::endl;
-                        for (int m=0; m!=n_elec_neut-1; m++)
-                        {
-                            for (int o=0; o!=n_elec_neut-1; o++)
-                            {
-                                std::cout<<std::setw(12)<<std::setprecision(5)<<temp[(n_elec_neut-1)*m+o];
-                            }std::cout<<std::endl;
-                        }std::cout<<std::endl;
-                        
-                        
-                        
-                        //====================CHECKING DETERMINANT===============*/
                         if(test2)
                         {
                            Dyson_MO_basis_coeff[n_occ*n_states_cat*i+n_occ*j+k]+=(ci_vec_neut[0][(n_elec_neut+n_states_neut)*n+n_elec_neut+i]*ci_vec_cat[0][(n_elec_neut-1+n_states_cat)*l+n_elec_neut-1+j]*determinant(temp,(n_elec_neut-1)));
-   //                        std::cout<<" sum is "<<Dyson_MO_basis_coeff[n_occ*n_states_cat*i+n_occ*j+k]<<std::endl;
                         }
-
-                        
-                        //std::cout<<std::endl<<std::setw(12)<<std::setprecision(5)<<"config neutral "<<n<<" = "<<ci_vec_neut[0][(n_elec_neut+n_states_neut)*n+n_elec_neut+i]<<std::setw(12)<<std::setprecision(5)<<"  config cation "<<l<<" = "<<ci_vec_cat[0][(n_elec_neut-1+n_states_cat)*l+n_elec_neut-1+j]<<std::setw(12)<<std::setprecision(5)<<determinant(temp,(n_elec_neut-1))<<std::endl<<std::endl;
-                        
-                        //std::cout<<"config neutral "<<n<<" = "<<ci_vec_neut[0][(n_elec_neut+n_states_neut)*n+n_elec_neut+i]<<"  config cation "<<l<<" = "<<ci_vec_cat[0][(n_elec_neut-1+n_states_cat)*l+n_elec_neut-1+j]<<std::endl;
                     }
                 }
                 if(!test)
@@ -136,7 +60,6 @@ bool dyson_mo_coeff_comp(int n_states_neut,int n_states_cat,int n_occ,int ci_siz
 
     delete [] temp;
 
-//    std::cout<<" -- probe -- " <<std::endl;
     return 1;
 }
 
