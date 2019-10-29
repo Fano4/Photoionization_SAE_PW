@@ -94,9 +94,6 @@ double azim_integ(int m1,int m2,int m3)
    else
       sum=0.5*(bool(m3==fabs(m1-m2))+bool(m3==fabs(m1+m2)));
 
-//   std::cout<<"azimint probe : "<<sum<<std::endl;
-//   std::cout<<m1<<","<<m2<<","<<m3<<std::endl;
-
    return 2*acos(-1)*sum;
 }
 double rYlm (int l,int m,double thet,double phi)
@@ -139,6 +136,66 @@ double prefactor_rYlm(int l,int m)
 //      return sign * factorial(l+m)*prefactor_rYlm(l,-m)/factorial(l-m);
    }
 }
+double J_int_m2(int l1,int l2,int l3,int m1,int m2,int m3)
+{
+   if(m1>0)
+      return (-1/(m1))*(gaunt_formula(l1-1,l2,l3,m1+1,m2,m3)+(l1+m1-1)*(l1+m1)*gaunt_formula(l1-1,l2,l3,m1-1,m2,m3));
+   else if(m2>0 && m2 == m3)
+      return (-1/(m2))*(gaunt_formula(l1,l2-1,l3,m1,m2+1,m3)+(l2+m2-1)*(l2+m2)*gaunt_formula(l1,l2-1,l3,m1,m2-1,m3));
+   else
+      return 0; 
+      
+}
+double J_int_m1(int l1,int l2,int l3,int m1,int m2,int m3)
+{
+   return (1/(2*l1+1))*(gaunt_formula(l1-1,l2,l3,m1+1,m2,m3)-gaunt_formula(l1+1,l2,l3,m1+1,m2,m3));
+}
+double J_int_p1(int l1,int l2,int l3,int m1,int m2,int m3)
+{
+   return (1/(2*l1+1))*((l1-m1+1)*gaunt_formula(l1+1,l2,l3,m1,m2,m3)-(l1+m1)*gaunt_formula(l1-1,l2,l3,m1,m2,m3));
+}
+double J_int_m1_D(int l1,int l2,int l3,int m1,int m2,int m3)
+{
+   return (1/(4*l1+2))*(
+          (l3+m3)*(l3-m3+1)*gaunt_formula(l1-1,l2,l3,m1+1,m2,m3-1)-gaunt_formula(l1-1,l2,l3,m1+1,m2,m3+1)
+         +(l2+m2)*(l2-m2+1)*gaunt_formula(l1-1,l2,l3,m1+1,m2-1,m3)-gaunt_formula(l1-1,l2,l3,m1+1,m2+1,m3)
+         -(l3+m3)*(l3-m3+1)*gaunt_formula(l1+1,l2,l3,m1+1,m2,m3-1)+gaunt_formula(l1+1,l2,l3,m1+1,m2+1,m3)
+         -(l2+m2)*(l2-m2+1)*gaunt_formula(l1+1,l2,l3,m1+1,m2-1,m3)+gaunt_formula(l1+1,l2,l3,m1+1,m2+1,m3)
+         );
+}
+double J_int_p1_D(int l1,int l2,int l3,int m1,int m2,int m3)
+{
+   return (1/(4*l1+2))*(
+          (l3+m3)*(l3-m3+1)*(l1-m1+1)*gaunt_formula(l1+1,l2,l3,m1,m2,m3-1)-(l3+m3)*(l3-m3+1)*(l1+m1)*gaunt_formula(l1-1,l2,l3,m1,m2,m3-1)
+         -(l1-m1+1)*gaunt_formula(l1+1,l2,l3,m1,m2,m3+1)+(l1+m1)*gaunt_formula(l1-1,l2,l3,m1,m2,m3+1)
+         +(l2+m2)*(l2-m2+1)*(l2-m1+1)*gaunt_formula(l1+1,l2,l3,m1,m2-1,m3-1)-(l2+m2)*(l2-m2+1)*(l1+m1)*gaunt_formula(l1-1,l2,l3,m1+1,m2+1,m3)
+         -(l1+m1+1)*gaunt_formula(l1+1,l2,l3,m1,m2+1,m3)+(l1+m1)*gaunt_formula(l1-1,l2,l3,m1,m2+1,m3)
+         );
+
+}
+
+double I_m1_integral(int m1,int m2,int m3)
+{
+   int sign(1-2*bool(m1<1));
+
+   return 0.5*sign*(azim_integ(-m1-1,m2,m3)-azim_integ(-m1+1,m2,m3));
+}
+double I_p1_integral(int m1,int m2,int m3)
+{
+   return 0.5*(azim_integ(m1-1,m2,m3)-azim_integ(m1+1,m2,m3));
+}
+double I_m1_D_integral(int m1,int m2,int m3)
+{
+   int sign(1-2*bool(m1<1));
+
+   return -0.5*m2*sign*(azim_integ(-m1-1,-m2,m3)-azim_integ(m1-1,-m2,m3)) 
+      - 0.5*m3*sign*(azim_integ(-m1-1,m2,-m3)-azim_integ(m1-1,m2,-m3));
+}
+double I_p1_D_integral(int m1,int m2,int m3)
+{
+   return -0.5*m2*(azim_integ(m1-1,-m2,m3)+azim_integ(m1-1,-m2,m3)) 
+      - 0.5*m3*(azim_integ(m1-1,m2,-m3)+azim_integ(m1-1,m2,-m3));
+}
 double gaunt_formula(int l1,int l2,int l3,int m1,int m2,int m3)
 {
    //DETERMINE THE LARGEST ORDER
@@ -150,6 +207,12 @@ double gaunt_formula(int l1,int l2,int l3,int m1,int m2,int m3)
    int l(0);
    int m(0);
    int n(0);
+
+   if(l1<0 || l2<0 || l3 < 0)
+      return 0;
+   else if(m1<0 || m2 < 0 || m3 < 0 )
+      return 0;
+
    if(m2>m1)
    {
       if(m3>m2) // m3 > m2 > m1

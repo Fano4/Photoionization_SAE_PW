@@ -11,12 +11,10 @@
 
 double determinant(double *A,int dim)
 {
-   //std::cout<<"probe2 dimension="<<dim<<std::endl;
     double det_val(1);
     short int sign(1);
     double *B=new double[dim*dim];
     int *ipiv=new int[dim];
-    //double B[(dim-1)*(dim-1)];
     int n(0);
     for (int i=0; i!=dim; i++)
     {
@@ -28,53 +26,13 @@ double determinant(double *A,int dim)
 
     LAPACKE_dgetrf(LAPACK_ROW_MAJOR,dim,dim,B,dim,ipiv);
 
-/*    for (int i=0; i!=dim; i++)
-    {
-        for (int j=0; j!=dim; j++)
-        {
-
-            std::cout<<B[i*dim+j]<<"    ";
-        }std::cout<<std::endl;
-    }std::cout<<std::endl;*/
     for(int i=0;i!=dim;i++)
     {
        if(i+1!=ipiv[i])
           sign*=-1;
 
        det_val*=B[i*dim+i];
-
-  //     std::cout<<i+1<<","<<ipiv[i]<<std::endl;
     }
-//    std::cout<<"sign is "<<sign<<" ; det value is "<<det_val*sign<<std::endl;
-     /*
-    if (dim!=1)
-    {
-        for (int i=0; i!=dim; i++)
-        {
-            //std::cout<<"compute determinant  of "<<std::endl;
-            for (int j=0; j!=dim-1; j++)
-            {
-                n=0;
-                for (int k=0; k!=dim; k++)
-                {
-                    if(k!=i)
-                    {
-                        B[j*(dim-1)+n]=A[(j+1)*dim+k];
-                        //std::cout<<B[j*(dim-1)+n]<<"   ";
-                        n++;
-                    }
-                }//std::cout<<std::endl;
-            }//std::cout<<" ==== "<<std::endl;
-            det_val+=pow(-1, i)*A[i]*determinant(B, dim-1);
-        }
-        //std::cout<<"VALUE = "<<det_val<<std::endl;
-    }
-    else
-    {
-       // std::cout<<"VALUE = "<<A[0]<<std::endl;
-        return A[0];
-    }
-    */
     delete [] ipiv;
     delete [] B;
     return sign*det_val;
@@ -93,7 +51,6 @@ void matrix_product(double *C,double *A,double *B,int dim1,int dim2,int dim3)
             for (int k=0; k!=dim2; k++)
             {
                 ntemp+=A[i*dim2+k]*B[k*dim3+j];
-                //std::cout<<A[i*dim2+k]<<"   *   "<<B[k*dim3+j]<<"   =   "<<A[i*dim2+k]*B[k*dim3+j]<<"  -> "<<ntemp<<std::endl;
             }
             C[i*dim3+j]=ntemp;
         }
@@ -102,38 +59,39 @@ void matrix_product(double *C,double *A,double *B,int dim1,int dim2,int dim3)
 }
 void transpose(double *A,double *B, int dim1, int dim2)
 {
-    //std::cout<<"   dim1= "<<dim1<<"   dim2= "<<dim2<<std::endl;
+   //B=trans(A)
     for (int i=0; i!=dim1; i++)
     {
         for (int j=0; j!=dim2; j++)
         {
             B[j*dim1+i]=A[i*dim2+j];
-            //std::cout<<i*dim2+j<<"->"<<A[i*dim2+j]<<std::endl;
-        }//std::cout<<std::endl;
+        }
     }
 }
 
-long int factorial(int n)
+unsigned long long int factorial(int n,unsigned long long int* memo)
 {
-   if(n>20)
-      std::cout<<"WARNING LARGE FACTORIAL ARGUMENT : N ="<<n<<std::endl;
-   if(n<0)
+   if(n>MAX_N_FACTORIAL)
    {
-      std::cout<<"FATAL ERROR! NEGATIVE ARGUMENT IN FACTORIAL"<<std::endl<<"N = "<<n<<std::endl<<"EXIT"<<std::endl;
-//      return 0;
+      std::cout<<"WARNING LARGE FACTORIAL ARGUMENT : N ="<<n<<std::endl<<"EXIT"<<std::endl;
       exit(EXIT_SUCCESS);
    }
-   else if (n>1)
-    return n*factorial(n-1);
-    
-    else
-        return 1;
-
+   else if(n<0)
+   {
+      std::cout<<"FATAL ERROR! NEGATIVE ARGUMENT IN FACTORIAL"<<std::endl<<"N = "<<n<<std::endl<<"EXIT"<<std::endl;
+      exit(EXIT_SUCCESS);
+   }
+   else if(!isnan(memo[n]))
+      return memo[n];
+   else
+   {
+      memo[n]=n*factorial(n-1,memo);
+      return memo[n];
+   }
 }
 
 long double intplushalf_gamma(int n) //(Gamma(n+1/2))
 {
-//   std::cout<<sqrt(acos(-1))*factorial(2*n)/(pow(2,2*n)*factorial(n))<<std::endl;
    return sqrt(acos(-1))*factorial(2*n)/(pow(4,n)*factorial(n));
 }
 
@@ -158,37 +116,6 @@ bool kronecker_delta(int a, int b)
     else
         return 0;
 }
-/*bool two_cubes_moment(double *cube1,double *cube2,double *moment,int nx,int ny,int nz,double xmin,double xmax,double ymin,double ymax,double zmin,double zmax)
-{
-   double x(0);
-   double y(0);
-   double z(0);
-   double dx((xmax-xmin)/nx);
-   double dy((ymax-ymin)/ny);
-   double dz((zmax-zmin)/nz);
-
-   for(int i=0;i!=3;i++)
-   {
-      moment[i]=0;
-   }
-   for(int i=0;i!=nx;i++)
-   {
-      x=xmin+i*dx;
-      for(int j=0;j!=ny;j++)
-      {
-         y=ymin+j*dy;
-         for(int k=0;k!=nz;k++)
-         {
-           z=zmin+k*dz;
-           moment[0]+=x*cube1[i*ny*nz+j*nz+k]*cube2[i*ny*nz+j*nz+k]*dx*dy*dz;
-           moment[1]+=y*cube1[i*ny*nz+j*nz+k]*cube2[i*ny*nz+j*nz+k]*dx*dy*dz;
-           moment[2]+=z*cube1[i*ny*nz+j*nz+k]*cube2[i*ny*nz+j*nz+k]*dx*dy*dz;
-         }
-      }
-   }
-   return 1;
-}*/
-
 double cube_dot_product(double *cube1,double *cube2,int nx,int ny, int nz,double dx,double dy,double dz,int angle_vec_size,double *output)
 {
    double sum(0);
@@ -196,7 +123,6 @@ double cube_dot_product(double *cube1,double *cube2,int nx,int ny, int nz,double
    int inc(1);
    const MKL_INT lda(num);
 
-   //cblas_dgemv (CblasRowMajor, CblasNoTrans, angle_vec_size, num, dx*dy*dz ,cube1,lda, cube2, 1, 0,  output, 1);
    #pragma omp parallel for 
    for(int i=0;i<angle_vec_size;i++)
    {
@@ -207,18 +133,12 @@ double cube_dot_product(double *cube1,double *cube2,int nx,int ny, int nz,double
          sum+=cube1[i*nx*ny*nz+j]*cube2[j];
       }
       output[i]=sum*dx*dy*dz;
-      //      sum+=cube1[i]*cube2[i]*dx*dy*dz;
-      //output[i]= ddot(&num,&cube1[i*nx*ny*nz],&inc,cube2,&inc)*dx*dy*dz;
-      // std::cout<<cube1[i*ny*nz+j*nz+k]<<" ; "<<cube2[i*ny*nz+j*nz+k]<<" ; "<<sum<<std::endl;
    }
-   //std::cout<<sum<<" is the result of vector prod"<<std::endl;
    return 0;
-   //return ddot(&num,cube1,&inc,cube2,&inc)*dx*dy*dz;
 }
 
 double wigner3j(int l1,int l2,int l3,int m1,int m2,int m3)
 {
-//   std::cout<<"probe ! Accessing Wigner 3j"<<std::endl;
    double val(pow(-1,l1-l2-m3)*wdelta(l1,l2,l3)*w3j(l1,l2,l3,m1,m2,m3));
 
    if(isnan(val))
@@ -252,7 +172,6 @@ double w3j(int l1,int l2,int l3,int m1,int m2,int m3)
    if(l2+l1-l3<tmax)
       tmax=l2+l1-l3;
 
-//   std::cout<<"tmin = "<<tmin<<" ; tmax = "<<tmax<<std::endl;
    if(tmin < tmax)
    {
       for(int t=tmin;t!=tmax+1;t++)

@@ -1,6 +1,7 @@
 #ifndef FRONUC_DYN_M_H
 #define FRONUC_DYN_M_H
 #define MKL_Complex16 std::complex<double>
+#define MAX_N_FACTORIAL 20
 
 
 //Include standards libraries
