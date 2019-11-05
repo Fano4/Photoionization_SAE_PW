@@ -49,6 +49,7 @@ int photoion_comp(int argc, char* argv[])
     int *nucl_basis_func;
     std::string* basis_func_type;
     int n_elec_neut(4);//!!!! ecrire une routine qui cherche le nombre d'electrons dans l'output molpro!!!
+    int max_contraction_num(0);
 
 
     double testtime=omp_get_wtime();
@@ -85,6 +86,8 @@ int photoion_comp(int argc, char* argv[])
     double sum(0);
     int index(0);
     int index2(0);
+    unsigned long long int* fact_memo=new unsigned long long int [MAX_N_FACTORIAL];
+    double* lnfact_memo=new double[MAX_LN_FACTORIAL];
     int temp_int(0);
     double xmin(1.6125);
     double xmax(1.6125);
@@ -93,6 +96,34 @@ int photoion_comp(int argc, char* argv[])
     std::string file_root("/data1/home/stephan/LiH_gridtest_+++custom/LiH_");
     stringstream ss_molpro_file;
     std::string molpro_output_path;
+
+    for(int n=0;n!=MAX_LN_FACTORIAL;n++) lnfact_memo[n]=0;
+    for(int n=0;n!=MAX_N_FACTORIAL;n++) fact_memo[n]=0;
+    for(int n=0;n!=MAX_N_FACTORIAL;n++)
+    {
+//       std::cout<<" Factorial of "<<n<<" = "<<factorial(n,fact_memo)<<std::endl;
+//       std::cout<<" Factorial of "<<n<<" = "<<double(factorial(n,fact_memo))<<std::endl;
+    }
+    /*
+     *
+     *
+     * */
+
+    int pl1(2);
+    int pl2(1);
+    int pl3(1);
+    int pm1(2);
+    int pm2(1);
+    int pm3(1);
+
+    std::cout<<gaunt_formula(pl1+1,pl2,pl3,pm1+1,pm2,pm3,fact_memo)<<std::endl;
+    std::cout<<gaunt_formula(pl1+1,pl2,pl3,pm1-1,pm2,pm3,fact_memo)<<std::endl;
+    std::cout<<J_int_m2(pl1,pl2,pl3,pm1,pm2,pm3,fact_memo)<<std::endl;
+    /*
+     *
+     *
+     * */
+    exit(EXIT_SUCCESS);
 
     for(int x=0;x!=grid_size;x++)
     {
@@ -196,10 +227,9 @@ for(int x=0;x!=grid_size;x++)
        }
     }
     std::cout<<"INITIALIZED ALL BASIS SET ARRAYS"<<std::endl;
-    basis_data_reader(n_sym,basis_size_sym,contraction_number_sym,contraction_coeff_sym,contraction_zeta_sym,nucl_basis_func_sym,basis_func_type_sym,molpro_output_path,angular_mom_numbers_sym);
+    basis_data_reader(n_sym,basis_size_sym,contraction_number_sym,contraction_coeff_sym,contraction_zeta_sym,nucl_basis_func_sym,basis_func_type_sym,molpro_output_path,angular_mom_numbers_sym,fact_memo);
     total=0;
     int total2(0);
-    int max_contraction_num(0);
     for(int s=0;s!=n_sym;s++)
     {
        for(int t=0;t!=basis_size_sym[s];t++)
@@ -537,102 +567,13 @@ std::cout<<"********"<<std::endl;
      TESTING HF5 DIALOG
      */
 
-    //We want to determine the largest value of l for the contractions (l_max)
-
-    int l2max=0;
-    for(int i=0;i!=basis_size;i++)
-    {
-       if (angular_mom_numbers[i][0] > l2max )
-          l2max=angular_mom_numbers[i][0];
-    }
     double kp(0);
     double kmax(1.5);
     int state_neut(0);
-    double int_cs(0);
-    double thet(0);
-    double phi(0);
     int nk=256;
-    int position(0);
-    int x(0);
-    int ll2(0);
-    int mm2(0);
-    std::complex<double> *temp=new std::complex<double>[3];
-
-    int i(0);
-    int jl(0);
-    int jml(0);
-    int j(0);
     int jl_max(5);
-
-    int l3max=jl_max+l2max+1;
-
-    std::complex<double> ***Kval_cont=new std::complex<double> **[basis_size];
-    std::complex<double> ***ddk_Kval_cont=new std::complex<double> **[basis_size];
-    std::complex<double> **Kval=new std::complex<double> *[basis_size];
-    std::complex<double> **ddk_Kval=new std::complex<double> *[basis_size];
-    std::complex<double> ***bessel_val=new std::complex<double> **[basis_size];
-    std::complex<double> ***ddk_bessel_val=new std::complex<double> **[basis_size];
-
-    for( int ww = 0 ; ww != basis_size; ww ++)
-    {
-       Kval_cont[ww]=new std::complex<double> *[max_contraction_num];
-       ddk_Kval_cont[ww]=new std::complex<double> *[max_contraction_num];
-
-       Kval[ww]=new std::complex<double> [nk];
-       ddk_Kval[ww]=new std::complex<double> [nk];
-
-       bessel_val[ww]=new std::complex<double> *[l3max+1];
-       ddk_bessel_val[ww]=new std::complex<double> *[l3max+1];
-
-       for(int bb=0;bb!=max_contraction_number;bb++)
-       {
-          Kval_cont[ww][bb]=new std::complex<double> [nk];
-          ddk_Kval_cont[ww][bb]=new std::complex<double> [nk];
-       }
-       for(int bb=0;bb!=l3max*l3max+2*l3max+1;bb++)
-       {
-          bessel_val[ww][bb]=new std::complex<double> [nk];
-          ddk_bessel_val[ww][bb]=new std::complex<double> [nk];
-       }
-    }
-    //There are 9 angular integrals to compute.
-    //for a given value of l_max, there are in total S_{l_max}=∑_l=0^{l_max} 2l+1 values of ml
-    //S_{l_max}= 2 * 0.5 * l_max * (l_max + 1) + l_max + 1 = l_max^2 + 2 * l_max + 1
-
-    std::complex<double> ***ang_int1=new std::complex<double> ** [jl_max*jl_max+2*jl_max+1]; 
-    std::complex<double> ***ang_int2=new std::complex<double> ** [jl_max*jl_max+2*jl_max+1]; 
-    std::complex<double> ***ang_int3=new std::complex<double> ** [jl_max*jl_max+2*jl_max+1]; 
-    std::complex<double> ***ang_int4=new std::complex<double> ** [jl_max*jl_max+2*jl_max+1]; 
-    std::complex<double> ***ang_int5=new std::complex<double> ** [jl_max*jl_max+2*jl_max+1]; 
-    std::complex<double> ***ang_int6=new std::complex<double> ** [jl_max*jl_max+2*jl_max+1]; 
-    std::complex<double> ***ang_int7=new std::complex<double> ** [jl_max*jl_max+2*jl_max+1]; 
-    std::complex<double> ***ang_int8=new std::complex<double> ** [jl_max*jl_max+2*jl_max+1]; 
-    std::complex<double> ***ang_int9=new std::complex<double> ** [jl_max*jl_max+2*jl_max+1]; 
-
-    for(int ji=0;ji!=jl_max*jl_max+2*jl_max+1;ji++)
-    {
-       ang_int1[ji]=new std::complex<double> * [basis_size];
-       ang_int2[ji]=new std::complex<double> * [basis_size];
-       ang_int3[ji]=new std::complex<double> * [basis_size];
-       ang_int4[ji]=new std::complex<double> * [basis_size];
-       ang_int5[ji]=new std::complex<double> * [basis_size];
-       ang_int6[ji]=new std::complex<double> * [basis_size];
-       ang_int7[ji]=new std::complex<double> * [basis_size];
-       ang_int8[ji]=new std::complex<double> * [basis_size];
-       ang_int9[ji]=new std::complex<double> * [basis_size];
-       for( int ww = 0 ; ww != basis_size; ww ++)
-       {
-          ang_int1[ji][ww]=new std::complex<double>[l3max*l3max+2*l3max+1];
-          ang_int2[ji][ww]=new std::complex<double>[l3max*l3max+2*l3max+1];
-          ang_int3[ji][ww]=new std::complex<double>[l3max*l3max+2*l3max+1];
-          ang_int4[ji][ww]=new std::complex<double>[l3max*l3max+2*l3max+1];
-          ang_int5[ji][ww]=new std::complex<double>[l3max*l3max+2*l3max+1];
-          ang_int6[ji][ww]=new std::complex<double>[l3max*l3max+2*l3max+1];
-          ang_int7[ji][ww]=new std::complex<double>[l3max*l3max+2*l3max+1];
-          ang_int8[ji][ww]=new std::complex<double>[l3max*l3max+2*l3max+1];
-          ang_int9[ji][ww]=new std::complex<double>[l3max*l3max+2*l3max+1];
-       }
-    }
+    int x(0);
+    std::complex<double> *temp=new std::complex<double>[3];
 
     ifstream distrib_file;
     
@@ -641,94 +582,90 @@ std::cout<<"********"<<std::endl;
     //The integral is made of two factors: one depending on k, the other independent of k
     double begin=omp_get_wtime();
 
-    for(int ww=0;ww!=basis_size;ww++)//l2
-    {
-       ll2=angular_mom_numbers[ww][0];
-       mm2=angular_mom_numbers[ww][1];
+   //Then, we combine using LCAO coefficients to get MO's
+   std::complex<double>*** pice_ortho_mo = new std::complex<double> **[jl_max*jl_max+2*jl_max+1];
+   std::complex<double>*** pice_ddx_mo = new std::complex<double> **[jl_max*jl_max+2*jl_max+1];
+   std::complex<double>*** pice_ddy_mo = new std::complex<double> **[jl_max*jl_max+2*jl_max+1];
+   std::complex<double>*** pice_ddz_mo = new std::complex<double> **[jl_max*jl_max+2*jl_max+1];
 
-       for(int ll3=0;ll3!=l3max+1;ll3++)//l3
-       {
-          for(int mm3=-ll3;mm3!=ll3+1;mm3++)
-          {
-             for(int ll1=0;ll1!=jl_max+1;ll1++)//l1
-             {
-                for(int mm1=-ll1;mm1!=ll1+1;mm1++)
-                {
-                   ang_int1[ll1*ll1+ll1+mm1][ww][ll3*ll3+ll3+mm3]=
-                      pow(std::complex<double>(0,-1),ll1+ll3)*acos(-1)*rYlm(ll3,mm3,nucl_spher_pos[x][nucl_bas_func[ww]][1],nucl_spher_pos[x][nucl_bas_func[ww]][2])
-                      *prefactor_rYlm(ll1,fabs(mm1))*prefactor_rYlm(ll2,fabs(mm2))*prefactor_rYlm(ll3,fabs(mm3))
-                      *J_int_m1(ll1,ll2,ll3,fabs(mm1),fabs(mm2),fabs(mm3))*I_p1_integral(mm1,mm2,mm3);
+   std::complex<double> ***pice_x = new std::complex<double> **[n_states_neut*n_states_cat];
+   std::complex<double> ***pice_y = new std::complex<double> **[n_states_neut*n_states_cat];
+   std::complex<double> ***pice_z = new std::complex<double> **[n_states_neut*n_states_cat];
 
-                   ang_int2[ll1*ll1+ll1+mm1][ww][ll3*ll3+ll3+mm3]=
-                      pow(std::complex<double>(0,-1),ll3)*acos(-1)*rYlm(ll3,mm3,nucl_spher_pos[x][nucl_bas_func[ww]][1],nucl_spher_pos[x][nucl_bas_func[ww]][2])
-                      *prefactor_rYlm(ll1,fabs(mm1))*prefactor_rYlm(ll2,fabs(mm2))*prefactor_rYlm(ll3,fabs(mm3))
-                      *J_int_p1_D(ll1,ll2,ll3,fabs(mm1),fabs(mm2),fabs(mm3))*I_p1_integral(mm1,mm2,mm3);
+   for(int mm=0;mm!=n_states_neut*n_states_cat;mm++)
+   {
+      pice_x[mm]=new std::complex<double> *[jl_max*jl_max+2*jl_max+1];
+      pice_y[mm]=new std::complex<double> *[jl_max*jl_max+2*jl_max+1];
+      pice_z[mm]=new std::complex<double> *[jl_max*jl_max+2*jl_max+1];
+      for(int ji=0;ji!=jl_max*jl_max+2*jl_max+1;ji++)
+      {
+         pice_x[mm][ji]=new std::complex<double> [nk];
+         pice_y[mm][ji]=new std::complex<double> [nk];
+         pice_z[mm][ji]=new std::complex<double> [nk];
+      }
+   }
+   for(int ji=0;ji!=jl_max*jl_max+2*jl_max+1;ji++)
+   {
+      pice_ortho_mo[ji] =  new std::complex<double> *[n_occ];
+      pice_ddx_mo[ji] =  new std::complex<double> *[n_occ];
+      pice_ddy_mo[ji] =  new std::complex<double> *[n_occ];
+      pice_ddz_mo[ji] =  new std::complex<double> *[n_occ];
 
-                   ang_int3[ll1*ll1+ll1+mm1][ww][ll3*ll3+ll3+mm3]=
-                      -pow(std::complex<double>(0,-1),ll3)*acos(-1)*rYlm(ll3,mm3,nucl_spher_pos[x][nucl_bas_func[ww]][1],nucl_spher_pos[x][nucl_bas_func[ww]][2])
-                      *prefactor_rYlm(ll1,fabs(mm1))*prefactor_rYlm(ll2,fabs(mm2))*prefactor_rYlm(ll3,fabs(mm3))
-                      *J_int_m2(ll1,ll2,ll3,fabs(mm1),fabs(mm2),fabs(mm3))*I_m1_D_integral(mm1,mm2,mm3);
+      for(int mm=0;mm!=n_occ;mm++)
+      {
+         pice_ortho_mo[ji][mm]=new std::complex<double> [nk];
+         pice_ddx_mo[ji][mm]=new std::complex<double> [nk];
+         pice_ddy_mo[ji][mm]=new std::complex<double> [nk];
+         pice_ddz_mo[ji][mm]=new std::complex<double> [nk];
+      }
+   }
+   compute_bessel_pice_mo(pice_ortho_mo,pice_ddx_mo,pice_ddy_mo,pice_ddz_mo,jl_max,n_occ,basis_size,nk,kmax,MO_coeff_neutral[x],contraction_zeta,contraction_coeff,contraction_number,nucl_spher_pos[x],nucl_basis_func,angular_mom_numbers,fact_memo);
 
-                   ang_int4[ll1*ll1+ll1+mm1][ww][ll3*ll3+ll3+mm3]=
-                      pow(std::complex<double>(0,-1),ll1+ll3)*acos(-1)*rYlm(ll3,mm3,nucl_spher_pos[x][nucl_bas_func[ww]][1],nucl_spher_pos[x][nucl_bas_func[ww]][2])
-                      *prefactor_rYlm(ll1,fabs(mm1))*prefactor_rYlm(ll2,fabs(mm2))*prefactor_rYlm(ll3,fabs(mm3))
-                      *J_int_m1(ll1,ll2,ll3,fabs(mm1),fabs(mm2),fabs(mm3))*I_m1_integral(mm1,mm2,mm3);
-
-                   ang_int5[ll1*ll1+ll1+mm1][ww][ll3*ll3+ll3+mm3]=
-                      pow(std::complex<double>(0,-1),ll3)*acos(-1)*rYlm(ll3,mm3,nucl_spher_pos[x][nucl_bas_func[ww]][1],nucl_spher_pos[x][nucl_bas_func[ww]][2])
-                      *prefactor_rYlm(ll1,fabs(mm1))*prefactor_rYlm(ll2,fabs(mm2))*prefactor_rYlm(ll3,fabs(mm3))
-                      *J_int_p1_D(ll1,ll2,ll3,fabs(mm1),fabs(mm2),fabs(mm3))*I_m1_integral(mm1,mm2,mm3);
-
-                   ang_int6[ll1*ll1+ll1+mm1][ww][ll3*ll3+ll3+mm3]=
-                      pow(std::complex<double>(0,-1),ll3)*acos(-1)*rYlm(ll3,mm3,nucl_spher_pos[x][nucl_bas_func[ww]][1],nucl_spher_pos[x][nucl_bas_func[ww]][2])
-                      *prefactor_rYlm(ll1,fabs(mm1))*prefactor_rYlm(ll2,fabs(mm2))*prefactor_rYlm(ll3,fabs(mm3))
-                      *J_int_m2(ll1,ll2,ll3,fabs(mm1),fabs(mm2),fabs(mm3))*I_p1_D_integral(mm1,mm2,mm3);
-
-                   ang_int7[ll1*ll1+ll1+mm1][ww][ll3*ll3+ll3+mm3]=
-                      pow(std::complex<double>(0,-1),ll3)*acos(-1)*rYlm(ll3,mm3,nucl_spher_pos[x][nucl_bas_func[ww]][1],nucl_spher_pos[x][nucl_bas_func[ww]][2])
-                      *prefactor_rYlm(ll1,fabs(mm1))*prefactor_rYlm(ll2,fabs(mm2))*prefactor_rYlm(ll3,fabs(mm3))
-                      *J_int_p1(ll1,ll2,ll3,fabs(mm1),fabs(mm2),fabs(mm3))*azim_integral(mm1,mm2,mm3);
-
-                   ang_int8[ll1*ll1+ll1+mm1][ww][ll3*ll3+ll3+mm3]=
-                      pow(std::complex<double>(0,-1),ll3)*acos(-1)*rYlm(ll3,mm3,nucl_spher_pos[x][nucl_bas_func[ww]][1],nucl_spher_pos[x][nucl_bas_func[ww]][2])
-                      *prefactor_rYlm(ll1,fabs(mm1))*prefactor_rYlm(ll2,fabs(mm2))*prefactor_rYlm(ll3,fabs(mm3))
-                      *J_int_m1_D(ll1,ll2,ll3,fabs(mm1),fabs(mm2),fabs(mm3))*azim_integral(mm1,mm2,mm3);
-
-                   ang_int9[ll1*ll1+ll1+mm1][ww][ll3*ll3+ll3+mm3]=
-                      pow(std::complex<double>(0,-1),ll3)*acos(-1)*rYlm(ll3,mm3,nucl_spher_pos[x][nucl_bas_func[ww]][1],nucl_spher_pos[x][nucl_bas_func[ww]][2])
-                      *prefactor_rYlm(ll1,fabs(mm1))*prefactor_rYlm(ll2,fabs(mm2))*prefactor_rYlm(ll3,fabs(mm3))
-                      *gaunt_formula(ll1,ll2,ll3,fabs(mm1),fabs(mm2),fabs(mm3))*azim_integral(mm1,mm2,mm3);
-                }
-             }
-          }
-       }
-
-       for(int k=0;k!=nk;k++)
-       {
-            //Computing the k-dependent part of the integral
-            //there are two types of integral to compute. the direct expresison and the derivative of the expression
-            //This part only depends on l2 and l3
-         kp=kmax*(k+1)/nk;
-         Kval[ww][bb]=0;
-         ddk_Kval[ww][bb]=0;
-         for(int bb=0;bb!=max_contraction_number;bb++)
+   for(int nn=0;nn!=n_states_neut;nn++)
+   {
+      for( int nc=0;nc!=n_states_cat;nc++)
+      {
+         for(int mm=0;mm!=n_occ;mm++)
          {
-            Kval_cont[ww][bb][k]=pow(std::complex<double>(0,-kp),ll2)*exp(-kp*kp/(4*contraction_zeta[ww][bb]))/pow(2*contraction_zeta[ww][bb],1.5+ll2);
-            ddk_Kval_cont[ww][k]=(ll2/k-k/(2*contraction_zeta[ww][bb]))*Kval[ww][bb][k];
+            if(dyson_mo_basis_coeff[x][nn*n_states_cat*n_occ+nc*n_occ+mm]!=0)
+            {
+               for(int ji=0;ji!=jl_max*jl_max+2*jl_max+1;ji++)
+               {
+                  for(int k=0;k!=nk;k++)
+                  {
+                     pice_x[nn*n_states_cat+nc][ji][k]+=dyson_mo_basis_coeff[x][nn*n_states_cat*n_occ+nc*n_occ+mm]*pice_ddx_mo[ji][mm][k];
+                     pice_y[nn*n_states_cat+nc][ji][k]+=dyson_mo_basis_coeff[x][nn*n_states_cat*n_occ+nc*n_occ+mm]*pice_ddy_mo[ji][mm][k];
+                     pice_z[nn*n_states_cat+nc][ji][k]+=dyson_mo_basis_coeff[x][nn*n_states_cat*n_occ+nc*n_occ+mm]*pice_ddz_mo[ji][mm][k];
 
-            Kval[ww][k]+=contraction_coeff[ww][bb]*Kval_cont[ww][bb][k];
-            ddk_Kval[ww][k]+=contraction_coeff[ww][bb]*ddk_Kval_cont[ww][k];
+                     for(int mmp=0;mmp!=n_occ;mmp++)
+                     {
+                        pice_x[nn*n_states_cat+nc][ji][k]-=dyson_mo_basis_coeff[x][nn*n_states_cat*n_occ+nc*n_occ+mm]*mo_dipole[x][0][mm*n_occ+mmp]*pice_ortho_mo[ji][mmp][k];
+                        pice_y[nn*n_states_cat+nc][ji][k]-=dyson_mo_basis_coeff[x][nn*n_states_cat*n_occ+nc*n_occ+mm]*mo_dipole[x][1][mm*n_occ+mmp]*pice_ortho_mo[ji][mmp][k];
+                        pice_z[nn*n_states_cat+nc][ji][k]-=dyson_mo_basis_coeff[x][nn*n_states_cat*n_occ+nc*n_occ+mm]*mo_dipole[x][2][mm*n_occ+mmp]*pice_ortho_mo[ji][mmp][k];
+                     }
+                  }
+               }
+            }
          }
+      }
+   }
+//   for(int ji=0;ji!=jl_max*jl_max+2*jl_max+1;ji++)
+   std::complex<double> ddtemp(0);
+   for(int k=0;k!=nk;k++)
+   {
+      kp=(k+1)*kmax/nk;
+      ddtemp=0;
+//      std::cout<<kp<<","<<pice_z[0*n_states_cat][0][k]<<std::endl;
+//      std::cout<<kp<<","<<pow(std::abs(pice_z[0*n_states_cat][0][k]),2)<<std::endl;
+   for(int ji=0;ji!=jl_max*jl_max+2*jl_max+1;ji++)
+   {
+//      ddtemp+=abs(pice_z[0*n_states_cat][ji][k]);
+      ddtemp+=(pice_z[0*n_states_cat][ji][k]);
+   }
+   std::cout<<kp*kp*27.211/2<<","<<pow(std::abs(ddtemp),2)<<std::endl;
+   }
 
-         for(int ll3=0;ll3!=l3max+1;ll3++)//l3
-         {
-            bessel_val[ww][ll3][k]=j_l(ll3,k*nucl_spher_pos[x][nucl_bas_func[ww]][0]);
-            ddk_bessel_val[ww][ll3][k]=nucl_spher_pos[x][nucl_bas_func[ww]][0]*dj_ldz(ll3,k*nucl_spher_pos[x][nucl_bas_func[ww]][0]);
-         }
-       }
-    }
-    
-    pice_out.close();
+
     double end=omp_get_wtime(); 
     std::cout<<std::endl<<std::fixed<<std::setprecision(6)<<(end-begin)/10<<"s is the time with a precision of"<<omp_get_wtick()<<std::endl;
        

@@ -1,4 +1,4 @@
-double associated_legendre(unsigned int l,int m,double x)
+double associated_legendre(unsigned int l,int m,double x,unsigned long long int* fact_memo)
 {
    int sign(-bool( m % 2 != 0 ) + bool( m % 2 == 0 ));
 
@@ -17,12 +17,12 @@ double associated_legendre(unsigned int l,int m,double x)
       }
       else if(m > 0)
       {
-         return sign * sqrt((2*l+1) * factorial(l-m) / (4*acos(-1) * factorial(l+m)))
+         return sign * sqrt((2*l+1) * exp(ln_factorial(l-m,lnfact_memo) - ln_factorial(l+m,lnfact_memo)) / (4*acos(-1)))
             * ((l-m+1) * x * associated_legendre_nonorm(l,m-1,x) - (l+m-1) * associated_legendre_nonorm(l-1,m-1,x)) / sqrt(1-x*x);
       }
       else 
       {
-         return sign * factorial(l+m)*associated_legendre(l,-m,x)/factorial(l-m);
+         return sign * exp(ln_factorial(l+m,lnfact_memo)-ln_factorial(l-m,lnfact_memo))*associated_legendre(l,-m,x,lnfact_memo);
       }
    }
 }
@@ -54,8 +54,7 @@ double associated_legendre_nonorm(unsigned int l,int m,double x)
       }
    }
 }
-
-double associated_legendre_der(unsigned int l,int m,double x)
+double associated_legendre_der(unsigned int l,int m,double x,unsigned long long int* fact_memo)
 {
 
    int sign(-bool( m % 2 != 0 ) + bool( m % 2 == 0 ));
@@ -70,12 +69,13 @@ double associated_legendre_der(unsigned int l,int m,double x)
       }
       else if(m > 0)
       {
-         return -sign * sqrt((2*l+1)*factorial(l-m)/(4*acos(-1)*factorial(l+m)))
+         return -sign * sqrt((2*l+1)*exp(ln_factorial(l-m,lnfact_memo)-ln_factorial(l+m,lnfact_memo))/(4*acos(-1)))
             *(l*x*associated_legendre_nonorm(l,m,x)-(l+m)*associated_legendre_nonorm(l-1,m,x))/sqrt(1-x*x);
       }
       else 
       {
-         return sign * factorial(l+m)*associated_legendre_der(l,-m,x)/factorial(l-m);
+         return sign * exp(ln_factorial(l+m,lnfact_memo)-ln_factorial(l-m,lnfact_memo))*associated_legendre_der(l,-m,x,fact_memo);
+         //return sign * double(factorial(l+m,fact_memo))*associated_legendre_der(l,-m,x,fact_memo)/double(factorial(l-m,fact_memo));
       }
    }
 }
@@ -110,7 +110,3 @@ double legendre_der(unsigned int l,double x)
       }
    }
 }
-/*int factorial(unsigned int n)
-{
-      return bool(n==0)+bool(n!=0)*n*factorial(n-1);
-}*/

@@ -2,6 +2,7 @@
 #define FRONUC_DYN_M_H
 #define MKL_Complex16 std::complex<double>
 #define MAX_N_FACTORIAL 20
+#define MAX_LN_FACTORIAL 50
 
 
 //Include standards libraries
@@ -25,6 +26,7 @@
 #include "files_reader.cpp"
 #include "dyson_cube_writer.cpp"
 #include "algebra.cpp"
+#include "angular_int_aux.cpp"
 #include "Computation.cpp"
 #include "hf5_photoion.cpp"
 

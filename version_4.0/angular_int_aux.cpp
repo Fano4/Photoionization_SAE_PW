@@ -1,7 +1,7 @@
-
+/*
 std::complex<double> bessel_cont_angleint(int jl,int jml,double* nucl_spher_pos,double contraction_zeta,int* angular_mom_numbers,std::complex<double> **result)
 {
-   /*
+   / *
     * For a given set of numbers l1,m1 and l2,m2, this routine will fill the *result array with the values
     * of the corresponding angular integrals. Namely, it will compute the angular part of the 
     *  - Bessel / Contraction overlap
@@ -29,7 +29,7 @@ std::complex<double> bessel_cont_angleint(int jl,int jml,double* nucl_spher_pos,
     * 7: ddz - k component
     * 8 : ddz - thet component
     *
-    */
+    * /
    int l1(jl);
    int l2(angular_mom_numbers[0]);
    int m1(jml);
@@ -121,6 +121,7 @@ std::complex<double> bessel_cont_angleint(int jl,int jml,double* nucl_spher_pos,
 
    }
 }
+*/
 double azim_integ(int m1,int m2,int m3)
 {
    using namespace std;
@@ -139,23 +140,23 @@ double azim_integ(int m1,int m2,int m3)
 
    return 2*acos(-1)*sum;
 }
-double rYlm (int l,int m,double thet,double phi)
+double rYlm (int l,int m,double thet,double phi,unsigned long long int* fact_memo)
 {
 //   std::cout<<"Entering rYlm with parameters "<<l<<","<<m<<","<<thet<<","<<phi<<std::endl;
    if(m<0)
    {
-      return sqrt(2)*associated_legendre(l,-m,cos(thet))*sin(-m*phi);
+      return sqrt(2)*associated_legendre(l,-m,cos(thet),fact_memo)*sin(-m*phi);
    }
    else if(m>0)
    {
-      return sqrt(2)*associated_legendre(l,m,cos(thet))*cos(m*phi);
+      return sqrt(2)*associated_legendre(l,m,cos(thet),fact_memo)*cos(m*phi);
    }
    else
    {
-      return associated_legendre(l,m,cos(thet));
+      return associated_legendre(l,m,cos(thet),fact_memo);
    }
 }
-double prefactor_rYlm(int l,int m)
+double prefactor_rYlm(int l,int m,unsigned long long int* fact_memo)
 {
    int sign(-bool( m % 2 != 0 ) + bool( m % 2 == 0 ));
 
@@ -171,48 +172,60 @@ double prefactor_rYlm(int l,int m)
    }
    else if(m > 0)
    {
-      return sign * sqrt((2*l+1) * factorial(l-m) / (4*acos(-1) * factorial(l+m)));
+      return sign * sqrt(2) * sqrt((2*l+1) * exp(ln_factorial(l-m,lnfact_memo)-ln_factorial(l+m,lnfact_memo)) / (4*acos(-1)));
+//      return sign * sqrt(2) * sqrt((2*l+1) * double(factorial(l-m,fact_memo)) / (4*acos(-1) * double(factorial(l+m,fact_memo))));
    }
    else 
    {
-      return sign * sqrt((2*l+1) * factorial(l+m) / (4*acos(-1) * factorial(l-m)));
+      return sign * sqrt(2) * sqrt((2*l+1) * exp(ln_factorial(l+m,lnfact_memo)-ln_factorial(l-m,lnfact_memo)) / (4*acos(-1)));
+//      return sign * sqrt(2) * sqrt((2*l+1) * double(factorial(l+m,fact_memo)) / (4*acos(-1) * double( factorial(l-m,fact_memo))));
 //      return sign * factorial(l+m)*prefactor_rYlm(l,-m)/factorial(l-m);
    }
 }
-double J_int_m2(int l1,int l2,int l3,int m1,int m2,int m3)
+double J_int_m2(int l1,int l2,int l3,int m1,int m2,int m3,unsigned long long int* fact_memo)
 {
    if(m1>0)
-      return (-1/(m1))*(gaunt_formula(l1-1,l2,l3,m1+1,m2,m3)+(l1+m1-1)*(l1+m1)*gaunt_formula(l1-1,l2,l3,m1-1,m2,m3));
+      return (-1./(2*m1))*(gaunt_formula(l1+1,l2,l3,m1+1,m2,m3,fact_memo)+(l1-m1+1)*(l1-m1+2)*gaunt_formula(l1+1,l2,l3,m1-1,m2,m3,fact_memo));
+//      return (-1./(2*m1))*(gaunt_formula(l1-1,l2,l3,m1+1,m2,m3,fact_memo)+(l1+m1-1)*(l1+m1)*gaunt_formula(l1-1,l2,l3,m1-1,m2,m3,fact_memo));
    else if(m2>0 && m2 == m3)
-      return (-1/(m2))*(gaunt_formula(l1,l2-1,l3,m1,m2+1,m3)+(l2+m2-1)*(l2+m2)*gaunt_formula(l1,l2-1,l3,m1,m2-1,m3));
+      return (-1./(2*m2))*(gaunt_formula(l1,l2+1,l3,m1,m2+1,m3,fact_memo)+(l2-m2+1)*(l2-m2+2)*gaunt_formula(l1,l2+1,l3,m1,m2-1,m3,fact_memo));
+//      return (-1./(2*m2))*(gaunt_formula(l1,l2-1,l3,m1,m2+1,m3,fact_memo)+(l2+m2-1)*(l2+m2)*gaunt_formula(l1,l2-1,l3,m1,m2-1,m3,fact_memo));
    else
       return 0; 
       
 }
-double J_int_m1(int l1,int l2,int l3,int m1,int m2,int m3)
+double J_int_m1(int l1,int l2,int l3,int m1,int m2,int m3,unsigned long long int* fact_memo)
 {
-   return (1/(2*l1+1))*(gaunt_formula(l1-1,l2,l3,m1+1,m2,m3)-gaunt_formula(l1+1,l2,l3,m1+1,m2,m3));
+   return (1./(2.*l1+1))*(gaunt_formula(l1-1,l2,l3,m1+1,m2,m3,fact_memo)-gaunt_formula(l1+1,l2,l3,m1+1,m2,m3,fact_memo));
 }
-double J_int_p1(int l1,int l2,int l3,int m1,int m2,int m3)
+double J_int_p1(int l1,int l2,int l3,int m1,int m2,int m3,unsigned long long int* fact_memo)
 {
-   return (1/(2*l1+1))*((l1-m1+1)*gaunt_formula(l1+1,l2,l3,m1,m2,m3)-(l1+m1)*gaunt_formula(l1-1,l2,l3,m1,m2,m3));
+   /*
+   std::cout<<l1<<";"<<l2<<";"<<l3<<";"<<m1<<";"<<m2<<";"<<m3<<std::endl;
+   std::cout<<gaunt_formula(l1+1,l2,l3,m1,m2,m3,fact_memo)<<std::endl;
+   std::cout<<gaunt_formula(l1-1,l2,l3,m1,m2,m3,fact_memo)<<std::endl;
+   std::cout<<"===="<<(l1-m1+1)*gaunt_formula(l1+1,l2,l3,m1,m2,m3,fact_memo)<<std::endl;
+   std::cout<<"===="<<(l1+m1)*gaunt_formula(l1-1,l2,l3,m1,m2,m3,fact_memo)<<std::endl;
+   std::cout<<"++++"<<(1./(2.*l1+1.))*((l1-m1+1)*gaunt_formula(l1+1,l2,l3,m1,m2,m3,fact_memo)-(l1+m1)*gaunt_formula(l1-1,l2,l3,m1,m2,m3,fact_memo))<<std::endl;
+*/
+   return (1./(2.*l1+1.))*(double(l1-m1+1.)*gaunt_formula(l1+1,l2,l3,m1,m2,m3,fact_memo)-double(l1+m1)*gaunt_formula(l1-1,l2,l3,m1,m2,m3,fact_memo));
 }
-double J_int_m1_D(int l1,int l2,int l3,int m1,int m2,int m3)
+double J_int_m1_D(int l1,int l2,int l3,int m1,int m2,int m3,unsigned long long int*  fact_memo)
 {
-   return (1/(4*l1+2))*(
-          (l3+m3)*(l3-m3+1)*gaunt_formula(l1-1,l2,l3,m1+1,m2,m3-1)-gaunt_formula(l1-1,l2,l3,m1+1,m2,m3+1)
-         +(l2+m2)*(l2-m2+1)*gaunt_formula(l1-1,l2,l3,m1+1,m2-1,m3)-gaunt_formula(l1-1,l2,l3,m1+1,m2+1,m3)
-         -(l3+m3)*(l3-m3+1)*gaunt_formula(l1+1,l2,l3,m1+1,m2,m3-1)+gaunt_formula(l1+1,l2,l3,m1+1,m2+1,m3)
-         -(l2+m2)*(l2-m2+1)*gaunt_formula(l1+1,l2,l3,m1+1,m2-1,m3)+gaunt_formula(l1+1,l2,l3,m1+1,m2+1,m3)
+   return (1./(4.*l1+2.))*(
+          double(l3+m3)*double(l3-m3+1.)*gaunt_formula(l1-1,l2,l3,m1+1,m2,m3-1,fact_memo)-gaunt_formula(l1-1,l2,l3,m1+1,m2,m3+1,fact_memo)
+         +double(l2+m2)*(l2-m2+1)*gaunt_formula(l1-1,l2,l3,m1+1,m2-1,m3,fact_memo)-gaunt_formula(l1-1,l2,l3,m1+1,m2+1,m3,fact_memo)
+         -double(l3+m3)*(l3-m3+1)*gaunt_formula(l1+1,l2,l3,m1+1,m2,m3-1,fact_memo)+gaunt_formula(l1+1,l2,l3,m1+1,m2,m3-1,fact_memo)
+         -double(l2+m2)*(l2-m2+1)*gaunt_formula(l1+1,l2,l3,m1+1,m2-1,m3,fact_memo)+gaunt_formula(l1+1,l2,l3,m1+1,m2+1,m3,fact_memo)
          );
 }
-double J_int_p1_D(int l1,int l2,int l3,int m1,int m2,int m3)
+double J_int_p1_D(int l1,int l2,int l3,int m1,int m2,int m3,unsigned long long int* fact_memo)
 {
-   return (1/(4*l1+2))*(
-          (l3+m3)*(l3-m3+1)*(l1-m1+1)*gaunt_formula(l1+1,l2,l3,m1,m2,m3-1)-(l3+m3)*(l3-m3+1)*(l1+m1)*gaunt_formula(l1-1,l2,l3,m1,m2,m3-1)
-         -(l1-m1+1)*gaunt_formula(l1+1,l2,l3,m1,m2,m3+1)+(l1+m1)*gaunt_formula(l1-1,l2,l3,m1,m2,m3+1)
-         +(l2+m2)*(l2-m2+1)*(l2-m1+1)*gaunt_formula(l1+1,l2,l3,m1,m2-1,m3-1)-(l2+m2)*(l2-m2+1)*(l1+m1)*gaunt_formula(l1-1,l2,l3,m1+1,m2+1,m3)
-         -(l1+m1+1)*gaunt_formula(l1+1,l2,l3,m1,m2+1,m3)+(l1+m1)*gaunt_formula(l1-1,l2,l3,m1,m2+1,m3)
+   return (1./(4.*l1+2))*(
+          double(l3+m3)*double(l3-m3+1)*double(l1-m1+1)*gaunt_formula(l1+1,l2,l3,m1,m2,m3-1,fact_memo)-double(l3+m3)*double(l3-m3+1)*double(l1+m1)*gaunt_formula(l1-1,l2,l3,m1,m2,m3-1,fact_memo)
+         -double(l1-m1+1)*gaunt_formula(l1+1,l2,l3,m1,m2,m3+1,fact_memo)+double(l1+m1)*gaunt_formula(l1-1,l2,l3,m1,m2,m3+1,fact_memo)
+         +double(l2+m2)*double(l2-m2+1)*double(l1-m1+1)*gaunt_formula(l1+1,l2,l3,m1,m2-1,m3,fact_memo)-double(l2+m2)*double(l2-m2+1)*double(l1+m1)*gaunt_formula(l1-1,l2,l3,m1,m2-1,m3,fact_memo)
+         -double(l1+m1+1)*gaunt_formula(l1+1,l2,l3,m1,m2+1,m3,fact_memo)+double(l1+m1)*gaunt_formula(l1-1,l2,l3,m1,m2+1,m3,fact_memo)
          );
 
 }
@@ -239,7 +252,7 @@ double I_p1_D_integral(int m1,int m2,int m3)
    return -0.5*m2*(azim_integ(m1-1,-m2,m3)+azim_integ(m1-1,-m2,m3)) 
       - 0.5*m3*(azim_integ(m1-1,m2,-m3)+azim_integ(m1-1,m2,-m3));
 }
-double gaunt_formula(int l1,int l2,int l3,int m1,int m2,int m3)
+double gaunt_formula(int l1,int l2,int l3,int m1,int m2,int m3,unsigned long long int* fact_memo)
 {
    //DETERMINE THE LARGEST ORDER
    int temp(0);
@@ -298,12 +311,41 @@ double gaunt_formula(int l1,int l2,int l3,int m1,int m2,int m3)
       w=temp;
    }
 
+   // P_l^u P_m^v P_n^w 
    if(fabs(m1) > l1 || fabs(m2) > l2 || fabs(m3) > l3)
    {
-//      std::cout<<"FATAL ERROR: ORDER LARGER THAN DEGREE IN GAUNT FORMULA"<<std::endl;
-//      std::cout<<m1<<"<"<<l1<<","<<m2<<"<"<<l2<<","<<m3<<"<"<<l3<<std::endl;
+      std::cout<<"Condition on m>l"<<std::endl;
       return 0;
    }
+   else if(u != v + w || (l+m+n) % 2 != 0 || ( l > m+n || l < m-n ))
+   {
+      /*
+      std::cout<<"condition for zero"<<std::endl;
+      std::cout<<u<<" != "<<v<<" + "<<w<<std::endl;
+      std::cout<<"2s != "<<l+m+n<<std::endl;
+      std::cout<<l<<" – "<<m+n<<" ; "<<m-n<<std::endl;
+      */
+      
+      return 0;
+   }
+
+   dtemp=2*pow(-1,u)
+      exp(0.5*(ln_factorial(n+w,lnfact_memo)-ln_factorial(n-w,lnfact_memo)+ln_factorial(m+v,fact_memo)-ln_factorial(m-v,lnfact_memo)+ln_factorial(l+u,lnfact_memo)-ln_factorial(l-u,lnfact_memo)))*
+   *wigner3j(n,m,l,0,0,0,fact_memo)*wigner3j(n,m,l,w,v,-u,fact_memo);
+//   dtemp=2*pow(-1,u)*sqrt((double(factorial(n+w,fact_memo))/double(factorial(n-w,fact_memo)))*(double(factorial(m+v,fact_memo))/double(factorial(m-v,fact_memo)))*(double(factorial(l+u,fact_memo))/double(factorial(l-u,fact_memo))))
+//   *wigner3j(n,m,l,0,0,0,fact_memo)*wigner3j(n,m,l,w,v,-u,fact_memo);
+
+   /*   std::cout<<"initial numbers: "<<l1<<","<<l2<<","<<l3<<","<<m1<<","<<m2<<","<<m3<<std::endl;
+   if(dtemp == 0 )
+   {
+      std::cout<<"Wigner 3j for "<<n<<","<<m<<","<<l<<","<<w<<","<<v<<","<<-u<<std::endl;
+      std::cout<<wigner3j(n,m,l,w,v,-u,fact_memo)<<std::endl;
+      std::cout<<"Wigner 3j for "<<n<<","<<m<<","<<l<<","<<0<<","<<0<<","<<0<<std::endl;
+      std::cout<<wigner3j(n,m,l,0,0,0,fact_memo)<<std::endl;
+   }*/
+
+   return dtemp;
+   /*
    //CHECK THAT THE PARAMETERS RESPECT THE CONDITIONS
    else if( m1 < 0 || m2 < 0 || m3 < 0)
    {
@@ -314,7 +356,7 @@ double gaunt_formula(int l1,int l2,int l3,int m1,int m2,int m3)
       return 0;
    else if( (l+m+n) % 2 != 0)
       return 0;
-   else if( l3 > l1 + l2 || l3 < fabs(l1- l2) )
+   else if( l > m+n || l < m-n )
       return 0;
    else if (u != v + w)
       return 0;
@@ -332,17 +374,19 @@ double gaunt_formula(int l1,int l2,int l3,int m1,int m2,int m3)
    for(int t=p;t<q+1;t++)
    {
 //      std::cout<<t<<std::endl;
-      sum+=pow(-1,t)*factorial(l+u+t)*factorial(m+n-u-t)/(factorial(t)*factorial(l-u-t)*factorial(m-n+u+t)*factorial(n-w-t));
+      sum+=pow(-1,t)*double(factorial(l+u+t,fact_memo)*factorial(m+n-u-t,fact_memo))/double(factorial(t,fact_memo)*factorial(l-u-t,fact_memo)*factorial(m-n+u+t,fact_memo)*factorial(n-w-t,fact_memo));
+
    }
 //   std::cout<<m-v<<","<<s-l<<","<<s-m<<","<<s-n<<","<<2*s+1<<std::endl;
-   dtemp=2*pow(-1,s-m-w)*sum*factorial(m+v)*factorial(n+w)*factorial(2*s-2*n)*factorial(s)/( factorial(m-v)*factorial(s-l)*factorial(s-m)*factorial(s-n)*factorial(2*s+1));
+   dtemp=2*pow(-1,s-m-w)*sum*double(factorial(m+v,fact_memo)*factorial(n+w,fact_memo)*factorial(2*s-2*n,fact_memo)*factorial(s,fact_memo))/double( factorial(m-v,fact_memo)*factorial(s-l,fact_memo)*factorial(s-m,fact_memo)*factorial(s-n,fact_memo)*factorial(2*s+1,fact_memo));
 //   std::cout<<"Gaunt val"<<dtemp<<std::endl;
    if(isnan(dtemp))
        std::cout<<" ERROR ! GAUNT FUNCTION IS NAN"<<std::endl;
    return dtemp;
    }
+*/
 }
-double Dint(int l1,int l2,int l3,int m1,int m2,int m3)
+double Dint(int l1,int l2,int l3,int m1,int m2,int m3,unsigned long long int* fact_memo)
 {
-   return sqrt(((2*l1+1)*(2*l2+1)*(2*l3+1))/(4*acos(-1)))*wigner3j(l1,l2,l3,0,0,0)*wigner3j(l1,l2,l3,m1,m2,m3);
+   return sqrt(((2*l1+1)*(2*l2+1)*(2*l3+1))/(4*acos(-1)))*wigner3j(l1,l2,l3,0,0,0,fact_memo)*wigner3j(l1,l2,l3,m1,m2,m3,fact_memo);
 }

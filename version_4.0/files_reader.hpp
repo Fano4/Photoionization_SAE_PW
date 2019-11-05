@@ -12,7 +12,7 @@ int num_of_ci_reader(int *n_states_neut,int *n_states_cat,int *n_ci_neut,int *n_
 int overlap_MO(double matrix[],int* n_occ,int* basis_size,int* basis_size_int,std::string molpro_out_path,double* MO_coeff_neutral,int n_sym);
 int size_query(int* n_occ,int *n_closed,int* basis_size,std::string molpro_out_path,int n_sym);
 bool basis_size_data_reader(int n_sym, int* basis_size_sym,int** contraction_number,std::string file_address);
-bool basis_data_reader(int n_sym, int* basis_size_sym,int** contraction_number,double*** contraction_coeff,double*** contraction_zeta,int** nucl_basis_func,std::string **basis_func_type,std::string file_address,int ***angular_mom_numbers);
+bool basis_data_reader(int n_sym, int* basis_size_sym,int** contraction_number,double*** contraction_coeff,double*** contraction_zeta,int** nucl_basis_func,std::string **basis_func_type,std::string file_address,int ***angular_mom_numbers,unsigned long long int* fact_memo);
 void dipole_MO(double **matrix,int* n_occ,int* basis_size,int* basis_size_sym,std::string molpro_out_path,int n_sym=1);
 
 
