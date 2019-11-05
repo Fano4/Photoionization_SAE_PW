@@ -743,7 +743,7 @@ double contraction_value( double r, double thet, double phi,double* nucl_spher_p
    }
 */
 }
-bool build_ao_s(double* S,int *nucl_basis_func,int *contraction_number,double **nucl_spher_pos,double **contraction_coeff,double **contraction_zeta,std::string *basis_func_type,int basis_size,unsigned long long int* fact_memo)
+bool build_ao_s(double* S,int *nucl_basis_func,int *contraction_number,double **nucl_spher_pos,double **contraction_coeff,double **contraction_zeta,std::string *basis_func_type,int basis_size,double* lnfact_memo)
 {
    double val=0;
    int l_val=0;
@@ -763,7 +763,7 @@ bool build_ao_s(double* S,int *nucl_basis_func,int *contraction_number,double **
             {
                for(int jp=0;jp!=contraction_number[j];jp++)
                {
-                  val+=0.5*(contraction_coeff[i][ip]*contraction_coeff[j][jp]*intplushalf_gamma(0.5*l_val+1.5,fact_memo))/(pow(contraction_zeta[i][ip]+contraction_zeta[j][jp],1.5+l_val))*kronecker_delta(l_val,l_valp);
+                  val+=0.5*(contraction_coeff[i][ip]*contraction_coeff[j][jp]*intplushalf_gamma(0.5*l_val+1.5,lnfact_memo))/(pow(contraction_zeta[i][ip]+contraction_zeta[j][jp],1.5+l_val))*kronecker_delta(l_val,l_valp);
                }
             }
             std::cout<<"<"<<i+1<<"|"<<j+1<<"> = "<<val<<std::endl;
@@ -870,7 +870,7 @@ double build_reduced_determinant( int ai,int aj,int n_elec,int n_closed,int n_oc
   //    std::cout<<prefactor<<std::endl;
    return prefactor;
 }
-void compute_bessel_pice_mo(std::complex<double>*** pice_ortho_mo,std::complex<double>*** pice_ddx_mo,std::complex<double>*** pice_ddy_mo,std::complex<double>*** pice_ddz_mo,int jl_max,int n_occ,int basis_size,int nk,double kmax,double *MO_coeff_neutral,double **contraction_zeta,double **contraction_coeff,int * contraction_number,double** nucl_spher_pos,int *nucl_basis_func,int** angular_mom_numbers,unsigned long long int* fact_memo)
+void compute_bessel_pice_mo(std::complex<double>*** pice_ortho_mo,std::complex<double>*** pice_ddx_mo,std::complex<double>*** pice_ddy_mo,std::complex<double>*** pice_ddz_mo,int jl_max,int n_occ,int basis_size,int nk,double kmax,double *MO_coeff_neutral,double **contraction_zeta,double **contraction_coeff,int * contraction_number,double** nucl_spher_pos,int *nucl_basis_func,int** angular_mom_numbers,double* lnfact_memo)
 {
 
    int ll2(0);
@@ -985,48 +985,48 @@ void compute_bessel_pice_mo(std::complex<double>*** pice_ortho_mo,std::complex<d
                for(int mm1=-ll1;mm1!=ll1+1;mm1++)
                {
                   ang_int1[ll1*ll1+ll1+mm1][ww][ll3*ll3+ll3+mm3]=
-                      pow(std::complex<double>(0,-1),ll3-ll1-1)*4.*acos(-1)*rYlm(ll3,mm3,nucl_spher_pos[nucl_basis_func[ww]][1],nucl_spher_pos[nucl_basis_func[ww]][2],fact_memo)
-                      *prefactor_rYlm(ll1,fabs(mm1),fact_memo)*prefactor_rYlm(ll2,fabs(mm2),fact_memo)*prefactor_rYlm(ll3,fabs(mm3),fact_memo)
-                      *J_int_m1(ll1,ll2,ll3,fabs(mm1),fabs(mm2),fabs(mm3),fact_memo)*I_p1_integral(mm1,mm2,mm3);
+                      pow(std::complex<double>(0,-1),ll3-ll1-1)*4.*acos(-1)*rYlm(ll3,mm3,nucl_spher_pos[nucl_basis_func[ww]][1],nucl_spher_pos[nucl_basis_func[ww]][2],lnfact_memo)
+                      *prefactor_rYlm(ll1,fabs(mm1),lnfact_memo)*prefactor_rYlm(ll2,fabs(mm2),lnfact_memo)*prefactor_rYlm(ll3,fabs(mm3),lnfact_memo)
+                      *J_int_m1(ll1,ll2,ll3,fabs(mm1),fabs(mm2),fabs(mm3),lnfact_memo)*I_p1_integral(mm1,mm2,mm3);
                   ang_int2[ll1*ll1+ll1+mm1][ww][ll3*ll3+ll3+mm3]=
-                      pow(std::complex<double>(0,-1),ll3-ll1-1)*4.*acos(-1)*rYlm(ll3,mm3,nucl_spher_pos[nucl_basis_func[ww]][1],nucl_spher_pos[nucl_basis_func[ww]][2],fact_memo)
-                      *prefactor_rYlm(ll1,fabs(mm1),fact_memo)*prefactor_rYlm(ll2,fabs(mm2),fact_memo)*prefactor_rYlm(ll3,fabs(mm3),fact_memo)
-                      *J_int_p1_D(ll1,ll2,ll3,fabs(mm1),fabs(mm2),fabs(mm3),fact_memo)*I_p1_integral(mm1,mm2,mm3);
+                      pow(std::complex<double>(0,-1),ll3-ll1-1)*4.*acos(-1)*rYlm(ll3,mm3,nucl_spher_pos[nucl_basis_func[ww]][1],nucl_spher_pos[nucl_basis_func[ww]][2],lnfact_memo)
+                      *prefactor_rYlm(ll1,fabs(mm1),lnfact_memo)*prefactor_rYlm(ll2,fabs(mm2),lnfact_memo)*prefactor_rYlm(ll3,fabs(mm3),lnfact_memo)
+                      *J_int_p1_D(ll1,ll2,ll3,fabs(mm1),fabs(mm2),fabs(mm3),lnfact_memo)*I_p1_integral(mm1,mm2,mm3);
 
                   ang_int3[ll1*ll1+ll1+mm1][ww][ll3*ll3+ll3+mm3]=
-                      -pow(std::complex<double>(0,-1),ll3-ll1-1)*4.*acos(-1)*rYlm(ll3,mm3,nucl_spher_pos[nucl_basis_func[ww]][1],nucl_spher_pos[nucl_basis_func[ww]][2],fact_memo)
-                      *prefactor_rYlm(ll1,fabs(mm1),fact_memo)*prefactor_rYlm(ll2,fabs(mm2),fact_memo)*prefactor_rYlm(ll3,fabs(mm3),fact_memo)
-                      *J_int_m2(ll1,ll2,ll3,fabs(mm1),fabs(mm2),fabs(mm3),fact_memo)*I_m1_D_integral(mm1,mm2,mm3);
+                      -pow(std::complex<double>(0,-1),ll3-ll1-1)*4.*acos(-1)*rYlm(ll3,mm3,nucl_spher_pos[nucl_basis_func[ww]][1],nucl_spher_pos[nucl_basis_func[ww]][2],lnfact_memo)
+                      *prefactor_rYlm(ll1,fabs(mm1),lnfact_memo)*prefactor_rYlm(ll2,fabs(mm2),lnfact_memo)*prefactor_rYlm(ll3,fabs(mm3),lnfact_memo)
+                      *J_int_m2(ll1,ll2,ll3,fabs(mm1),fabs(mm2),fabs(mm3),lnfact_memo)*I_m1_D_integral(mm1,mm2,mm3);
 
                   ang_int4[ll1*ll1+ll1+mm1][ww][ll3*ll3+ll3+mm3]=
-                      pow(std::complex<double>(0,-1),ll3-ll1-1)*4.*acos(-1)*rYlm(ll3,mm3,nucl_spher_pos[nucl_basis_func[ww]][1],nucl_spher_pos[nucl_basis_func[ww]][2],fact_memo)
-                      *prefactor_rYlm(ll1,fabs(mm1),fact_memo)*prefactor_rYlm(ll2,fabs(mm2),fact_memo)*prefactor_rYlm(ll3,fabs(mm3),fact_memo)
-                      *J_int_m1(ll1,ll2,ll3,fabs(mm1),fabs(mm2),fabs(mm3),fact_memo)*I_m1_integral(mm1,mm2,mm3);
+                      pow(std::complex<double>(0,-1),ll3-ll1-1)*4.*acos(-1)*rYlm(ll3,mm3,nucl_spher_pos[nucl_basis_func[ww]][1],nucl_spher_pos[nucl_basis_func[ww]][2],lnfact_memo)
+                      *prefactor_rYlm(ll1,fabs(mm1),lnfact_memo)*prefactor_rYlm(ll2,fabs(mm2),lnfact_memo)*prefactor_rYlm(ll3,fabs(mm3),lnfact_memo)
+                      *J_int_m1(ll1,ll2,ll3,fabs(mm1),fabs(mm2),fabs(mm3),lnfact_memo)*I_m1_integral(mm1,mm2,mm3);
 
                   ang_int5[ll1*ll1+ll1+mm1][ww][ll3*ll3+ll3+mm3]=
-                      pow(std::complex<double>(0,-1),ll3-ll1-1)*4.*acos(-1)*rYlm(ll3,mm3,nucl_spher_pos[nucl_basis_func[ww]][1],nucl_spher_pos[nucl_basis_func[ww]][2],fact_memo)
-                      *prefactor_rYlm(ll1,fabs(mm1),fact_memo)*prefactor_rYlm(ll2,fabs(mm2),fact_memo)*prefactor_rYlm(ll3,fabs(mm3),fact_memo)
-                      *J_int_p1_D(ll1,ll2,ll3,fabs(mm1),fabs(mm2),fabs(mm3),fact_memo)*I_m1_integral(mm1,mm2,mm3);
+                      pow(std::complex<double>(0,-1),ll3-ll1-1)*4.*acos(-1)*rYlm(ll3,mm3,nucl_spher_pos[nucl_basis_func[ww]][1],nucl_spher_pos[nucl_basis_func[ww]][2],lnfact_memo)
+                      *prefactor_rYlm(ll1,fabs(mm1),lnfact_memo)*prefactor_rYlm(ll2,fabs(mm2),lnfact_memo)*prefactor_rYlm(ll3,fabs(mm3),lnfact_memo)
+                      *J_int_p1_D(ll1,ll2,ll3,fabs(mm1),fabs(mm2),fabs(mm3),lnfact_memo)*I_m1_integral(mm1,mm2,mm3);
 
                   ang_int6[ll1*ll1+ll1+mm1][ww][ll3*ll3+ll3+mm3]=
-                      pow(std::complex<double>(0,-1),ll3-ll1-1)*4.*acos(-1)*rYlm(ll3,mm3,nucl_spher_pos[nucl_basis_func[ww]][1],nucl_spher_pos[nucl_basis_func[ww]][2],fact_memo)
-                      *prefactor_rYlm(ll1,fabs(mm1),fact_memo)*prefactor_rYlm(ll2,fabs(mm2),fact_memo)*prefactor_rYlm(ll3,fabs(mm3),fact_memo)
-                      *J_int_m2(ll1,ll2,ll3,fabs(mm1),fabs(mm2),fabs(mm3),fact_memo)*I_p1_D_integral(mm1,mm2,mm3);
+                      pow(std::complex<double>(0,-1),ll3-ll1-1)*4.*acos(-1)*rYlm(ll3,mm3,nucl_spher_pos[nucl_basis_func[ww]][1],nucl_spher_pos[nucl_basis_func[ww]][2],lnfact_memo)
+                      *prefactor_rYlm(ll1,fabs(mm1),lnfact_memo)*prefactor_rYlm(ll2,fabs(mm2),lnfact_memo)*prefactor_rYlm(ll3,fabs(mm3),lnfact_memo)
+                      *J_int_m2(ll1,ll2,ll3,fabs(mm1),fabs(mm2),fabs(mm3),lnfact_memo)*I_p1_D_integral(mm1,mm2,mm3);
 
                   ang_int7[ll1*ll1+ll1+mm1][ww][ll3*ll3+ll3+mm3]=
-                      pow(std::complex<double>(0,-1),ll3-ll1-1)*4.*acos(-1)*rYlm(ll3,mm3,nucl_spher_pos[nucl_basis_func[ww]][1],nucl_spher_pos[nucl_basis_func[ww]][2],fact_memo)
-                      *prefactor_rYlm(ll1,fabs(mm1),fact_memo)*prefactor_rYlm(ll2,fabs(mm2),fact_memo)*prefactor_rYlm(ll3,fabs(mm3),fact_memo)
-                      *J_int_p1(ll1,ll2,ll3,fabs(mm1),fabs(mm2),fabs(mm3),fact_memo)*azim_integ(mm1,mm2,mm3);
+                      pow(std::complex<double>(0,-1),ll3-ll1-1)*4.*acos(-1)*rYlm(ll3,mm3,nucl_spher_pos[nucl_basis_func[ww]][1],nucl_spher_pos[nucl_basis_func[ww]][2],lnfact_memo)
+                      *prefactor_rYlm(ll1,fabs(mm1),lnfact_memo)*prefactor_rYlm(ll2,fabs(mm2),lnfact_memo)*prefactor_rYlm(ll3,fabs(mm3),lnfact_memo)
+                      *J_int_p1(ll1,ll2,ll3,fabs(mm1),fabs(mm2),fabs(mm3),lnfact_memo)*azim_integ(mm1,mm2,mm3);
 
                   ang_int8[ll1*ll1+ll1+mm1][ww][ll3*ll3+ll3+mm3]=
-                      -pow(std::complex<double>(0,-1),ll3-ll1-1)*4.*acos(-1)*rYlm(ll3,mm3,nucl_spher_pos[nucl_basis_func[ww]][1],nucl_spher_pos[nucl_basis_func[ww]][2],fact_memo)
-                      *prefactor_rYlm(ll1,fabs(mm1),fact_memo)*prefactor_rYlm(ll2,fabs(mm2),fact_memo)*prefactor_rYlm(ll3,fabs(mm3),fact_memo)
-                      *J_int_m1_D(ll1,ll2,ll3,fabs(mm1),fabs(mm2),fabs(mm3),fact_memo)*azim_integ(mm1,mm2,mm3);
+                      -pow(std::complex<double>(0,-1),ll3-ll1-1)*4.*acos(-1)*rYlm(ll3,mm3,nucl_spher_pos[nucl_basis_func[ww]][1],nucl_spher_pos[nucl_basis_func[ww]][2],lnfact_memo)
+                      *prefactor_rYlm(ll1,fabs(mm1),lnfact_memo)*prefactor_rYlm(ll2,fabs(mm2),lnfact_memo)*prefactor_rYlm(ll3,fabs(mm3),lnfact_memo)
+                      *J_int_m1_D(ll1,ll2,ll3,fabs(mm1),fabs(mm2),fabs(mm3),lnfact_memo)*azim_integ(mm1,mm2,mm3);
 
                   ang_int9[ll1*ll1+ll1+mm1][ww][ll3*ll3+ll3+mm3]=
-                      pow(std::complex<double>(0,-1),ll3-ll1)*4.*acos(-1)*rYlm(ll3,mm3,nucl_spher_pos[nucl_basis_func[ww]][1],nucl_spher_pos[nucl_basis_func[ww]][2],fact_memo)
-                      *prefactor_rYlm(ll1,fabs(mm1),fact_memo)*prefactor_rYlm(ll2,fabs(mm2),fact_memo)*prefactor_rYlm(ll3,fabs(mm3),fact_memo)
-                      *gaunt_formula(ll1,ll2,ll3,fabs(mm1),fabs(mm2),fabs(mm3),fact_memo)*azim_integ(mm1,mm2,mm3);
+                      pow(std::complex<double>(0,-1),ll3-ll1)*4.*acos(-1)*rYlm(ll3,mm3,nucl_spher_pos[nucl_basis_func[ww]][1],nucl_spher_pos[nucl_basis_func[ww]][2],lnfact_memo)
+                      *prefactor_rYlm(ll1,fabs(mm1),lnfact_memo)*prefactor_rYlm(ll2,fabs(mm2),lnfact_memo)*prefactor_rYlm(ll3,fabs(mm3),lnfact_memo)
+                      *gaunt_formula(ll1,ll2,ll3,fabs(mm1),fabs(mm2),fabs(mm3),lnfact_memo)*azim_integ(mm1,mm2,mm3);
                }
             }
          }
@@ -1052,8 +1052,8 @@ void compute_bessel_pice_mo(std::complex<double>*** pice_ortho_mo,std::complex<d
 
          for(int ll3=0;ll3!=l3max+1;ll3++)//l3
          {
-            bessel_val[ww][ll3][k]=j_l(ll3,kp*nucl_spher_pos[nucl_basis_func[ww]][0],fact_memo);
-            ddk_bessel_val[ww][ll3][k]=nucl_spher_pos[nucl_basis_func[ww]][0]*dj_ldz(ll3,kp*nucl_spher_pos[nucl_basis_func[ww]][0],fact_memo);
+            bessel_val[ww][ll3][k]=j_l(ll3,kp*nucl_spher_pos[nucl_basis_func[ww]][0],lnfact_memo);
+            ddk_bessel_val[ww][ll3][k]=nucl_spher_pos[nucl_basis_func[ww]][0]*dj_ldz(ll3,kp*nucl_spher_pos[nucl_basis_func[ww]][0],lnfact_memo);
          }
        }
    }

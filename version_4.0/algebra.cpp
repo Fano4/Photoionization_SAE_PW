@@ -122,7 +122,7 @@ unsigned long long int factorial(int n,unsigned long long int* memo)
    }
 }
 
-long double intplushalf_gamma(int n,unsigned long long int* fact_memo) //(Gamma(n+1/2))
+long double intplushalf_gamma(int n,double* lnfact_memo) //(Gamma(n+1/2))
 {
    return sqrt(acos(-1))* exp(ln_factorial(2*n,lnfact_memo)-ln_factorial(n,lnfact_memo))/(pow(4,n));
 //   return sqrt(acos(-1))*double(factorial(2*n,fact_memo))/(pow(4,n)*double(factorial(n,fact_memo)));
@@ -170,9 +170,9 @@ double cube_dot_product(double *cube1,double *cube2,int nx,int ny, int nz,double
    return 0;
 }
 
-double wigner3j(int l1,int l2,int l3,int m1,int m2,int m3,unsigned long long int* fact_memo)
+double wigner3j(int l1,int l2,int l3,int m1,int m2,int m3,double* lnfact_memo)
 {
-   double val(pow(-1,l1-l2-m3)*wdelta(l1,l2,l3,fact_memo)*w3j(l1,l2,l3,m1,m2,m3,fact_memo));
+   double val(pow(-1,l1-l2-m3)*wdelta(l1,l2,l3,lnfact_memo)*w3j(l1,l2,l3,m1,m2,m3,lnfact_memo));
 
 /*   if(val == 0 )
    {
@@ -185,7 +185,7 @@ double wigner3j(int l1,int l2,int l3,int m1,int m2,int m3,unsigned long long int
        std::cout<<" ERROR ! WIGNER3J FUNCTION IS NAN"<<std::endl;
    return val;
 }
-double wdelta(int a,int b,int c,unsigned long long int* fact_memo)
+double wdelta(int a,int b,int c,double* lnfact_memo)
 {
    double val(exp(0.5*(ln_factorial(a+b-c,lnfact_memo)+ln_factorial(a-b+c,lnfact_memo)+ln_factorial(-a+b+c,lnfact_memo)-ln_factorial(a+b+c+1,lnfact_memo))));
    //double val( sqrt(double(factorial(a+b-c,fact_memo))*double(factorial(a-b+c,fact_memo))*double(factorial(-a+b+c,fact_memo))/double(factorial(a+b+c+1,fact_memo))));
@@ -193,7 +193,7 @@ double wdelta(int a,int b,int c,unsigned long long int* fact_memo)
        std::cout<<" ERROR ! WDelta FUNCTION IS NAN"<<std::endl;
    return val;
 }
-double w3j(int l1,int l2,int l3,int m1,int m2,int m3,unsigned long long int* fact_memo)
+double w3j(int l1,int l2,int l3,int m1,int m2,int m3,double* lnfact_memo)
 {
    double sum(0);
    double val(0);
@@ -242,7 +242,7 @@ double w3j(int l1,int l2,int l3,int m1,int m2,int m3,unsigned long long int* fac
    }
    return val;
 }
-double j_l(int l,double z,unsigned long long int* fact_memo) //spherical bessel function of order l
+double j_l(int l,double z,double* lnfact_memo) //spherical bessel function of order l
 {
    double test(1);
    double val(0);
@@ -281,15 +281,15 @@ double j_l(int l,double z,unsigned long long int* fact_memo) //spherical bessel 
         }
    }
 }
-double dj_ldz(int l,double z,unsigned long long int* fact_memo) //Derivative of the spherical bessel function of order l
+double dj_ldz(int l,double z,double* lnfact_memo) //Derivative of the spherical bessel function of order l
 {
    if(z==0 || l == 0)
       return 0;
    else
    {
-      if(isnan(l*j_l(l-1,z,fact_memo)-(l+1)*j_l(l+1,z,fact_memo))/(2*l+1))
+      if(isnan(l*j_l(l-1,z,lnfact_memo)-(l+1)*j_l(l+1,z,lnfact_memo))/(2*l+1))
           std::cout<<" ERROR ! BESSEL DERIVATIVE FUNCTION IS NAN"<<std::endl;
-      return (l*j_l(l-1,z,fact_memo)-(l+1)*j_l(l+1,z,fact_memo))/(2*l+1);
+      return (l*j_l(l-1,z,lnfact_memo)-(l+1)*j_l(l+1,z,lnfact_memo))/(2*l+1);
    }
 }
 int dfactorial(int n)

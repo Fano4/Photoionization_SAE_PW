@@ -1,4 +1,4 @@
-double associated_legendre(unsigned int l,int m,double x,unsigned long long int* fact_memo)
+double associated_legendre(unsigned int l,int m,double x,double* lnfact_memo)
 {
    int sign(-bool( m % 2 != 0 ) + bool( m % 2 == 0 ));
 
@@ -54,7 +54,7 @@ double associated_legendre_nonorm(unsigned int l,int m,double x)
       }
    }
 }
-double associated_legendre_der(unsigned int l,int m,double x,unsigned long long int* fact_memo)
+double associated_legendre_der(unsigned int l,int m,double x,double* lnfact_memo)
 {
 
    int sign(-bool( m % 2 != 0 ) + bool( m % 2 == 0 ));
@@ -74,7 +74,7 @@ double associated_legendre_der(unsigned int l,int m,double x,unsigned long long 
       }
       else 
       {
-         return sign * exp(ln_factorial(l+m,lnfact_memo)-ln_factorial(l-m,lnfact_memo))*associated_legendre_der(l,-m,x,fact_memo);
+         return sign * exp(ln_factorial(l+m,lnfact_memo)-ln_factorial(l-m,lnfact_memo))*associated_legendre_der(l,-m,x,lnfact_memo);
          //return sign * double(factorial(l+m,fact_memo))*associated_legendre_der(l,-m,x,fact_memo)/double(factorial(l-m,fact_memo));
       }
    }

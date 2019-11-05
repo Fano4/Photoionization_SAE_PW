@@ -1,9 +1,58 @@
 #include "photoion_comp.hpp"
+#include "test_file.cpp"
+
+#include <iomanip>
 
 int main(int argc,char* argv[])
 {
    int photoion_comp(int argc, char* argv[]);
    omp_set_num_threads(1); 
+
+   /*
+   int l1(0);
+   int l2(0);
+   int l3(0);
+   int m1(0);
+   int m2(0);
+   int m3(0);
+*/
+   double* lnfact_memo=new double[MAX_LN_FACTORIAL];
+   double val(0);
+   double aval(0);
+   double begin(0);
+   double end(0);
+
+   for(int i=0;i!=MAX_LN_FACTORIAL;i++) lnfact_memo[i]=0;
+   for(int l1=0;l1!=5;l1++)
+   {
+      for(int l2=0;l2!=4;l2++)
+      {
+         for(int l3=0;l3!=l1+l2+1;l3++)
+         {
+            for(int m1=0;m1!=l1+1;m1++)
+            {
+               for(int m2=0;m2!=l2+1;m2++)
+               {
+                  for(int m3=0;m3!=l3+1;m3++)
+                  {
+    begin=omp_get_wtime();
+    val=(test2_integral(l1,l2,l3,m1,m2,m3,lnfact_memo));
+    end=omp_get_wtime(); 
+    std::cout<<std::endl<<std::fixed<<std::setprecision(6)<<(end-begin)/10<<"s is the time with a precision of"<<omp_get_wtick()<<std::endl;
+    begin=omp_get_wtime();
+    aval=(gaunt_formula(l1,l2,l3,m1,m2,m3,lnfact_memo));
+    end=omp_get_wtime(); 
+    std::cout<<std::endl<<std::fixed<<std::setprecision(6)<<(end-begin)/10<<"s is the time with a precision of"<<omp_get_wtick()<<std::endl;
+   std::cout<<l1<<","<<l2<<","<<l3<<","<<m1<<","<<m2<<","<<m3<<"***"<<val<<std::endl;
+   std::cout<<l1<<","<<l2<<","<<l3<<","<<m1<<","<<m2<<","<<m3<<"+++"<<aval<<std::endl;
+                  }
+               }
+            }
+         }
+      }
+   }
+
+   exit(EXIT_SUCCESS);
 
    photoion_comp(argc,argv);
 
@@ -98,16 +147,28 @@ int photoion_comp(int argc, char* argv[])
     std::string molpro_output_path;
 
     for(int n=0;n!=MAX_LN_FACTORIAL;n++) lnfact_memo[n]=0;
+
+    /*
+    lnfact_memo[0]=0.00000000000000000000
+    lnfact_memo[1]=0.00000000000000000000
+    lnfact_memo[2]=0.69314718055994528623
+    lnfact_memo[3]=1.79175946922805495731
+    lnfact_memo[4]=3.17805383034794575181
+    lnfact_memo[5]=4.78749174278204581157
+    */
+
+    std::cout<<exp(log(factorial(18,fact_memo)))<<std::endl;
     for(int n=0;n!=MAX_N_FACTORIAL;n++) fact_memo[n]=0;
-    for(int n=0;n!=MAX_N_FACTORIAL;n++)
+    for(int n=0;n!=MAX_LN_FACTORIAL;n++)
     {
-//       std::cout<<" Factorial of "<<n<<" = "<<factorial(n,fact_memo)<<std::endl;
+       std::cout<<setprecision(20)<<" Factorial of "<<n<<" = "<<exp(ln_factorial(n,lnfact_memo))<<std::endl;
 //       std::cout<<" Factorial of "<<n<<" = "<<double(factorial(n,fact_memo))<<std::endl;
     }
+//       std::cout<<" Factorial of "<<" = "<<exp(ln_factorial(25,lnfact_memo)-ln_factorial(20,lnfact_memo))<<std::endl;
     /*
      *
      *
-     * */
+     * 
 
     int pl1(2);
     int pl2(1);
@@ -116,10 +177,10 @@ int photoion_comp(int argc, char* argv[])
     int pm2(1);
     int pm3(1);
 
-    std::cout<<gaunt_formula(pl1+1,pl2,pl3,pm1+1,pm2,pm3,fact_memo)<<std::endl;
-    std::cout<<gaunt_formula(pl1+1,pl2,pl3,pm1-1,pm2,pm3,fact_memo)<<std::endl;
-    std::cout<<J_int_m2(pl1,pl2,pl3,pm1,pm2,pm3,fact_memo)<<std::endl;
-    /*
+    std::cout<<gaunt_formula(pl1+1,pl2,pl3,pm1+1,pm2,pm3,lnfact_memo)<<std::endl;
+    std::cout<<gaunt_formula(pl1+1,pl2,pl3,pm1-1,pm2,pm3,lnfact_memo)<<std::endl;
+    std::cout<<J_int_m2(pl1,pl2,pl3,pm1,pm2,pm3,lnfact_memo)<<std::endl;
+    *
      *
      *
      * */
@@ -227,7 +288,7 @@ for(int x=0;x!=grid_size;x++)
        }
     }
     std::cout<<"INITIALIZED ALL BASIS SET ARRAYS"<<std::endl;
-    basis_data_reader(n_sym,basis_size_sym,contraction_number_sym,contraction_coeff_sym,contraction_zeta_sym,nucl_basis_func_sym,basis_func_type_sym,molpro_output_path,angular_mom_numbers_sym,fact_memo);
+    basis_data_reader(n_sym,basis_size_sym,contraction_number_sym,contraction_coeff_sym,contraction_zeta_sym,nucl_basis_func_sym,basis_func_type_sym,molpro_output_path,angular_mom_numbers_sym,lnfact_memo);
     total=0;
     int total2(0);
     for(int s=0;s!=n_sym;s++)
@@ -571,7 +632,7 @@ std::cout<<"********"<<std::endl;
     double kmax(1.5);
     int state_neut(0);
     int nk=256;
-    int jl_max(5);
+    int jl_max(7);
     int x(0);
     std::complex<double> *temp=new std::complex<double>[3];
 
@@ -619,7 +680,7 @@ std::cout<<"********"<<std::endl;
          pice_ddz_mo[ji][mm]=new std::complex<double> [nk];
       }
    }
-   compute_bessel_pice_mo(pice_ortho_mo,pice_ddx_mo,pice_ddy_mo,pice_ddz_mo,jl_max,n_occ,basis_size,nk,kmax,MO_coeff_neutral[x],contraction_zeta,contraction_coeff,contraction_number,nucl_spher_pos[x],nucl_basis_func,angular_mom_numbers,fact_memo);
+   compute_bessel_pice_mo(pice_ortho_mo,pice_ddx_mo,pice_ddy_mo,pice_ddz_mo,jl_max,n_occ,basis_size,nk,kmax,MO_coeff_neutral[x],contraction_zeta,contraction_coeff,contraction_number,nucl_spher_pos[x],nucl_basis_func,angular_mom_numbers,lnfact_memo);
 
    for(int nn=0;nn!=n_states_neut;nn++)
    {
