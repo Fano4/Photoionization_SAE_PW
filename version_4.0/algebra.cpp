@@ -128,6 +128,19 @@ long double intplushalf_gamma(int n,double* lnfact_memo) //(Gamma(n+1/2))
 //   return sqrt(acos(-1))*double(factorial(2*n,fact_memo))/(pow(4,n)*double(factorial(n,fact_memo)));
 }
 
+long double gamma_int_or_half(double z,double* lnfact_memo)
+{
+   if(ceil(z)==floor(z))
+      return exp(ln_factorial(int(z)-1,lnfact_memo));
+   else if(ceil(2*z) == floor(2*z))
+      return intplushalf_gamma(int(z-0.5),lnfact_memo);
+   else
+   {
+      std::cout<<"ERROR ! NON HALF INTEGER OR INTEGER ARGUNMENT IN GAMMA_INT_OR_HALF FUCNTION"<<std::endl;
+      exit(EXIT_SUCCESS);
+   }
+}
+
 double vector_prod(double vector1[],double vector2[],int gsize)
 {
     double sum(0.);

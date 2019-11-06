@@ -21,6 +21,7 @@ bool two_cubes_moment(double *cube1,double *cube2,double *moment,int nx,int ny,i
 double cube_dot_product(double *cube1,double *cube2,int nx,int ny, int nz,double dx,double dy,double dz,int angle_vec_size,double *output);
 double vector_prod(double vector1[],double vector2[],int gsize);
 long double intplushalf_gamma(int n,double* lnfact_memo); //(Gamma(n+1/2))
+long double gamma_int_or_half(double z,double* lnfact_memo);
 double w3j(int l1,int l2,int l3,int m1,int m2,int m3,double* lnfact_memo);
 double wdelta(int a,int b,int c,double* lnfact_memo);
 double wigner3j(int l1,int l2,int l3,int m1,int m2,int m3,double* lnfact_memo);

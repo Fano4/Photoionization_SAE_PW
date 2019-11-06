@@ -254,137 +254,39 @@ double I_p1_D_integral(int m1,int m2,int m3)
 }
 double gaunt_formula(int l1,int l2,int l3,int m1,int m2,int m3,double* lnfact_memo)
 {
-   //DETERMINE THE LARGEST ORDER
-   int temp(0);
-   double dtemp(0);
-   int u(0);
-   int v(0);
-   int w(0);
-   int l(0);
-   int m(0);
-   int n(0);
+   double prefactor(exp(0.5*(ln_factorial(l1+m1,lnfact_memo)+ln_factorial(l2+m2,lnfact_memo)+ln_factorial(l3+m3,lnfact_memo)
+               -ln_factorial(l1-m1,lnfact_memo)-ln_factorial(l2-m2,lnfact_memo)-ln_factorial(l3-m3,lnfact_memo))));
 
-   if(l1<0 || l2<0 || l3 < 0)
-      return 0;
-   else if(m1<0 || m2 < 0 || m3 < 0 )
-      return 0;
-
-   if(m2>m1)
-   {
-      if(m3>m2) // m3 > m2 > m1
-      {
-         u=m3;v=m2;w=m1;
-         l=l3;m=l2;n=l1;
-      }
-      else if (m3 >m1) // m2 > m3 > m1 
-      {
-         u=m2;v=m3;w=m1;
-         l=l2;m=l3;n=l1;
-      }
-   }
-   else if(m3 > m1) //m3 > m1 > m2
-   {
-         u=m3;v=m1;w=m2;
-         l=l3;m=l1;n=l2;
-   }
-   else
-   {
-      if(m3 > m2) // m1 > m3 > m2
-      {
-         u=m1;v=m3;w=m2;
-         l=l1;m=l3;n=l2;
-      }
-      else // m1 > m2 > m3
-      {
-         u=m1;v=m2;w=m3;
-         l=l1;m=l2;n=l3;
-      }
-   }
-   //CHECK THE ORDER OF THE DEGREES
-   if(m<n)
-   {
-      temp=m;
-      m=n;
-      n=temp;
-      temp=v;
-      v=w;
-      w=temp;
-   }
-
-   // P_l^u P_m^v P_n^w 
-   if(fabs(m1) > l1 || fabs(m2) > l2 || fabs(m3) > l3)
-   {
-//      std::cout<<"Condition on m>l"<<std::endl;
-      return 0;
-   }
-   else if(u != v + w || (l+m+n) % 2 != 0 || ( l > m+n || l < m-n ))
-   {
-      /*
-      std::cout<<"condition for zero"<<std::endl;
-      std::cout<<u<<" != "<<v<<" + "<<w<<std::endl;
-      std::cout<<"2s != "<<l+m+n<<std::endl;
-      std::cout<<l<<" – "<<m+n<<" ; "<<m-n<<std::endl;
-      */
-      
-      //return 0;
-   }
-
-  // dtemp=2.*pow(-1,u)
-  // *exp(0.5*(ln_factorial(n+w,lnfact_memo)-ln_factorial(n-w,lnfact_memo)+ln_factorial(m+v,lnfact_memo)-ln_factorial(m-v,lnfact_memo)+ln_factorial(l+u,lnfact_memo)-ln_factorial(l-u,lnfact_memo)))
-  // *wigner3j(n,m,l,0,0,0,lnfact_memo)*wigner3j(n,m,l,w,v,-u,lnfact_memo);
-//   dtemp=2*pow(-1,u)*sqrt((double(factorial(n+w,fact_memo))/double(factorial(n-w,fact_memo)))*(double(factorial(m+v,fact_memo))/double(factorial(m-v,fact_memo)))*(double(factorial(l+u,fact_memo))/double(factorial(l-u,fact_memo))))
-//   *wigner3j(n,m,l,0,0,0,fact_memo)*wigner3j(n,m,l,w,v,-u,fact_memo);
-
-   /*   std::cout<<"initial numbers: "<<l1<<","<<l2<<","<<l3<<","<<m1<<","<<m2<<","<<m3<<std::endl;
-   if(dtemp == 0 )
-   {
-      std::cout<<"Wigner 3j for "<<n<<","<<m<<","<<l<<","<<w<<","<<v<<","<<-u<<std::endl;
-      std::cout<<wigner3j(n,m,l,w,v,-u,fact_memo)<<std::endl;
-      std::cout<<"Wigner 3j for "<<n<<","<<m<<","<<l<<","<<0<<","<<0<<","<<0<<std::endl;
-      std::cout<<wigner3j(n,m,l,0,0,0,fact_memo)<<std::endl;
-   }*/
-
-   //return dtemp;
-   //CHECK THAT THE PARAMETERS RESPECT THE CONDITIONS
-   else if( m1 < 0 || m2 < 0 || m3 < 0)
-   {
-      std::cout<<"WARNING !! NEGATIVE ORDERS IN GAUNT FORMULA !! "<<std::endl;
-      return 0;
-   }
-   else if (l1 < 0 || l2 < 0 || l3 < 0)
-      return 0;
-   else if( (l+m+n) % 2 != 0)
-      return 0;
-   else if( l > m+n || l < m-n )
-      return 0;
-   else if (u != v + w)
-      return 0;
-   else
-   {
-   //IF THE INTEGRAL IS NOT DEFINED ZERO, COMPUTE THE ACTUAL VALUE
-//   std::cout<<"gaunt probe...";
-   int s((l+m+n)/2);
-   int p(std::max(0,n-m-u));
-   int q(std::min(m+n-u,std::min(l-u,n-w)));
-
+   double factor(0);
    double sum(0);
+   double G12(0);
+   double G123(0);
+   double ALP_integ(0);
 
-//   std::cout<<u<<","<<v<<","<<w<<","<<l<<","<<m<<","<<n<<std::endl<<s<<","<<p<<","<<q<<std::endl;
-   for(int t=p;t<q+1;t++)
+   for(int l12=fabs(l1-l2);l12!=l1+l2+1;l12++)
    {
-//      std::cout<<t<<std::endl;
-      sum+=pow(-1,t)*exp(ln_factorial(l+u+t,lnfact_memo)+ln_factorial(m+n-u-t,lnfact_memo)-ln_factorial(t,lnfact_memo)-ln_factorial(l-u-t,lnfact_memo)-ln_factorial(m-n+u+t,lnfact_memo)-ln_factorial(n-w-t,lnfact_memo));
-//      sum+=pow(-1,t)*double(factorial(l+u+t,fact_memo)*factorial(m+n-u-t,fact_memo))/double(factorial(t,fact_memo)*factorial(l-u-t,fact_memo)*factorial(m-n+u+t,fact_memo)*factorial(n-w-t,fact_memo));
+      if((l1+l2+l12)%2!=0)
+         continue;
+      else
+      {
+         G12=pow(-1,m1+m2)*(2*l12+1)*wigner3j(l1,l2,l12,0,0,0,lnfact_memo)*wigner3j(l1,l2,l12,m1,m2,-m12,lnfact_memo);
+         for(int l123=fabs(l12-l3);l123!=l12+l3+1;l123++)
+         {
+            if((l12+l3+l123)%2!=0)
+               continue;
+            else
+            {
+               G123=pow(-1,m1+m2+m3)*(2*l123+1)*wigner3j(l12,l3,l123,0,0,0,lnfact_memo)*wigner3j(l12,l3,l123,m1+m2,m3,-(m1+m2+m3));
+               factor=exp(0.5*(ln_factorial(l123-m1-m2-m3,lnfact_memo)-ln_factorial(l123+m1+m2+m3,lnfact_memo)));
 
+               ALP_integ=(pow(-1,m1+m2+m3)+pow(-1,l123))*pow(2,m1+m2+m3-2)*(m1+m2+m3)*gamma_int_or_half(double(l123)/2.)*gamma_int_or_half(double(l123+m1+m2+m3+1)/2.)/(exp(ln_factorial((l123-m1-m2-m3)/2,lnfact_memo))*gamma_int_or_half(double(l123+3)/2.,lnfact_memo));
+
+               sum+=G12*G123*factor*ALP_integ;
+            }
+         }
+      }
    }
-//   std::cout<<m-v<<","<<s-l<<","<<s-m<<","<<s-n<<","<<2*s+1<<std::endl;
-   dtemp=2*pow(-1,s-m-w)*sum*exp(ln_factorial(m+v,lnfact_memo)+ln_factorial(n+w,lnfact_memo)+ln_factorial(2*s-2*n,lnfact_memo)+ln_factorial(s,lnfact_memo)-ln_factorial(m-v,lnfact_memo)-ln_factorial(s-l,lnfact_memo)-ln_factorial(s-m,lnfact_memo)-ln_factorial(s-n,lnfact_memo)-ln_factorial(2*s+1,lnfact_memo));
-   //dtemp=2*pow(-1,s-m-w)*sum*double(factorial(m+v,fact_memo)*factorial(n+w,fact_memo)*factorial(2*s-2*n,fact_memo)*factorial(s,fact_memo))/double( factorial(m-v,fact_memo)*factorial(s-l,fact_memo)*factorial(s-m,fact_memo)*factorial(s-n,fact_memo)*factorial(2*s+1,fact_memo));
-//   std::cout<<"Gaunt val"<<dtemp<<std::endl;
-   if(isnan(dtemp))
-       std::cout<<" ERROR ! GAUNT FUNCTION IS NAN"<<std::endl;
-   return dtemp;
-   }
+   return prefactor*sum;
 }
 double Dint(int l1,int l2,int l3,int m1,int m2,int m3,double* lnfact_memo)
 {
