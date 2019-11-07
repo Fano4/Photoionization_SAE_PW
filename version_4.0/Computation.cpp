@@ -975,6 +975,7 @@ void compute_bessel_pice_mo(std::complex<double>*** pice_ortho_mo,std::complex<d
    {
       ll2=angular_mom_numbers[ww][0];
       mm2=angular_mom_numbers[ww][1];
+      std::cout<<"Basis function "<<ww<<"/"<<basis_size<<std::endl;
 
       for(int ll3=0;ll3!=l3max+1;ll3++)//l3
       {
@@ -984,6 +985,7 @@ void compute_bessel_pice_mo(std::complex<double>*** pice_ortho_mo,std::complex<d
             {
                for(int mm1=-ll1;mm1!=ll1+1;mm1++)
                {
+                  //std::cout<<ll1<<","<<ll2<<","<<ll3<<","<<mm1<<","<<mm2<<","<<mm3<<std::endl;
                   ang_int1[ll1*ll1+ll1+mm1][ww][ll3*ll3+ll3+mm3]=
                       pow(std::complex<double>(0,-1),ll3-ll1-1)*4.*acos(-1)*rYlm(ll3,mm3,nucl_spher_pos[nucl_basis_func[ww]][1],nucl_spher_pos[nucl_basis_func[ww]][2],lnfact_memo)
                       *prefactor_rYlm(ll1,fabs(mm1),lnfact_memo)*prefactor_rYlm(ll2,fabs(mm2),lnfact_memo)*prefactor_rYlm(ll3,fabs(mm3),lnfact_memo)

@@ -8,6 +8,15 @@ int main(int argc,char* argv[])
    int photoion_comp(int argc, char* argv[]);
    omp_set_num_threads(1); 
 
+   double* lnfact_memo=new double[MAX_LN_FACTORIAL];
+   for(int i=0;i!=MAX_LN_FACTORIAL;i++) lnfact_memo[i]=0;
+
+   for(int k=0;k!=2560;k++)
+   {
+      std::cout<<(k+1)*15/2560.<<","<<j_l(0,(k+1)*15/2560.,lnfact_memo)<<std::endl;
+//       test_radial(0,0,0.01,(k+1)*1.5/256.,2.5,lnfact_memo);
+   }
+   exit(EXIT_SUCCESS);
    /*
    int l1(0);
    int l2(0);
@@ -15,14 +24,11 @@ int main(int argc,char* argv[])
    int m1(0);
    int m2(0);
    int m3(0);
-*/
-   double* lnfact_memo=new double[MAX_LN_FACTORIAL];
    double val(0);
    double aval(0);
    double begin(0);
    double end(0);
 
-   for(int i=0;i!=MAX_LN_FACTORIAL;i++) lnfact_memo[i]=0;
    for(int l1=0;l1!=5;l1++)
    {
       for(int l2=0;l2!=4;l2++)
@@ -53,7 +59,7 @@ int main(int argc,char* argv[])
    }
 
    exit(EXIT_SUCCESS);
-
+*/
    photoion_comp(argc,argv);
 
    return 0;
@@ -183,9 +189,9 @@ int photoion_comp(int argc, char* argv[])
     *
      *
      *
-     * */
+     * 
     exit(EXIT_SUCCESS);
-
+*/
     for(int x=0;x!=grid_size;x++)
     {
        nucl_spher_pos[x]=new double* [num_of_nucl]; 
@@ -632,7 +638,7 @@ std::cout<<"********"<<std::endl;
     double kmax(1.5);
     int state_neut(0);
     int nk=256;
-    int jl_max(7);
+    int jl_max(5);
     int x(0);
     std::complex<double> *temp=new std::complex<double>[3];
 
@@ -643,15 +649,15 @@ std::cout<<"********"<<std::endl;
     //The integral is made of two factors: one depending on k, the other independent of k
     double begin=omp_get_wtime();
 
-   //Then, we combine using LCAO coefficients to get MO's
-   std::complex<double>*** pice_ortho_mo = new std::complex<double> **[jl_max*jl_max+2*jl_max+1];
-   std::complex<double>*** pice_ddx_mo = new std::complex<double> **[jl_max*jl_max+2*jl_max+1];
-   std::complex<double>*** pice_ddy_mo = new std::complex<double> **[jl_max*jl_max+2*jl_max+1];
-   std::complex<double>*** pice_ddz_mo = new std::complex<double> **[jl_max*jl_max+2*jl_max+1];
+    //Then, we combine using LCAO coefficients to get MO's
+    std::complex<double>*** pice_ortho_mo = new std::complex<double> **[jl_max*jl_max+2*jl_max+1];
+    std::complex<double>*** pice_ddx_mo = new std::complex<double> **[jl_max*jl_max+2*jl_max+1];
+    std::complex<double>*** pice_ddy_mo = new std::complex<double> **[jl_max*jl_max+2*jl_max+1];
+    std::complex<double>*** pice_ddz_mo = new std::complex<double> **[jl_max*jl_max+2*jl_max+1];
 
-   std::complex<double> ***pice_x = new std::complex<double> **[n_states_neut*n_states_cat];
-   std::complex<double> ***pice_y = new std::complex<double> **[n_states_neut*n_states_cat];
-   std::complex<double> ***pice_z = new std::complex<double> **[n_states_neut*n_states_cat];
+    std::complex<double> ***pice_x = new std::complex<double> **[n_states_neut*n_states_cat];
+    std::complex<double> ***pice_y = new std::complex<double> **[n_states_neut*n_states_cat];
+    std::complex<double> ***pice_z = new std::complex<double> **[n_states_neut*n_states_cat];
 
    for(int mm=0;mm!=n_states_neut*n_states_cat;mm++)
    {

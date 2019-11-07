@@ -130,13 +130,14 @@ long double intplushalf_gamma(int n,double* lnfact_memo) //(Gamma(n+1/2))
 
 long double gamma_int_or_half(double z,double* lnfact_memo)
 {
-   if(ceil(z)==floor(z))
+   if(ceil(z)==floor(z) && z > 0)
       return exp(ln_factorial(int(z)-1,lnfact_memo));
-   else if(ceil(2*z) == floor(2*z))
+   else if(ceil(2*z) == floor(2*z) && z > 0)
       return intplushalf_gamma(int(z-0.5),lnfact_memo);
    else
    {
-      std::cout<<"ERROR ! NON HALF INTEGER OR INTEGER ARGUNMENT IN GAMMA_INT_OR_HALF FUCNTION"<<std::endl;
+      std::cout<<"ERROR ! NON HALF INTEGER OR NON INTEGER OR NON POSITIVE ARGUMENT IN GAMMA_INT_OR_HALF FUCNTION"<<std::endl;
+      std::cout<<" Z = "<<z<<std::endl;
       exit(EXIT_SUCCESS);
    }
 }
@@ -273,8 +274,8 @@ double j_l(int l,double z,double* lnfact_memo) //spherical bessel function of or
    {
         if(l<0)
             return 0;
-        else if(l==0)
-            return 1;
+//        else if(l==0)
+//            return 1;
         else
         {
             val=0;
