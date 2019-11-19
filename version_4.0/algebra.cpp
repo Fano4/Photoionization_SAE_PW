@@ -261,6 +261,7 @@ double j_l(int l,double z,double* lnfact_memo) //spherical bessel function of or
    double test(1);
    double val(0);
    double valm1(0);
+   double factor(1);
    int i(0);
 
    if(z==0)
@@ -278,12 +279,14 @@ double j_l(int l,double z,double* lnfact_memo) //spherical bessel function of or
 //            return 1;
         else
         {
-            val=0;
-            i=0; 
+            val=1;
+            i=1; 
             while(test>=1e-15)
             {
                 valm1=val;
-                val+=pow(-1,i)*pow(z*z/2,i)/exp(ln_factorial(i,lnfact_memo)*dfactorial(2*l+2*i+1));
+                factor=1;
+                for(int k=1;k!=i+1;k++) factor*=(2*k+2*l+1);
+                val+=pow(-1,i)*pow(z*z/2,i)/(factor*exp(ln_factorial(i,lnfact_memo)));
                 i++;
                 test=fabs((val-valm1));
             }
@@ -291,10 +294,11 @@ double j_l(int l,double z,double* lnfact_memo) //spherical bessel function of or
             if(isnan(val))
                std::cout<<" ERROR ! BESSEL FUNCTION IS NAN"<<std::endl;
 
-            return val*pow(z,l);
+            return val*pow(z,l)/dfactorial(2*l+1);
         }
    }
 }
+
 double dj_ldz(int l,double z,double* lnfact_memo) //Derivative of the spherical bessel function of order l
 {
    if(z==0 || l == 0)
@@ -311,5 +315,5 @@ int dfactorial(int n)
    if(n<=1)
       return 1;
    else
-      return n-2;
+      return n*dfactorial(n-2);
 }

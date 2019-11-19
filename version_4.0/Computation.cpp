@@ -152,7 +152,8 @@ std::complex<double> AO_FT(int ao_index,double k, double thet, double phi,int *c
    return value;
 
 }
-std::complex<double> contraction_FT( double k, double thet, double phi,double* nucl_spher_pos,double contraction_zeta,int* angular_mom_numbers,unsigned long long int* fact_memo)
+*/
+std::complex<double> contraction_FT( double k, double thet, double phi,double* nucl_spher_pos,double contraction_zeta,int* angular_mom_numbers,double* lnfact_memo)
 {
    using namespace std;
 
@@ -165,7 +166,7 @@ std::complex<double> contraction_FT( double k, double thet, double phi,double* n
    if(ml<0)
    {
    value=
-      (sqrt(2)*associated_legendre(l,-ml,cos(thet),fact_memo,fact_memo)*sin(-ml*phi)) // Real spherical harmonics
+      (sqrt(2)*associated_legendre(l,-ml,cos(thet),lnfact_memo)*sin(-ml*phi)) // Real spherical harmonics
       *((pow(std::complex<double>(0,-k),l)*exp(-k*k/(4*contraction_zeta)))/(pow(2*contraction_zeta,1.5+l))) // Radial part
       *phase_factor // phase factor
       ;
@@ -173,7 +174,7 @@ std::complex<double> contraction_FT( double k, double thet, double phi,double* n
    else if(ml>0)
    {
    value=
-      (sqrt(2)*associated_legendre(l,ml,cos(thet),fact_memo)*cos(ml*phi)) // Real spherical harmonics
+      (sqrt(2)*associated_legendre(l,ml,cos(thet),lnfact_memo)*cos(ml*phi)) // Real spherical harmonics
       *((pow(std::complex<double>(0,-k),l)*exp(-k*k/(4*contraction_zeta)))/(pow(2*contraction_zeta,1.5+l))) // Radial part
       *phase_factor // phase factor
       ;
@@ -182,7 +183,7 @@ std::complex<double> contraction_FT( double k, double thet, double phi,double* n
    else
    {
    value=
-      (associated_legendre(l,ml,cos(thet),fact_memo)) // Real spherical harmonics
+      (associated_legendre(l,ml,cos(thet),lnfact_memo)) // Real spherical harmonics
       *((pow(std::complex<double>(0,-k),l)*exp(-k*k/(4*contraction_zeta)))/(pow(2*contraction_zeta,1.5+l))) // Radial part
       *phase_factor // phase factor
       ;
@@ -191,6 +192,7 @@ std::complex<double> contraction_FT( double k, double thet, double phi,double* n
    return std::conj(value);
 
 }
+/*
 std::complex<double> contraction_FT_grad_k( double k, double thet, double phi,double* nucl_spher_pos,double contraction_zeta,int* angular_mom_numbers,unsigned long long int* fact_memo)
 {
    using namespace std;

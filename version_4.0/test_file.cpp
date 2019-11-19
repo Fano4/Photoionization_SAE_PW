@@ -1,9 +1,11 @@
 #include "test_file.hpp"
 
-void test_radial(int l2,int l3,double zeta,double kp,double r0,double* lnfact_memo)
-{
-   std::cout<<pow(std::complex<double>(0,-kp),l2)*exp(-kp*kp/(4.*zeta))/pow(2.*zeta,1.5+l2)<<"   "; 
-   std::cout<<j_l(l3,kp*r0,lnfact_memo)<<std::endl;
+void test_radial(int l1,int l2,int l3,int m1,int m2,int m3,double zeta,double kp,double* r0,double* lnfact_memo)
+{ 
+   std::cout<<kp*kp*27.211/2<<","<<pow(-1,l1-l3)*4*acos(-1)*j_l(l3,kp*r0[0],lnfact_memo)*kp*pow(std::complex<double>(0,-kp),l2)*exp(-kp*kp/(4.*zeta))/pow(2.*zeta,1.5+l2)*rYlm(l3,m3,r0[1],r0[2],lnfact_memo)*Dint(l1,l2,l3,m1,m2,m3,lnfact_memo)<<std::endl;//<<","<<pow(0,-kp,l2)*exp(-kp*kp/(4.*zeta))/pow(2.*zeta,1.5+l2)*rYlm(l2,m2,r0[1],r0[2],lnfact_memo)<<std::endl;
+//   std::cout<<kp*kp*27.211/2<<","<<std::abs(kp*pow(std::complex<double>(0,-kp),l2)*exp(-kp*kp/(4.*zeta))/pow(2.*zeta,1.5+l2)*j_l(l3,kp*r0,lnfact_memo))<<std::endl; 
+//   std::cout<<kp*kp*27.211/2<<","<<std::abs((double(l2)/kp-kp/(2*zeta))*pow(std::complex<double>(0,-kp),l2)*exp(-kp*kp/(4.*zeta))/pow(2.*zeta,1.5+l2)*j_l(l3,kp*r0,lnfact_memo)+dj_ldz(l3,kp*r0,lnfact_memo)*pow(std::complex<double>(0,-kp),l2)*exp(-kp*kp/(4.*zeta))/pow(2.*zeta,1.5+l2))<<std::endl; 
+   //std::cout<<j_l(l3,kp*r0,lnfact_memo)<<std::endl;
 }
 double test2_integral(int l1,int l2,int l3,int m1,int m2,int m3,double* lnfact_memo)
 {

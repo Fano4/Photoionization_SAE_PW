@@ -9,12 +9,19 @@ int main(int argc,char* argv[])
    omp_set_num_threads(1); 
 
    double* lnfact_memo=new double[MAX_LN_FACTORIAL];
+
+   double* r0=new double [3];
+
+   r0[0]=2.5;
+   r0[1]=0;
+   r0[2]=0;
+
    for(int i=0;i!=MAX_LN_FACTORIAL;i++) lnfact_memo[i]=0;
 
-   for(int k=0;k!=2560;k++)
+   for(int k=0;k!=256;k++)
    {
-      std::cout<<(k+1)*15/2560.<<","<<j_l(0,(k+1)*15/2560.,lnfact_memo)<<std::endl;
-//       test_radial(0,0,0.01,(k+1)*1.5/256.,2.5,lnfact_memo);
+//      std::cout<<(k+1)*15/2560.<<","<<j_l(1,(k+1)*15/2560.,lnfact_memo)<<std::endl;
+       test_radial(0,0,0,0,0,0,0.01,(k+1)*1.5/256.,r0,lnfact_memo);
    }
    exit(EXIT_SUCCESS);
    /*
