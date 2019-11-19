@@ -21,7 +21,8 @@ int main(int argc,char* argv[])
    for(int k=0;k!=256;k++)
    {
 //      std::cout<<(k+1)*15/2560.<<","<<j_l(1,(k+1)*15/2560.,lnfact_memo)<<std::endl;
-       test_radial(0,0,0,0,0,0,0.01,(k+1)*1.5/256.,r0,lnfact_memo);
+      numerical_integral(0,0,0,0,0.1,(k+1)*15/2560.,r0,lnfact_memo);
+      analytic_integral(0,0,0,0,0.1,(k+1)*15/2560.,r0,lnfact_memo);
    }
    exit(EXIT_SUCCESS);
    /*
@@ -647,7 +648,7 @@ std::cout<<"********"<<std::endl;
     int nk=256;
     int jl_max(5);
     int x(0);
-    std::complex<double> *temp=new std::complex<double>[3];
+    double *temp=new double[3];
 
     ifstream distrib_file;
     
@@ -657,40 +658,40 @@ std::cout<<"********"<<std::endl;
     double begin=omp_get_wtime();
 
     //Then, we combine using LCAO coefficients to get MO's
-    std::complex<double>*** pice_ortho_mo = new std::complex<double> **[jl_max*jl_max+2*jl_max+1];
-    std::complex<double>*** pice_ddx_mo = new std::complex<double> **[jl_max*jl_max+2*jl_max+1];
-    std::complex<double>*** pice_ddy_mo = new std::complex<double> **[jl_max*jl_max+2*jl_max+1];
-    std::complex<double>*** pice_ddz_mo = new std::complex<double> **[jl_max*jl_max+2*jl_max+1];
+    double*** pice_ortho_mo = new double **[jl_max*jl_max+2*jl_max+1];
+    double*** pice_ddx_mo = new double **[jl_max*jl_max+2*jl_max+1];
+    double*** pice_ddy_mo = new double **[jl_max*jl_max+2*jl_max+1];
+    double*** pice_ddz_mo = new double **[jl_max*jl_max+2*jl_max+1];
 
-    std::complex<double> ***pice_x = new std::complex<double> **[n_states_neut*n_states_cat];
-    std::complex<double> ***pice_y = new std::complex<double> **[n_states_neut*n_states_cat];
-    std::complex<double> ***pice_z = new std::complex<double> **[n_states_neut*n_states_cat];
+    double ***pice_x = new double **[n_states_neut*n_states_cat];
+    double ***pice_y = new double **[n_states_neut*n_states_cat];
+    double ***pice_z = new double **[n_states_neut*n_states_cat];
 
    for(int mm=0;mm!=n_states_neut*n_states_cat;mm++)
    {
-      pice_x[mm]=new std::complex<double> *[jl_max*jl_max+2*jl_max+1];
-      pice_y[mm]=new std::complex<double> *[jl_max*jl_max+2*jl_max+1];
-      pice_z[mm]=new std::complex<double> *[jl_max*jl_max+2*jl_max+1];
+      pice_x[mm]=new double *[jl_max*jl_max+2*jl_max+1];
+      pice_y[mm]=new double *[jl_max*jl_max+2*jl_max+1];
+      pice_z[mm]=new double *[jl_max*jl_max+2*jl_max+1];
       for(int ji=0;ji!=jl_max*jl_max+2*jl_max+1;ji++)
       {
-         pice_x[mm][ji]=new std::complex<double> [nk];
-         pice_y[mm][ji]=new std::complex<double> [nk];
-         pice_z[mm][ji]=new std::complex<double> [nk];
+         pice_x[mm][ji]=new double [nk];
+         pice_y[mm][ji]=new double [nk];
+         pice_z[mm][ji]=new double [nk];
       }
    }
    for(int ji=0;ji!=jl_max*jl_max+2*jl_max+1;ji++)
    {
-      pice_ortho_mo[ji] =  new std::complex<double> *[n_occ];
-      pice_ddx_mo[ji] =  new std::complex<double> *[n_occ];
-      pice_ddy_mo[ji] =  new std::complex<double> *[n_occ];
-      pice_ddz_mo[ji] =  new std::complex<double> *[n_occ];
+      pice_ortho_mo[ji] =  new double *[n_occ];
+      pice_ddx_mo[ji] =  new double *[n_occ];
+      pice_ddy_mo[ji] =  new double *[n_occ];
+      pice_ddz_mo[ji] =  new double *[n_occ];
 
       for(int mm=0;mm!=n_occ;mm++)
       {
-         pice_ortho_mo[ji][mm]=new std::complex<double> [nk];
-         pice_ddx_mo[ji][mm]=new std::complex<double> [nk];
-         pice_ddy_mo[ji][mm]=new std::complex<double> [nk];
-         pice_ddz_mo[ji][mm]=new std::complex<double> [nk];
+         pice_ortho_mo[ji][mm]=new double [nk];
+         pice_ddx_mo[ji][mm]=new double [nk];
+         pice_ddy_mo[ji][mm]=new double [nk];
+         pice_ddz_mo[ji][mm]=new double [nk];
       }
    }
    compute_bessel_pice_mo(pice_ortho_mo,pice_ddx_mo,pice_ddy_mo,pice_ddz_mo,jl_max,n_occ,basis_size,nk,kmax,MO_coeff_neutral[x],contraction_zeta,contraction_coeff,contraction_number,nucl_spher_pos[x],nucl_basis_func,angular_mom_numbers,lnfact_memo);
