@@ -25,8 +25,8 @@ long double gamma_int_or_half(double z,double* lnfact_memo);
 double w3j(int l1,int l2,int l3,int m1,int m2,int m3,double* lnfact_memo);
 double wdelta(int a,int b,int c,double* lnfact_memo);
 double wigner3j(int l1,int l2,int l3,int m1,int m2,int m3,double* lnfact_memo);
-double j_l(int l,double z);//spherical bessel function of order l
-double dj_ldz(int l,double z); //Derivative of the spherical bessel function of order l
+double j_l(int l,double z,double* lnfact_memo);//spherical bessel function of order l
+double dj_ldz(int l,double z,double* lnfact_memo); //Derivative of the spherical bessel function of order l
 int dfactorial(int n);
 double ln_factorial(int n,double *memo);
 

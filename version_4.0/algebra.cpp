@@ -273,8 +273,10 @@ double j_l(int l,double z,double* lnfact_memo) //spherical bessel function of or
    }
    else
    {
-        if(l<0)
+        if(l<-1)
             return 0;
+        else if(l == -1)
+           return cos(z)/z;
 //        else if(l==0)
 //            return 1;
         else

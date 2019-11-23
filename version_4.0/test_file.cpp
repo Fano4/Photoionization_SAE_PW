@@ -29,12 +29,13 @@ double test2_integral(int l1,int l2,int l3,int m1,int m2,int m3,double* lnfact_m
 }
 double analytic_integral(int l1,int m1,int l2,int m2,double zeta,double kp,double* r0,double* lnfact_memo)
 {
-   double Kval(pow(-kp,l2)*exp(-kp*kp/(4*zeta))/pow(2*zeta,1.5+l2));
+   double Kval(pow(kp,l2)*exp(-kp*kp/(4*zeta))/pow(2*zeta,1.5+l2));
    double ddk_Kval((double(l2)/kp-kp/(2*zeta))*Kval);
    double bessel_val(0);
    double ddk_bessel_val(0);
    double ang_int7(0);
    double ang_int8(0);
+   double ang_int9(0);
    double sum(0);
 
             for(int l3=0;l3!=l1+l2+2;l3++)//l3
@@ -45,19 +46,29 @@ double analytic_integral(int l1,int m1,int l2,int m2,double zeta,double kp,doubl
           //        std::cout<<J_int_m1_D(l1,l2,l3,fabs(m1),fabs(m2),fabs(m3),lnfact_memo)<<std::endl;
           //        std::cout<<azim_integ(m1,m2,m3)<<std::endl;
                   bessel_val=j_l(l3,kp*r0[0],lnfact_memo);
-                  ddk_bessel_val=r0[0]*dj_ldz(l3,kp*r0[0],lnfact_memo);
-                  ang_int7=
-                      4.*acos(-1)*rYlm(l3,m3,r0[1],r0[2],lnfact_memo)
-                      *prefactor_rYlm(l1,fabs(m1),lnfact_memo)*prefactor_rYlm(l2,fabs(m2),lnfact_memo)*prefactor_rYlm(l3,fabs(m3),lnfact_memo)
-                      *J_int_p1(l1,l2,l3,fabs(m1),fabs(m2),fabs(m3),lnfact_memo)*azim_integ(m1,m2,m3);
+   //               ddk_bessel_val=r0[0]*dj_ldz(l3,kp*r0[0],lnfact_memo);
+  /*                ang_int7=
+                      pow(-1,((l2+l3-l1-1)/2))
+                      *(4.*acos(-1)*rYlm(l3,m3,r0[1],r0[2],lnfact_memo)
+          //            *prefactor_rYlm(l1,fabs(m1),lnfact_memo)*prefactor_rYlm(l2,fabs(m2),lnfact_memo)*prefactor_rYlm(l3,fabs(m3),lnfact_memo)
+                      *J_int_p1(l1,l2,l3,fabs(m1),fabs(m2),fabs(m3),lnfact_memo)*azim_integ(m1,m2,m3));
 
                   ang_int8=
-                      -4.*acos(-1)*rYlm(l3,m3,r0[1],r0[2],lnfact_memo)
-                      *prefactor_rYlm(l1,fabs(m1),lnfact_memo)*prefactor_rYlm(l2,fabs(m2),lnfact_memo)*prefactor_rYlm(l3,fabs(m3),lnfact_memo)
-                      *J_int_m1_D(l1,l2,l3,fabs(m1),fabs(m2),fabs(m3),lnfact_memo)*azim_integ(m1,m2,m3);
-                  sum+=
-                     (kp*(ddk_Kval*bessel_val+Kval*ddk_bessel_val)*ang_int7
-                     +Kval*bessel_val*ang_int8)/sqrt(0.5*intplushalf_gamma(l2+1,lnfact_memo)/pow(2*zeta,1.5+l2));
+                      pow(-1,((l2+l3-l1-1)/2))
+                      *(-4.*acos(-1)*rYlm(l3,m3,r0[1],r0[2],lnfact_memo)
+        //              *prefactor_rYlm(l1,fabs(m1),lnfact_memo)*prefactor_rYlm(l2,fabs(m2),lnfact_memo)*prefactor_rYlm(l3,fabs(m3),lnfact_memo)
+                      *J_int_m1_D(l1,l2,l3,fabs(m1),fabs(m2),fabs(m3),lnfact_memo)*azim_integ(m1,m2,m3));
+                      */
+                  ang_int9=
+                         pow(-1,((l1-l2-l3)/2))
+                          *(4.*acos(-1)*rYlm(l3,m3,r0[1],r0[2],lnfact_memo))
+                          *prefactor_rYlm(l1,fabs(m1),lnfact_memo)*prefactor_rYlm(l2,fabs(m2),lnfact_memo)*prefactor_rYlm(l3,fabs(m3),lnfact_memo)
+                          *gaunt_formula(l1,l2,l3,fabs(m1),fabs(m2),fabs(m3),lnfact_memo)*azim_integ(m1,m2,m3);
+//                  sum+=
+//                     (kp*(ddk_Kval*bessel_val+Kval*ddk_bessel_val)*ang_int7
+//                     +Kval*bessel_val*ang_int8)/sqrt(0.5*intplushalf_gamma(l2+1,lnfact_memo)/pow(2*zeta,1.5+l2));
+
+                  sum+=kp*Kval*bessel_val*ang_int9/sqrt(0.5*intplushalf_gamma(l2+1,lnfact_memo)/pow(2*zeta,1.5+l2));
                }
             }
    std::cout<<"++"<<kp*kp*27.211/2<<"  "<<sum<<std::endl;
@@ -82,20 +93,16 @@ double numerical_integral(int l1,int m1,int l2,int m2,double zeta,double kp,doub
    double phi(0);
    double phip(0);
 
-   int nx(200);
-   int ny(200);
-   int nz(400);
+   int nr(400);
+   int nt(200);
+   int nf(400);
 
-   double xmin(-10);
-   double ymin(-10);
-   double zmin(-10);
-   double xmax(10);
-   double ymax(10);
-   double zmax(10);
+   double R(10);
+   double dr(R/nr);
+   double dt(acos(-1)/nt);
+   double df(2.*acos(-1)/nf);
 
-   double dx((xmax-xmin)/nx);
-   double dy((ymax-ymin)/ny);
-   double dz((zmax-zmin)/nz);
+   double bessel_norm=1;//kp*kp*pow(R,3)*(j_l(l1,kp*R,lnfact_memo)*j_l(l1,kp*R,lnfact_memo)-j_l(l1-1,kp*R,lnfact_memo)*j_l(l1+1,kp*R,lnfact_memo))/(acos(-1)));
 
    double x0(r0[0]*sin(r0[1])*cos(r0[2]));
    double y0(r0[0]*sin(r0[1])*sin(r0[2]));
@@ -103,24 +110,30 @@ double numerical_integral(int l1,int m1,int l2,int m2,double zeta,double kp,doub
 
    double sum(0);
 
-   for(int i=0;i!=nx+1;i++)
+   for(int i=0;i!=nr;i++)
    {
-      x=xmin+i*(xmax-xmin)/nx;
-      xp=x-x0;
-      for(int j=0;j!=ny+1;j++)
+      r=i*dr;
+      for(int j=0;j!=nt;j++)
       {
-         y=ymin+j*(ymax-ymin)/ny;
-         yp=y-y0;
-         for(int l=0;l!=nz+1;l++)
+         thet=j*dt;
+         for(int l=0;l!=nf;l++)
          {
-            z=zmin+l*(zmax-zmin)/nz;
+            phi=l*df;
+            x=r*sin(thet)*cos(phi);
+            y=r*sin(thet)*sin(phi);
+            z=r*cos(thet);
+            xp=x-x0;
+            yp=y-y0;
             zp=z-z0;
-            cart_to_spher(&x,&y,&z,&r,&thet,&phi);
             cart_to_spher(&xp,&yp,&zp,&rp,&thetp,&phip);
 
             // integral dxdydz * k * z * sqrt(2/pi) * j_l1(kr) * Y_l1m1(theta,phi) * Y_l2m2(thetap,phip) * |r-r0|^l2 * exp(-zeta * |r-r0|^2)
           //  std::cout<<z<<"  "<<dx*dy*dz*sqrt(2./acos(-1))*kp*z*rYlm(l1,m1,thet,phi,lnfact_memo)*j_l(l1,kp*r,lnfact_memo)*rYlm(l2,m2,thetp,phip,lnfact_memo)*pow(rp,l2)*exp(-zeta*pow(rp,2))<<std::endl;
-            sum+=dx*dy*dz*sqrt(2./acos(-1))*kp*z*rYlm(l1,m1,thet,phi,lnfact_memo)*j_l(l1,kp*r,lnfact_memo)*rYlm(l2,m2,thetp,phip,lnfact_memo)*pow(rp,l2)*exp(-zeta*pow(rp,2))/sqrt(0.5*intplushalf_gamma(l2+1,lnfact_memo)/pow(2*zeta,1.5+l2));
+//            sum+=dx*dy*dz*pow(rYlm(l2,m2,thetp,phip,lnfact_memo)*pow(rp,l2)*exp(-zeta*pow(rp,2))/sqrt(0.5*intplushalf_gamma(l2+1,lnfact_memo)/pow(2*zeta,1.5+l2)),2);
+//            sum+=r*r*dr*pow(sqrt(2./acos(-1))*kp*j_l(l1,kp*r,lnfact_memo)/sqrt(bessel_norm),2);
+//            sum+=r*r*sin(thet)*dr*dt*df*pow(sqrt(2./acos(-1))*kp*rYlm(l1,m1,thet,phi,lnfact_memo)*j_l(l1,kp*r,lnfact_memo)/sqrt(bessel_norm),2);
+            sum+=r*r*sin(thet)*dr*dt*df*sqrt(2./acos(-1))*kp*rYlm(l1,m1,thet,phi,lnfact_memo)*j_l(l1,kp*r,lnfact_memo)/sqrt(bessel_norm)*rYlm(l2,m2,thetp,phip,lnfact_memo)*pow(rp,l2)*exp(-zeta*pow(rp,2))/sqrt(0.5*intplushalf_gamma(l2+1,lnfact_memo)/pow(2*zeta,1.5+l2));
+            //sum+=dx*dy*dz*sqrt(2./acos(-1))*kp*z*rYlm(l1,m1,thet,phi,lnfact_memo)*j_l(l1,kp*r,lnfact_memo)*rYlm(l2,m2,thetp,phip,lnfact_memo)*pow(rp,l2)*exp(-zeta*pow(rp,2))/sqrt(0.5*intplushalf_gamma(l2+1,lnfact_memo)/pow(2*zeta,1.5+l2));
          }
          //std::cout<<"===>"<<sum<<std::endl;
          //exit(EXIT_SUCCESS);

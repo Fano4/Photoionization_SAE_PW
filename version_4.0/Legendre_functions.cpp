@@ -17,12 +17,12 @@ double associated_legendre(unsigned int l,int m,double x,double* lnfact_memo)
       }
       else if(m > 0)
       {
-         return sign * sqrt((2*l+1) * exp(ln_factorial(l-m,lnfact_memo) - ln_factorial(l+m,lnfact_memo)) / (4*acos(-1)))
+         return sign * sqrt((2*l+1) * exp(0.5*(ln_factorial(l-m,lnfact_memo) - ln_factorial(l+m,lnfact_memo))) / (4*acos(-1)))
             * ((l-m+1) * x * associated_legendre_nonorm(l,m-1,x) - (l+m-1) * associated_legendre_nonorm(l-1,m-1,x)) / sqrt(1-x*x);
       }
       else 
       {
-         return sign * exp(ln_factorial(l+m,lnfact_memo)-ln_factorial(l-m,lnfact_memo))*associated_legendre(l,-m,x,lnfact_memo);
+         return sign * exp(0.5*(ln_factorial(l+m,lnfact_memo)-ln_factorial(l-m,lnfact_memo)))*associated_legendre(l,-m,x,lnfact_memo);
       }
    }
 }

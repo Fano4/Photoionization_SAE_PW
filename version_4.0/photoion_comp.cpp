@@ -1,5 +1,4 @@
 #include "photoion_comp.hpp"
-#include "test_file.cpp"
 
 #include <iomanip>
 
@@ -8,6 +7,7 @@ int main(int argc,char* argv[])
    int photoion_comp(int argc, char* argv[]);
    omp_set_num_threads(1); 
 
+   
    double* lnfact_memo=new double[MAX_LN_FACTORIAL];
 
    double* r0=new double [3];
@@ -21,10 +21,11 @@ int main(int argc,char* argv[])
    for(int k=0;k!=256;k++)
    {
 //      std::cout<<(k+1)*15/2560.<<","<<j_l(1,(k+1)*15/2560.,lnfact_memo)<<std::endl;
-      numerical_integral(0,0,0,0,0.1,(k+1)*15/2560.,r0,lnfact_memo);
-      analytic_integral(0,0,0,0,0.1,(k+1)*15/2560.,r0,lnfact_memo);
+      numerical_integral(0,0,0,0,0.125,(k+1)*15/2560.,r0,lnfact_memo);
+      analytic_integral(0,0,0,0,0.125,(k+1)*15/2560.,r0,lnfact_memo);
    }
    exit(EXIT_SUCCESS);
+   
    /*
    int l1(0);
    int l2(0);
@@ -717,6 +718,7 @@ std::cout<<"********"<<std::endl;
                         pice_x[nn*n_states_cat+nc][ji][k]-=dyson_mo_basis_coeff[x][nn*n_states_cat*n_occ+nc*n_occ+mm]*mo_dipole[x][0][mm*n_occ+mmp]*pice_ortho_mo[ji][mmp][k];
                         pice_y[nn*n_states_cat+nc][ji][k]-=dyson_mo_basis_coeff[x][nn*n_states_cat*n_occ+nc*n_occ+mm]*mo_dipole[x][1][mm*n_occ+mmp]*pice_ortho_mo[ji][mmp][k];
                         pice_z[nn*n_states_cat+nc][ji][k]-=dyson_mo_basis_coeff[x][nn*n_states_cat*n_occ+nc*n_occ+mm]*mo_dipole[x][2][mm*n_occ+mmp]*pice_ortho_mo[ji][mmp][k];
+                        
                      }
                   }
                }
@@ -737,7 +739,7 @@ std::cout<<"********"<<std::endl;
 //      ddtemp+=abs(pice_z[0*n_states_cat][ji][k]);
       ddtemp+=(pice_z[0*n_states_cat][ji][k]);
    }
-   std::cout<<kp*kp*27.211/2<<","<<pow(std::abs(ddtemp),2)<<std::endl;
+   std::cout<<kp*kp*27.211/2<<","<<kp*kp*pow(std::abs(ddtemp),2)<<std::endl;
    }
 
 

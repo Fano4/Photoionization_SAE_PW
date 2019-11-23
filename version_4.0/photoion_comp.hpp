@@ -29,6 +29,7 @@
 #include "angular_int_aux.cpp"
 #include "Computation.cpp"
 #include "hf5_photoion.cpp"
+#include "test_file.cpp"
 
 int spherical_harmonics_translator(std::string basis_func_type,bool component);
 
