@@ -154,11 +154,11 @@ void pw_bessel_overlap_comparison(int l2,int m2,double zeta,double kp,double the
    double Kval(pow(kp,l2)*exp(-kp*kp/(4*zeta))/pow(2*zeta,1.5+l2));
    double bessel_val(0);
 
-    std::cout<<pow(std::complex<double>(0,-kp),l2)*exp(-kp*kp/(4*zeta))/(pow(2*zeta,1.5+l2)*sqrt(0.5*gamma_int_plus_half(l2+1,lnfact_memo)/(pow(2*zeta,1.5+l2))))*rYlm(l2,m2,thet,phi)*exp(std::complex<double>(0,-(kx*xp+ky*yp+kz*zp)))<<std::endl;
+    std::cout<<pow(std::complex<double>(0,-kp),l2)*exp(-kp*kp/(4*zeta))/(pow(2*zeta,1.5+l2)*sqrt(0.5*intplushalf_gamma(l2+1,lnfact_memo)/(pow(2*zeta,1.5+l2))))*rYlm(l2,m2,thet,phi,lnfact_memo)*exp(std::complex<double>(0,-(kx*xp+ky*yp+kz*zp)))<<std::endl;
 
     std::complex<double> sum(std::complex<double>(0,0));
 
-    for(int l1=0;l1!=10;l1++)
+    for(int l1=0;l1!=13;l1++)
     {
        for(int m1=-l1;m1!=l1+1;m1++)
        {
@@ -167,10 +167,10 @@ void pw_bessel_overlap_comparison(int l2,int m2,double zeta,double kp,double the
              for(int m3=-l3;m3!=l3+1;m3++)
              {
                 bessel_val=j_l(l3,kp*r0[0],lnfact_memo);
-                sum+=pow(std::complex<double>(0,-1),l1)*rYlm(l1,m1,thet,phi)
-                   *pow(-1,(l1-l2-l3)/2)*4*acos(-1)*rYlm(l3,m3,r0[1],r0[2],lnfact_memo)
+                sum+=pow(std::complex<double>(0,-1),l1)*rYlm(l1,m1,thet,phi,lnfact_memo)
+                   *pow(-1,(l1-l2-l3)/2)*4.*acos(-1)*rYlm(l3,m3,r0[1],r0[2],lnfact_memo)
                    *prefactor_rYlm(l1,fabs(m1),lnfact_memo)*prefactor_rYlm(l2,fabs(m2),lnfact_memo)*prefactor_rYlm(l3,fabs(m3),lnfact_memo)
-                   *kp*Kval*bessel_val*gaunt_formula(l1,l2,l3,fabs(m1),fabs(m2),fabs(m3),lnfact_memo)*azim_integ(m1,m2,m3,lnfact_memo);
+                   *kp*Kval*bessel_val*gaunt_formula(l1,l2,l3,fabs(m1),fabs(m2),fabs(m3),lnfact_memo)*azim_integ(m1,m2,m3);
              }
           }
        }
