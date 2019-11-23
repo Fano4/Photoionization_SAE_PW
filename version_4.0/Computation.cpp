@@ -872,7 +872,7 @@ double build_reduced_determinant( int ai,int aj,int n_elec,int n_closed,int n_oc
   //    std::cout<<prefactor<<std::endl;
    return prefactor;
 }
-void compute_bessel_pice_mo(double*** pice_ortho_mo,double*** pice_ddx_mo,double*** pice_ddy_mo,double*** pice_ddz_mo,int jl_max,int n_occ,int basis_size,int nk,double kmax,double *MO_coeff_neutral,double **contraction_zeta,double **contraction_coeff,int * contraction_number,double** nucl_spher_pos,int *nucl_basis_func,int** angular_mom_numbers,double* lnfact_memo)
+void compute_bessel_pice_mo(double*** pice_ortho_mo,double*** pice_ddx_mo,double*** pice_ddy_mo,double*** pice_ddz_mo,int jl_max,int n_occ,int basis_size,int nk,double kmax,double *MO_coeff_neutral,double **contraction_zeta,double **contraction_coeff,int * contraction_number,double** nucl_spher_pos,int *nucl_basis_func,int** angular_mom_numbers)
 {
 
    int ll2(0);
@@ -989,55 +989,55 @@ void compute_bessel_pice_mo(double*** pice_ortho_mo,double*** pice_ddx_mo,double
                {
                       ang_int1[ll1*ll1+ll1+mm1][ww][ll3*ll3+ll3+mm3]=
                          pow(-1,((ll2+ll3-ll1-1)/2))
-                          *(4.*acos(-1)*rYlm(ll3,mm3,nucl_spher_pos[nucl_basis_func[ww]][1],nucl_spher_pos[nucl_basis_func[ww]][2],lnfact_memo))
-                          *prefactor_rYlm(ll1,fabs(mm1),lnfact_memo)*prefactor_rYlm(ll2,fabs(mm2),lnfact_memo)*prefactor_rYlm(ll3,fabs(mm3),lnfact_memo)
-                          *J_int_m1(ll1,ll2,ll3,fabs(mm1),fabs(mm2),fabs(mm3),lnfact_memo)*I_p1_integral(mm1,mm2,mm3);
+                          *(4.*acos(-1)*rYlm(ll3,mm3,nucl_spher_pos[nucl_basis_func[ww]][1],nucl_spher_pos[nucl_basis_func[ww]][2]))
+                          *prefactor_rYlm(ll1,fabs(mm1))*prefactor_rYlm(ll2,fabs(mm2))*prefactor_rYlm(ll3,fabs(mm3))
+                          *J_int_m1(ll1,ll2,ll3,fabs(mm1),fabs(mm2),fabs(mm3))*I_p1_integral(mm1,mm2,mm3);
                       ang_int2[ll1*ll1+ll1+mm1][ww][ll3*ll3+ll3+mm3]=
                          pow(-1,((ll2+ll3-ll1-1)/2))
-                          *(4.*acos(-1)*rYlm(ll3,mm3,nucl_spher_pos[nucl_basis_func[ww]][1],nucl_spher_pos[nucl_basis_func[ww]][2],lnfact_memo))
-                          *prefactor_rYlm(ll1,fabs(mm1),lnfact_memo)*prefactor_rYlm(ll2,fabs(mm2),lnfact_memo)*prefactor_rYlm(ll3,fabs(mm3),lnfact_memo)
-                          *J_int_p1_D(ll1,ll2,ll3,fabs(mm1),fabs(mm2),fabs(mm3),lnfact_memo)*I_p1_integral(mm1,mm2,mm3);
+                          *(4.*acos(-1)*rYlm(ll3,mm3,nucl_spher_pos[nucl_basis_func[ww]][1],nucl_spher_pos[nucl_basis_func[ww]][2]))
+                          *prefactor_rYlm(ll1,fabs(mm1))*prefactor_rYlm(ll2,fabs(mm2))*prefactor_rYlm(ll3,fabs(mm3))
+                          *J_int_p1_D(ll1,ll2,ll3,fabs(mm1),fabs(mm2),fabs(mm3))*I_p1_integral(mm1,mm2,mm3);
 
                       ang_int3[ll1*ll1+ll1+mm1][ww][ll3*ll3+ll3+mm3]=
                          pow(-1,((ll2+ll3-ll1-1)/2))
-                          *(-4.*acos(-1)*rYlm(ll3,mm3,nucl_spher_pos[nucl_basis_func[ww]][1],nucl_spher_pos[nucl_basis_func[ww]][2],lnfact_memo))
-                          *prefactor_rYlm(ll1,fabs(mm1),lnfact_memo)*prefactor_rYlm(ll2,fabs(mm2),lnfact_memo)*prefactor_rYlm(ll3,fabs(mm3),lnfact_memo)
-                          *J_int_m2(ll1,ll2,ll3,fabs(mm1),fabs(mm2),fabs(mm3),lnfact_memo)*I_m1_D_integral(mm1,mm2,mm3);
+                          *(-4.*acos(-1)*rYlm(ll3,mm3,nucl_spher_pos[nucl_basis_func[ww]][1],nucl_spher_pos[nucl_basis_func[ww]][2]))
+                          *prefactor_rYlm(ll1,fabs(mm1))*prefactor_rYlm(ll2,fabs(mm2))*prefactor_rYlm(ll3,fabs(mm3))
+                          *J_int_m2(ll1,ll2,ll3,fabs(mm1),fabs(mm2),fabs(mm3))*I_m1_D_integral(mm1,mm2,mm3);
 
                       ang_int4[ll1*ll1+ll1+mm1][ww][ll3*ll3+ll3+mm3]=
                          pow(-1,((ll2+ll3-ll1-1)/2))
-                          *(4.*acos(-1)*rYlm(ll3,mm3,nucl_spher_pos[nucl_basis_func[ww]][1],nucl_spher_pos[nucl_basis_func[ww]][2],lnfact_memo))
-                          *prefactor_rYlm(ll1,fabs(mm1),lnfact_memo)*prefactor_rYlm(ll2,fabs(mm2),lnfact_memo)*prefactor_rYlm(ll3,fabs(mm3),lnfact_memo)
-                          *J_int_m1(ll1,ll2,ll3,fabs(mm1),fabs(mm2),fabs(mm3),lnfact_memo)*I_m1_integral(mm1,mm2,mm3);
+                          *(4.*acos(-1)*rYlm(ll3,mm3,nucl_spher_pos[nucl_basis_func[ww]][1],nucl_spher_pos[nucl_basis_func[ww]][2]))
+                          *prefactor_rYlm(ll1,fabs(mm1))*prefactor_rYlm(ll2,fabs(mm2))*prefactor_rYlm(ll3,fabs(mm3))
+                          *J_int_m1(ll1,ll2,ll3,fabs(mm1),fabs(mm2),fabs(mm3))*I_m1_integral(mm1,mm2,mm3);
 
                       ang_int5[ll1*ll1+ll1+mm1][ww][ll3*ll3+ll3+mm3]=
                          pow(-1,((ll2+ll3-ll1-1)/2))
-                          *(4.*acos(-1)*rYlm(ll3,mm3,nucl_spher_pos[nucl_basis_func[ww]][1],nucl_spher_pos[nucl_basis_func[ww]][2],lnfact_memo))
-                          *prefactor_rYlm(ll1,fabs(mm1),lnfact_memo)*prefactor_rYlm(ll2,fabs(mm2),lnfact_memo)*prefactor_rYlm(ll3,fabs(mm3),lnfact_memo)
-                          *J_int_p1_D(ll1,ll2,ll3,fabs(mm1),fabs(mm2),fabs(mm3),lnfact_memo)*I_m1_integral(mm1,mm2,mm3);
+                          *(4.*acos(-1)*rYlm(ll3,mm3,nucl_spher_pos[nucl_basis_func[ww]][1],nucl_spher_pos[nucl_basis_func[ww]][2]))
+                          *prefactor_rYlm(ll1,fabs(mm1))*prefactor_rYlm(ll2,fabs(mm2))*prefactor_rYlm(ll3,fabs(mm3))
+                          *J_int_p1_D(ll1,ll2,ll3,fabs(mm1),fabs(mm2),fabs(mm3))*I_m1_integral(mm1,mm2,mm3);
 
                       ang_int6[ll1*ll1+ll1+mm1][ww][ll3*ll3+ll3+mm3]=
                          pow(-1,((ll2+ll3-ll1-1)/2))
-                          *(4.*acos(-1)*rYlm(ll3,mm3,nucl_spher_pos[nucl_basis_func[ww]][1],nucl_spher_pos[nucl_basis_func[ww]][2],lnfact_memo))
-                          *prefactor_rYlm(ll1,fabs(mm1),lnfact_memo)*prefactor_rYlm(ll2,fabs(mm2),lnfact_memo)*prefactor_rYlm(ll3,fabs(mm3),lnfact_memo)
-                          *J_int_m2(ll1,ll2,ll3,fabs(mm1),fabs(mm2),fabs(mm3),lnfact_memo)*I_p1_D_integral(mm1,mm2,mm3);
+                          *(4.*acos(-1)*rYlm(ll3,mm3,nucl_spher_pos[nucl_basis_func[ww]][1],nucl_spher_pos[nucl_basis_func[ww]][2]))
+                          *prefactor_rYlm(ll1,fabs(mm1))*prefactor_rYlm(ll2,fabs(mm2))*prefactor_rYlm(ll3,fabs(mm3))
+                          *J_int_m2(ll1,ll2,ll3,fabs(mm1),fabs(mm2),fabs(mm3))*I_p1_D_integral(mm1,mm2,mm3);
 
                       ang_int7[ll1*ll1+ll1+mm1][ww][ll3*ll3+ll3+mm3]=
                          pow(-1,((ll2+ll3-ll1-1)/2))
-                          *(4.*acos(-1)*rYlm(ll3,mm3,nucl_spher_pos[nucl_basis_func[ww]][1],nucl_spher_pos[nucl_basis_func[ww]][2],lnfact_memo))
-                          *prefactor_rYlm(ll1,fabs(mm1),lnfact_memo)*prefactor_rYlm(ll2,fabs(mm2),lnfact_memo)*prefactor_rYlm(ll3,fabs(mm3),lnfact_memo)
-                          *J_int_p1(ll1,ll2,ll3,fabs(mm1),fabs(mm2),fabs(mm3),lnfact_memo)*azim_integ(mm1,mm2,mm3);
+                          *(4.*acos(-1)*rYlm(ll3,mm3,nucl_spher_pos[nucl_basis_func[ww]][1],nucl_spher_pos[nucl_basis_func[ww]][2]))
+                          *prefactor_rYlm(ll1,fabs(mm1))*prefactor_rYlm(ll2,fabs(mm2))*prefactor_rYlm(ll3,fabs(mm3))
+                          *J_int_p1(ll1,ll2,ll3,fabs(mm1),fabs(mm2),fabs(mm3))*azim_integ(mm1,mm2,mm3);
 
                       ang_int8[ll1*ll1+ll1+mm1][ww][ll3*ll3+ll3+mm3]=
                          pow(-1,((ll2+ll3-ll1-1)/2))
-                          *(-4.*acos(-1)*rYlm(ll3,mm3,nucl_spher_pos[nucl_basis_func[ww]][1],nucl_spher_pos[nucl_basis_func[ww]][2],lnfact_memo))
-                          *prefactor_rYlm(ll1,fabs(mm1),lnfact_memo)*prefactor_rYlm(ll2,fabs(mm2),lnfact_memo)*prefactor_rYlm(ll3,fabs(mm3),lnfact_memo)
-                          *J_int_m1_D(ll1,ll2,ll3,fabs(mm1),fabs(mm2),fabs(mm3),lnfact_memo)*azim_integ(mm1,mm2,mm3);
+                          *(-4.*acos(-1)*rYlm(ll3,mm3,nucl_spher_pos[nucl_basis_func[ww]][1],nucl_spher_pos[nucl_basis_func[ww]][2]))
+                          *prefactor_rYlm(ll1,fabs(mm1))*prefactor_rYlm(ll2,fabs(mm2))*prefactor_rYlm(ll3,fabs(mm3))
+                          *J_int_m1_D(ll1,ll2,ll3,fabs(mm1),fabs(mm2),fabs(mm3))*azim_integ(mm1,mm2,mm3);
                       ang_int9[ll1*ll1+ll1+mm1][ww][ll3*ll3+ll3+mm3]=
                          pow(-1,((ll2+ll3-ll1)/2))
-                          *(4.*acos(-1)*rYlm(ll3,mm3,nucl_spher_pos[nucl_basis_func[ww]][1],nucl_spher_pos[nucl_basis_func[ww]][2],lnfact_memo))
-                          *prefactor_rYlm(ll1,fabs(mm1),lnfact_memo)*prefactor_rYlm(ll2,fabs(mm2),lnfact_memo)*prefactor_rYlm(ll3,fabs(mm3),lnfact_memo)
-                          *gaunt_formula(ll1,ll2,ll3,fabs(mm1),fabs(mm2),fabs(mm3),lnfact_memo)*azim_integ(mm1,mm2,mm3);
+                          *(4.*acos(-1)*rYlm(ll3,mm3,nucl_spher_pos[nucl_basis_func[ww]][1],nucl_spher_pos[nucl_basis_func[ww]][2]))
+                          *prefactor_rYlm(ll1,fabs(mm1))*prefactor_rYlm(ll2,fabs(mm2))*prefactor_rYlm(ll3,fabs(mm3))
+                          *gaunt_formula(ll1,ll2,ll3,fabs(mm1),fabs(mm2),fabs(mm3))*azim_integ(mm1,mm2,mm3);
                }
             }
          }
@@ -1063,8 +1063,8 @@ void compute_bessel_pice_mo(double*** pice_ortho_mo,double*** pice_ddx_mo,double
 
          for(int ll3=0;ll3!=l3max+1;ll3++)//l3
          {
-            bessel_val[ww][ll3][k]=j_l(ll3,kp*nucl_spher_pos[nucl_basis_func[ww]][0],lnfact_memo);
-            ddk_bessel_val[ww][ll3][k]=nucl_spher_pos[nucl_basis_func[ww]][0]*dj_ldz(ll3,kp*nucl_spher_pos[nucl_basis_func[ww]][0],lnfact_memo);
+            bessel_val[ww][ll3][k]=j_l(ll3,kp*nucl_spher_pos[nucl_basis_func[ww]][0]);
+            ddk_bessel_val[ww][ll3][k]=nucl_spher_pos[nucl_basis_func[ww]][0]*dj_ldz(ll3,kp*nucl_spher_pos[nucl_basis_func[ww]][0]);
          }
        }
    }

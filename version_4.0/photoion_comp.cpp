@@ -8,17 +8,13 @@ int main(int argc,char* argv[])
    omp_set_num_threads(1); 
 
 
-   double* lnfact_memo=new double[MAX_LN_FACTORIAL];
-
    double* r0=new double [3];
 
    r0[0]=2.5;
    r0[1]=0;
    r0[2]=0;
 
-   for(int i=0;i!=MAX_LN_FACTORIAL;i++) lnfact_memo[i]=0;
-
-   pw_bessel_overlap_comparison(0,0,0.125,0.3,0.25,2.1,r0,lnfact_memo);
+   pw_bessel_overlap_comparison(0,0,0.125,0.3,0.25,2.1,r0);
    for(int k=0;k!=256;k++)
    {
 //      std::cout<<(k+1)*15/2560.<<","<<j_l(1,(k+1)*15/2560.,lnfact_memo)<<std::endl;
@@ -153,8 +149,6 @@ int photoion_comp(int argc, char* argv[])
     double sum(0);
     int index(0);
     int index2(0);
-    unsigned long long int* fact_memo=new unsigned long long int [MAX_N_FACTORIAL];
-    double* lnfact_memo=new double[MAX_LN_FACTORIAL];
     int temp_int(0);
     double xmin(1.6125);
     double xmax(1.6125);
@@ -164,24 +158,6 @@ int photoion_comp(int argc, char* argv[])
     stringstream ss_molpro_file;
     std::string molpro_output_path;
 
-    for(int n=0;n!=MAX_LN_FACTORIAL;n++) lnfact_memo[n]=0;
-
-    /*
-    lnfact_memo[0]=0.00000000000000000000
-    lnfact_memo[1]=0.00000000000000000000
-    lnfact_memo[2]=0.69314718055994528623
-    lnfact_memo[3]=1.79175946922805495731
-    lnfact_memo[4]=3.17805383034794575181
-    lnfact_memo[5]=4.78749174278204581157
-    */
-
-    std::cout<<exp(log(factorial(18,fact_memo)))<<std::endl;
-    for(int n=0;n!=MAX_N_FACTORIAL;n++) fact_memo[n]=0;
-    for(int n=0;n!=MAX_LN_FACTORIAL;n++)
-    {
-       std::cout<<setprecision(20)<<" Factorial of "<<n<<" = "<<exp(ln_factorial(n,lnfact_memo))<<std::endl;
-//       std::cout<<" Factorial of "<<n<<" = "<<double(factorial(n,fact_memo))<<std::endl;
-    }
 //       std::cout<<" Factorial of "<<" = "<<exp(ln_factorial(25,lnfact_memo)-ln_factorial(20,lnfact_memo))<<std::endl;
     /*
      *
@@ -698,7 +674,7 @@ std::cout<<"********"<<std::endl;
          pice_ddz_mo[ji][mm]=new double [nk];
       }
    }
-   compute_bessel_pice_mo(pice_ortho_mo,pice_ddx_mo,pice_ddy_mo,pice_ddz_mo,jl_max,n_occ,basis_size,nk,kmax,MO_coeff_neutral[x],contraction_zeta,contraction_coeff,contraction_number,nucl_spher_pos[x],nucl_basis_func,angular_mom_numbers,lnfact_memo);
+   compute_bessel_pice_mo(pice_ortho_mo,pice_ddx_mo,pice_ddy_mo,pice_ddz_mo,jl_max,n_occ,basis_size,nk,kmax,MO_coeff_neutral[x],contraction_zeta,contraction_coeff,contraction_number,nucl_spher_pos[x],nucl_basis_func,angular_mom_numbers);
 
    for(int nn=0;nn!=n_states_neut;nn++)
    {

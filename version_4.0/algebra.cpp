@@ -211,7 +211,7 @@ double cube_dot_product(double *cube1,double *cube2,int nx,int ny, int nz,double
 
 double wigner3j(int l1,int l2,int l3,int m1,int m2,int m3)
 {
-   double val(pow(-1,l1-l2-m3)*wdelta(l1,l2,l3,lnfact_memo)*w3j(l1,l2,l3,m1,m2,m3,lnfact_memo));
+   double val(pow(-1,l1-l2-m3)*wdelta(l1,l2,l3)*w3j(l1,l2,l3,m1,m2,m3));
 
 /*   if(val == 0 )
    {
@@ -250,7 +250,7 @@ double wdelta(int a,int b,int c)
        std::cout<<" ERROR ! WDelta FUNCTION IS NAN"<<std::endl;
    return val;
 }
-double w3j(int l1,int l2,int l3,int m1,int m2,int m3,double* lnfact_memo)
+double w3j(int l1,int l2,int l3,int m1,int m2,int m3)
 {
    int fac1[MAX_FACTORIAL_PRIME];
    int fac2[MAX_FACTORIAL_PRIME];

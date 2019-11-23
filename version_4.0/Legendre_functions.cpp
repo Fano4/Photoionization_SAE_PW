@@ -1,6 +1,7 @@
-double associated_legendre(unsigned int l,int m,double x,double* lnfact_memo)
+double associated_legendre(unsigned int l,int m,double x)
 {
    int sign(-bool( m % 2 != 0 ) + bool( m % 2 == 0 ));
+   double val(0);
 
    if(fabs(m) > fabs(l))
    {
@@ -17,12 +18,18 @@ double associated_legendre(unsigned int l,int m,double x,double* lnfact_memo)
       }
       else if(m > 0)
       {
-         return sign * sqrt((2*l+1) * exp(0.5*(ln_factorial(l-m,lnfact_memo) - ln_factorial(l+m,lnfact_memo))) / (4*acos(-1)))
-            * ((l-m+1) * x * associated_legendre_nonorm(l,m-1,x) - (l+m-1) * associated_legendre_nonorm(l-1,m-1,x)) / sqrt(1-x*x);
+         val=sign * sqrt(2) * sqrt((2*l+1)/ (4*acos(-1)));
+         temp=1;
+         for (int tt=l-m+1;tt!=l+m+1;tt++)
+         {
+            temp/=tt;
+         }
+         val*=sqrt(temp);
+         return val * ((l-m+1) * x * associated_legendre_nonorm(l,m-1,x) - (l+m-1) * associated_legendre_nonorm(l-1,m-1,x)) / sqrt(1-x*x);
       }
       else 
       {
-         return sign * exp(0.5*(ln_factorial(l+m,lnfact_memo)-ln_factorial(l-m,lnfact_memo)))*associated_legendre(l,-m,x,lnfact_memo);
+         return sign * associated_legendre(l,-m,x);
       }
    }
 }
@@ -54,7 +61,7 @@ double associated_legendre_nonorm(unsigned int l,int m,double x)
       }
    }
 }
-double associated_legendre_der(unsigned int l,int m,double x,double* lnfact_memo)
+double associated_legendre_der(unsigned int l,int m,double x)
 {
 
    int sign(-bool( m % 2 != 0 ) + bool( m % 2 == 0 ));
@@ -69,7 +76,15 @@ double associated_legendre_der(unsigned int l,int m,double x,double* lnfact_memo
       }
       else if(m > 0)
       {
-         return -sign * sqrt((2*l+1)*exp(ln_factorial(l-m,lnfact_memo)-ln_factorial(l+m,lnfact_memo))/(4*acos(-1)))
+         val=sign * sqrt((2*l+1)/ (4*acos(-1)));
+         temp=1;
+         for (int tt=l-m+1;tt!=l+m+1;tt++)
+         {
+            temp/=tt;
+         }
+         val*=sqrt(temp);
+         return -sign * val
+//         return -sign * sqrt((2*l+1)*exp(ln_factorial(l-m,lnfact_memo)-ln_factorial(l+m,lnfact_memo))/(4*acos(-1)))
             *(l*x*associated_legendre_nonorm(l,m,x)-(l+m)*associated_legendre_nonorm(l-1,m,x))/sqrt(1-x*x);
       }
       else 
