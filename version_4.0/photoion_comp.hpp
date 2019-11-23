@@ -5,6 +5,7 @@
 #define MAX_LN_FACTORIAL 50
 #define MAX_FACTORIAL_PRIME 25
 
+const int PRIME[MAX_FACTORIAL_PRIME]={2,3,5,7,11,13,17,19,23,29,31,37,41,43,47,53,59,61,67,71,73,79,83,89,97};
 
 //Include standards libraries
 #include <iostream>

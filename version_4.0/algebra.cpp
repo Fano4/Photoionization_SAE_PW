@@ -122,18 +122,43 @@ unsigned long long int factorial(int n,unsigned long long int* memo)
    }
 }
 */
-long double intplushalf_gamma(int n,double* lnfact_memo) //(Gamma(n+1/2))
+long double intplushalf_gamma(int n) //(Gamma(n+1/2))
 {
-   return sqrt(acos(-1))* exp(ln_factorial(2*n,lnfact_memo)-ln_factorial(n,lnfact_memo))/(pow(4,n));
+   int fac1[MAX_FACTORIAL_PRIME];
+   int fac2[MAX_FACTORIAL_PRIME];
+
+   fact_prime_decomposer(2*n,fac1);
+   fact_prime_decomposer(n,fac2);
+
+   int temp=1;
+   for(int i=0;i!=MAX_FACTORIAL_PRIME;i++)
+   {
+      temp*=pow(PRIME[i],fac1[i]-fac2[i]);
+   }
+   return sqrt(acos(-1))*temp/(pow(4,n))
+
+//   return sqrt(acos(-1))* exp(ln_factorial(2*n,lnfact_memo)-ln_factorial(n,lnfact_memo))/(pow(4,n));
+
 //   return sqrt(acos(-1))*double(factorial(2*n,fact_memo))/(pow(4,n)*double(factorial(n,fact_memo)));
 }
 
-long double gamma_int_or_half(double z,double* lnfact_memo)
+long double gamma_int_or_half(double z)
 {
+   int fac1[MAX_FACTORIAL_PRIME];
+
    if(ceil(z)==floor(z) && z > 0)
-      return exp(ln_factorial(int(z)-1,lnfact_memo));
+   {
+      fact_prime_decomposer(int(z)-1,fac1);
+      int temp=1;
+      for(int i=0;i!=MAX_FACTORIAL_PRIME;i++)
+      {
+         temp*=pow(PRIME[i],fac1[i]);
+      }
+      return temp;
+//      return exp(ln_factorial(int(z)-1,lnfact_memo));
+   }
    else if(ceil(2*z) == floor(2*z) && z > 0)
-      return intplushalf_gamma(int(z-0.5),lnfact_memo);
+      return intplushalf_gamma(int(z-0.5));
    else
    {
       std::cout<<"ERROR ! NON HALF INTEGER OR NON INTEGER OR NON POSITIVE ARGUMENT IN GAMMA_INT_OR_HALF FUCNTION"<<std::endl;
@@ -184,7 +209,7 @@ double cube_dot_product(double *cube1,double *cube2,int nx,int ny, int nz,double
    return 0;
 }
 
-double wigner3j(int l1,int l2,int l3,int m1,int m2,int m3,double* lnfact_memo)
+double wigner3j(int l1,int l2,int l3,int m1,int m2,int m3)
 {
    double val(pow(-1,l1-l2-m3)*wdelta(l1,l2,l3,lnfact_memo)*w3j(l1,l2,l3,m1,m2,m3,lnfact_memo));
 
@@ -199,17 +224,27 @@ double wigner3j(int l1,int l2,int l3,int m1,int m2,int m3,double* lnfact_memo)
        std::cout<<" ERROR ! WIGNER3J FUNCTION IS NAN"<<std::endl;
    return val;
 }
-double wdelta(int a,int b,int c,double* lnfact_memo)
+double wdelta(int a,int b,int c)
 {
 
-   //in order to increase the precision of the evaluation of the facotorial, we will decompose all factorials into it's prime numbers. We wil then simplify the product of factorials by computing the sum of the powers of the prime numbers before to compute the final value.
-   //
-   //1. What is the largest of the numbers for which we compute the exponential and how many prime numbers are contained between 1 and this number? This gives the size of the array.
-   //2. we build as many arrays as there are factorials to evaluate and we decompose these facotrials.
-   //3. We sum the powers of the arrays to obtain the final result. Then we compute the actual result.
+   int fac1[MAX_FACTORIAL_PRIME];
+   int fac2[MAX_FACTORIAL_PRIME];
+   int fac3[MAX_FACTORIAL_PRIME];
+   int fac4[MAX_FACTORIAL_PRIME];
 
-   
-   double val(exp(0.5*(ln_factorial(a+b-c,lnfact_memo)+ln_factorial(a-b+c,lnfact_memo)+ln_factorial(-a+b+c,lnfact_memo)-ln_factorial(a+b+c+1,lnfact_memo))));
+   fact_prime_decomposer(a+b-c,fac1);
+   fact_prime_decomposer(a-b+c,fac2);
+   fact_prime_decomposer(-a+b+c,fac3);
+   fact_prime_decomposer(a+b+c+1,fac4);
+
+   int temp=1;
+   for(int i=0;i!=MAX_FACTORIAL_PRIME;i++)
+   {
+      temp*=pow(PRIME[i],fac1[i]+fac2[i]+fac3[i]-fac4[i]);
+   }
+
+   double val(double(temp));
+//   double val(exp(0.5*(ln_factorial(a+b-c,lnfact_memo)+ln_factorial(a-b+c,lnfact_memo)+ln_factorial(-a+b+c,lnfact_memo)-ln_factorial(a+b+c+1,lnfact_memo))));
    //double val( sqrt(double(factorial(a+b-c,fact_memo))*double(factorial(a-b+c,fact_memo))*double(factorial(-a+b+c,fact_memo))/double(factorial(a+b+c+1,fact_memo))));
    if(isnan(val))
        std::cout<<" ERROR ! WDelta FUNCTION IS NAN"<<std::endl;
@@ -217,10 +252,24 @@ double wdelta(int a,int b,int c,double* lnfact_memo)
 }
 double w3j(int l1,int l2,int l3,int m1,int m2,int m3,double* lnfact_memo)
 {
+   int fac1[MAX_FACTORIAL_PRIME];
+   int fac2[MAX_FACTORIAL_PRIME];
+   int fac3[MAX_FACTORIAL_PRIME];
+   int fac4[MAX_FACTORIAL_PRIME];
+   int fac5[MAX_FACTORIAL_PRIME];
+   int fac6[MAX_FACTORIAL_PRIME];
+   int fac7[MAX_FACTORIAL_PRIME];
+   int fac8[MAX_FACTORIAL_PRIME];
+   int fac9[MAX_FACTORIAL_PRIME];
+   int fac10[MAX_FACTORIAL_PRIME];
+   int fac11[MAX_FACTORIAL_PRIME];
+   int fac12[MAX_FACTORIAL_PRIME];
+
    double sum(0);
    double val(0);
    double val2(0);
    double temp(1);
+   double temp2(1);
 
    int tmin(0);
    int tmax(1000);
@@ -237,13 +286,34 @@ double w3j(int l1,int l2,int l3,int m1,int m2,int m3,double* lnfact_memo)
    if(l2+l1-l3<tmax)
       tmax=l2+l1-l3;
 
+   fact_prime_decomposer(l1+m1,fac7);
+   fact_prime_decomposer(l1-m1,fac8);
+   fact_prime_decomposer(l2+m2,fac9);
+   fact_prime_decomposer(l2-m2,fac10);
+   fact_prime_decomposer(l3+m3,fac11);
+   fact_prime_decomposer(l3-m3,fac12);
+
 //   std::cout<<"numbers"<<std::endl<<l1<<","<<l2<<","<<l3<<","<<m1<<","<<m2<<","<<m3<<std::endl;
 //   std::cout<<tmin<<","<<tmax<<std::endl;
    if(tmin <= tmax)
    {
       for(int t=tmin;t!=tmax+1;t++)
       {
-         sum+=pow(-1.,t) * exp(-(ln_factorial(t,lnfact_memo) + ln_factorial(l3-l2+t+m1,lnfact_memo) + ln_factorial(l3-l1+t-m2,lnfact_memo) + ln_factorial(l2+l1-t-l3,lnfact_memo) + ln_factorial(l1-t-m1,lnfact_memo) + ln_factorial(l2-t+m2,lnfact_memo)));
+         fact_prime_decomposer(t,fac1);
+         fact_prime_decomposer(l3-l2+t+m1,fac2);
+         fact_prime_decomposer(l3-l1+t-m2,fac3);
+         fact_prime_decomposer(l2+l1-t-l3,fac4);
+         fact_prime_decomposer(l1-t-m1,fac5);
+         fact_prime_decomposer(l2-t+m2,fac6);
+         temp2=1;
+         for(int i=0;i!=MAX_FACTORIAL_PRIME;i++)
+         {
+            temp2*=pow(double(PRIME[i]),-fac1[i]-fac2[i]-fac3[i]-fac4[i]-fac5[i]-fac6[i]+double(fac7[i]+fac8[i]+fac9[i]+fac10[i]+fac11[i]+fac12[i])/2);
+         }
+         sum+=pow(-1.,t) * temp2;
+
+
+//         sum+=pow(-1.,t) * exp(-(ln_factorial(t,lnfact_memo) + ln_factorial(l3-l2+t+m1,lnfact_memo) + ln_factorial(l3-l1+t-m2,lnfact_memo) + ln_factorial(l2+l1-t-l3,lnfact_memo) + ln_factorial(l1-t-m1,lnfact_memo) + ln_factorial(l2-t+m2,lnfact_memo)));
 //         sum+=pow(-1.,t)/(double(factorial(t,fact_memo))*double(factorial(l3-l2+t+m1,fact_memo))*double(factorial(l3-l1+t-m2,fact_memo))*double(factorial(l2+l1-t-l3,fact_memo))*double(factorial(l1-t-m1,fact_memo))*double(factorial(l2-t+m2,fact_memo)));
          if(isnan(sum))
             std::cout<<t<<","<<l3-l2+t+m1<<","<<(l3-l1+t-m2)<<","<<l2+l1-t-l3<<","<<l1-t-m1<<","<<l2-t+m2<<std::endl;
@@ -255,14 +325,10 @@ double w3j(int l1,int l2,int l3,int m1,int m2,int m3,double* lnfact_memo)
    }
 
 //   std::cout<<"====="<<sum<<std::endl;
-      temp=1;
-      val2=1;
-      for (int tt=l3-m3+1;tt!=l3+m3+1;tt++)
-      {
-         temp*=tt;
-      }
-      val2*=sqrt(temp);
-   val=exp(0.5*(ln_factorial(l1+m1,lnfact_memo) + ln_factorial(l1-m1,lnfact_memo) + ln_factorial(l2+m2,lnfact_memo) + ln_factorial(l2-m2,lnfact_memo) + ln_factorial(l3+m3,lnfact_memo) + ln_factorial(l3-m3,lnfact_memo)))*sum;
+
+   val=sum;
+
+//      val=exp(0.5*(ln_factorial(l1+m1,lnfact_memo) + ln_factorial(l1-m1,lnfact_memo) + ln_factorial(l2+m2,lnfact_memo) + ln_factorial(l2-m2,lnfact_memo) + ln_factorial(l3+m3,lnfact_memo) + ln_factorial(l3-m3,lnfact_memo)))*sum;
 //   val=sqrt(double(factorial(l1+m1,fact_memo)))*sqrt(double(factorial(l1-m1,fact_memo)))*sqrt(double(factorial(l2+m2,fact_memo)))*sqrt(double(factorial(l2-m2,fact_memo)))*sqrt(double(factorial(l3+m3,fact_memo)))*sqrt(double(factorial(l3-m3,fact_memo)))*sum;
    if(isnan(val))
    {
@@ -273,13 +339,16 @@ double w3j(int l1,int l2,int l3,int m1,int m2,int m3,double* lnfact_memo)
    }
    return val;
 }
-double j_l(int l,double z,double* lnfact_memo) //spherical bessel function of order l
+double j_l(int l,double z) //spherical bessel function of order l
 {
    double test(1);
    double val(0);
    double valm1(0);
    double factor(1);
    int i(0);
+   int fac1[MAX_FACTORIAL_PRIME];
+   int temp(1);
+
 
    if(z==0)
    {
@@ -302,10 +371,17 @@ double j_l(int l,double z,double* lnfact_memo) //spherical bessel function of or
             i=1; 
             while(test>=1e-15)
             {
+               fact_prime_decomposer(i,fac1);
+               temp=1;
+               for(int i=0;i!=MAX_FACTORIAL_PRIME;i++)
+               {
+                  temp*=pow(PRIME[i],fac1[i]);
+               }
                 valm1=val;
                 factor=1;
                 for(int k=1;k!=i+1;k++) factor*=(2*k+2*l+1);
-                val+=pow(-1,i)*pow(z*z/2,i)/(factor*exp(ln_factorial(i,lnfact_memo)));
+                val+=pow(-1,i)*pow(z*z/2,i)/(factor*temp);
+//                val+=pow(-1,i)*pow(z*z/2,i)/(factor*exp(ln_factorial(i,lnfact_memo)));
                 i++;
                 test=fabs((val-valm1));
             }
@@ -318,15 +394,15 @@ double j_l(int l,double z,double* lnfact_memo) //spherical bessel function of or
    }
 }
 
-double dj_ldz(int l,double z,double* lnfact_memo) //Derivative of the spherical bessel function of order l
+double dj_ldz(int l,double z) //Derivative of the spherical bessel function of order l
 {
    if(z==0 || l == 0)
       return 0;
    else
    {
-      if(isnan(l*j_l(l-1,z,lnfact_memo)-(l+1)*j_l(l+1,z,lnfact_memo))/(2*l+1))
+      if(isnan(l*j_l(l-1,z)-(l+1)*j_l(l+1,z))/(2*l+1))
           std::cout<<" ERROR ! BESSEL DERIVATIVE FUNCTION IS NAN"<<std::endl;
-      return (l*j_l(l-1,z,lnfact_memo)-(l+1)*j_l(l+1,z,lnfact_memo))/(2*l+1);
+      return (l*j_l(l-1,z)-(l+1)*j_l(l+1,z))/(2*l+1);
    }
 }
 int dfactorial(int n)
@@ -338,16 +414,18 @@ int dfactorial(int n)
 }
 void fact_prime_decomposer(int N, int* N_prime)
 {
-   int prime[25]={2,3,5,7,11,13,17,19,23,29,31,37,41,43,47,53,59,61,67,71,73,79,83,89,97};
    int m=0;
 
    for(int i=0;i!=MAX_FACTORIAL_PRIME;i++)
    {
+      if(PRIME[i]>N)
+         break;
+
       N_prime[i]=0;
       for(int n=2;n!=N+1;n++)
       {
          m=n;
-         while(m%prime[i]==0)
+         while(m%PRIME[i]==0)
          {
             N_prime[i]++;
             m/=N_prime[i];
