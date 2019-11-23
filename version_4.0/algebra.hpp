@@ -29,5 +29,6 @@ double j_l(int l,double z,double* lnfact_memo);//spherical bessel function of or
 double dj_ldz(int l,double z,double* lnfact_memo); //Derivative of the spherical bessel function of order l
 int dfactorial(int n);
 double ln_factorial(int n,double *memo);
+void fact_prime_decomposer(int N, int* N_prime);
 
 #endif /* computation_hpp */

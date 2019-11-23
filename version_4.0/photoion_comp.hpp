@@ -3,6 +3,7 @@
 #define MKL_Complex16 std::complex<double>
 #define MAX_N_FACTORIAL 20
 #define MAX_LN_FACTORIAL 50
+#define MAX_FACTORIAL_PRIME 25
 
 
 //Include standards libraries

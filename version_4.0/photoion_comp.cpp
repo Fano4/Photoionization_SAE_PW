@@ -7,7 +7,7 @@ int main(int argc,char* argv[])
    int photoion_comp(int argc, char* argv[]);
    omp_set_num_threads(1); 
 
-   
+
    double* lnfact_memo=new double[MAX_LN_FACTORIAL];
 
    double* r0=new double [3];

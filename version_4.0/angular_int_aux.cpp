@@ -164,6 +164,8 @@ double rYlm (int l,int m,double thet,double phi,double* lnfact_memo)
 double prefactor_rYlm(int l,int m,double* lnfact_memo)
 {
    int sign(-bool( m % 2 != 0 ) + bool( m % 2 == 0 ));
+   double temp(1);
+   double val(0);
 
    if(fabs(m) > fabs(l))
    {
@@ -177,12 +179,28 @@ double prefactor_rYlm(int l,int m,double* lnfact_memo)
    }
    else if(m > 0)
    {
-      return sign * sqrt(2) * sqrt((2*l+1) * exp(0.5*(ln_factorial(l-m,lnfact_memo)-ln_factorial(l+m,lnfact_memo))) / (4*acos(-1)));
+      val=sign * sqrt(2) * sqrt((2*l+1)/ (4*acos(-1)));
+      temp=1;
+      for (int tt=l-m+1;tt!=l+m+1;tt++)
+      {
+         temp/=tt;
+      }
+      val*=sqrt(temp);
+      return val;
+//      return sign * sqrt(2) * sqrt((2*l+1) * exp(0.5*(ln_factorial(l-m,lnfact_memo)-ln_factorial(l+m,lnfact_memo))) / (4*acos(-1)));
 //      return sign * sqrt(2) * sqrt((2*l+1) * double(factorial(l-m,fact_memo)) / (4*acos(-1) * double(factorial(l+m,fact_memo))));
    }
    else 
    {
-      return sign * sqrt(2) * sqrt((2*l+1) * exp((ln_factorial(l+m,lnfact_memo)-ln_factorial(l-m,lnfact_memo)/2)) / (4*acos(-1)));
+      val=sign * sqrt(2) * sqrt((2*l+1)/ (4*acos(-1)));
+      temp=1;
+      for (int tt=l-m+1;tt!=l+m+1;tt++)
+      {
+         temp*=tt;
+      }
+      val*=sqrt(temp);
+      return val;
+//      return sign * sqrt(2) * sqrt((2*l+1) * exp((ln_factorial(l+m,lnfact_memo)-ln_factorial(l-m,lnfact_memo)/2)) / (4*acos(-1)));
 //      return sign * sqrt(2) * sqrt((2*l+1) * double(factorial(l+m,fact_memo)) / (4*acos(-1) * double( factorial(l-m,fact_memo))));
 //      return sign * factorial(l+m)*prefactor_rYlm(l,-m)/factorial(l-m);
    }
@@ -296,6 +314,9 @@ double gaunt_formula(int l1,int l2,int l3,int m1,int m2,int m3,double* lnfact_me
    int m12(m1+m2);
    int m123(m12+m3);
 
+   double temp;
+   double val;
+
    if(l1 <0 || l2<0 || l3<0)
       return 0;
 //      std::cout<<"Negative order in Gaunt integral"<<l1<<","<<l2<<","<<l3<<std::endl;
@@ -304,8 +325,30 @@ double gaunt_formula(int l1,int l2,int l3,int m1,int m2,int m3,double* lnfact_me
 //      std::cout<<"Negative m value in Gaunt integral"<<m1<<","<<m2<<","<<m3<<std::endl;
    else if(m1>l1 || m2>l2 || m3>l3)
       return 0;
-   double prefactor(exp(0.5*(ln_factorial(l1+m1,lnfact_memo)+ln_factorial(l2+m2,lnfact_memo)+ln_factorial(l3+m3,lnfact_memo)
-               -ln_factorial(l1-m1,lnfact_memo)-ln_factorial(l2-m2,lnfact_memo)-ln_factorial(l3-m3,lnfact_memo))));
+
+      val=1;
+      temp=1;
+      for (int tt=l1-m1+1;tt!=l1+m1+1;tt++)
+      {
+         temp*=tt;
+      }
+      val*=sqrt(temp);
+      temp=1;
+      for (int tt=l2-m2+1;tt!=l2+m2+1;tt++)
+      {
+         temp*=tt;
+      }
+      val*=sqrt(temp);
+      temp=1;
+      for (int tt=l3-m3+1;tt!=l3+m3+1;tt++)
+      {
+         temp*=tt;
+      }
+      val*=sqrt(temp);
+      double prefactor(val);
+
+//   double prefactor(exp(0.5*(ln_factorial(l1+m1,lnfact_memo)+ln_factorial(l2+m2,lnfact_memo)+ln_factorial(l3+m3,lnfact_memo)
+//               -ln_factorial(l1-m1,lnfact_memo)-ln_factorial(l2-m2,lnfact_memo)-ln_factorial(l3-m3,lnfact_memo))));
 
    for(int l12=fabs(l1-l2);l12!=l1+l2+1;l12++)
    {
@@ -322,7 +365,14 @@ double gaunt_formula(int l1,int l2,int l3,int m1,int m2,int m3,double* lnfact_me
             else
             {
                G123=pow(-1,m123)*(2*l123+1)*wigner3j(l12,l3,l123,0,0,0,lnfact_memo)*wigner3j(l12,l3,l123,m12,m3,-m123,lnfact_memo);
-               factor=exp(0.5*(ln_factorial(l123-m123,lnfact_memo)-ln_factorial(l123+m123,lnfact_memo)));
+               temp=1;
+               for (int tt=l123-m123+1;tt!=l123+m123+1;tt++)
+               {
+                  temp*=tt;
+               }
+               val*=sqrt(temp);
+               factor=val;
+//               factor=exp(0.5*(ln_factorial(l123-m123,lnfact_memo)-ln_factorial(l123+m123,lnfact_memo)));
 
                if(m123 == 0 && l123 == 0)
                   ALP_integ=2*(pow(-1,m123)+pow(-1,l123))*pow(2,m123-2)*gamma_int_or_half(double(l123+m123+1)/2.,lnfact_memo)/(exp(ln_factorial(int(double(l123-m123)/2),lnfact_memo))*gamma_int_or_half(double(l123+3)/2.,lnfact_memo));
@@ -337,7 +387,7 @@ double gaunt_formula(int l1,int l2,int l3,int m1,int m2,int m3,double* lnfact_me
    }
    return prefactor*sum;
 }
-double Dint(int l1,int l2,int l3,int m1,int m2,int m3,double* lnfact_memo)
+/*double Dint(int l1,int l2,int l3,int m1,int m2,int m3,double* lnfact_memo)
 {
    return sqrt(((2*l1+1)*(2*l2+1)*(2*l3+1))/(4*acos(-1)))*wigner3j(l1,l2,l3,0,0,0,lnfact_memo)*wigner3j(l1,l2,l3,m1,m2,m3,lnfact_memo);
-}
+}*/

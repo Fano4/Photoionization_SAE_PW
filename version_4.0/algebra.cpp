@@ -68,7 +68,7 @@ void transpose(double *A,double *B, int dim1, int dim2)
         }
     }
 }
-
+/*
 double ln_factorial(int n,double *memo)
 {
    if(n>MAX_LN_FACTORIAL)
@@ -121,7 +121,7 @@ unsigned long long int factorial(int n,unsigned long long int* memo)
       return memo[n];
    }
 }
-
+*/
 long double intplushalf_gamma(int n,double* lnfact_memo) //(Gamma(n+1/2))
 {
    return sqrt(acos(-1))* exp(ln_factorial(2*n,lnfact_memo)-ln_factorial(n,lnfact_memo))/(pow(4,n));
@@ -201,6 +201,14 @@ double wigner3j(int l1,int l2,int l3,int m1,int m2,int m3,double* lnfact_memo)
 }
 double wdelta(int a,int b,int c,double* lnfact_memo)
 {
+
+   //in order to increase the precision of the evaluation of the facotorial, we will decompose all factorials into it's prime numbers. We wil then simplify the product of factorials by computing the sum of the powers of the prime numbers before to compute the final value.
+   //
+   //1. What is the largest of the numbers for which we compute the exponential and how many prime numbers are contained between 1 and this number? This gives the size of the array.
+   //2. we build as many arrays as there are factorials to evaluate and we decompose these facotrials.
+   //3. We sum the powers of the arrays to obtain the final result. Then we compute the actual result.
+
+   
    double val(exp(0.5*(ln_factorial(a+b-c,lnfact_memo)+ln_factorial(a-b+c,lnfact_memo)+ln_factorial(-a+b+c,lnfact_memo)-ln_factorial(a+b+c+1,lnfact_memo))));
    //double val( sqrt(double(factorial(a+b-c,fact_memo))*double(factorial(a-b+c,fact_memo))*double(factorial(-a+b+c,fact_memo))/double(factorial(a+b+c+1,fact_memo))));
    if(isnan(val))
@@ -211,6 +219,8 @@ double w3j(int l1,int l2,int l3,int m1,int m2,int m3,double* lnfact_memo)
 {
    double sum(0);
    double val(0);
+   double val2(0);
+   double temp(1);
 
    int tmin(0);
    int tmax(1000);
@@ -245,6 +255,13 @@ double w3j(int l1,int l2,int l3,int m1,int m2,int m3,double* lnfact_memo)
    }
 
 //   std::cout<<"====="<<sum<<std::endl;
+      temp=1;
+      val2=1;
+      for (int tt=l3-m3+1;tt!=l3+m3+1;tt++)
+      {
+         temp*=tt;
+      }
+      val2*=sqrt(temp);
    val=exp(0.5*(ln_factorial(l1+m1,lnfact_memo) + ln_factorial(l1-m1,lnfact_memo) + ln_factorial(l2+m2,lnfact_memo) + ln_factorial(l2-m2,lnfact_memo) + ln_factorial(l3+m3,lnfact_memo) + ln_factorial(l3-m3,lnfact_memo)))*sum;
 //   val=sqrt(double(factorial(l1+m1,fact_memo)))*sqrt(double(factorial(l1-m1,fact_memo)))*sqrt(double(factorial(l2+m2,fact_memo)))*sqrt(double(factorial(l2-m2,fact_memo)))*sqrt(double(factorial(l3+m3,fact_memo)))*sqrt(double(factorial(l3-m3,fact_memo)))*sum;
    if(isnan(val))
@@ -318,4 +335,24 @@ int dfactorial(int n)
       return 1;
    else
       return n*dfactorial(n-2);
+}
+void fact_prime_decomposer(int N, int* N_prime)
+{
+   int prime[25]={2,3,5,7,11,13,17,19,23,29,31,37,41,43,47,53,59,61,67,71,73,79,83,89,97};
+   int m=0;
+
+   for(int i=0;i!=MAX_FACTORIAL_PRIME;i++)
+   {
+      N_prime[i]=0;
+      for(int n=2;n!=N+1;n++)
+      {
+         m=n;
+         while(m%prime[i]==0)
+         {
+            N_prime[i]++;
+            m/=N_prime[i];
+         }
+      }
+   }
+
 }
