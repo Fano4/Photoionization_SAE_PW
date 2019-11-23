@@ -18,11 +18,14 @@ int main(int argc,char* argv[])
 
    for(int i=0;i!=MAX_LN_FACTORIAL;i++) lnfact_memo[i]=0;
 
+   pw_bessel_overlap_comparison(0,0,0.125,0.3,0.25,2.1,r0,lnfact_memo);
    for(int k=0;k!=256;k++)
    {
 //      std::cout<<(k+1)*15/2560.<<","<<j_l(1,(k+1)*15/2560.,lnfact_memo)<<std::endl;
-      numerical_integral(0,0,0,0,0.125,(k+1)*15/2560.,r0,lnfact_memo);
-      analytic_integral(0,0,0,0,0.125,(k+1)*15/2560.,r0,lnfact_memo);
+//      numerical_integral(0,0,0,0,0.125,(k+1)*15/2560.,r0,lnfact_memo);
+//      analytic_integral(0,0,0,0,0.125,(k+1)*15/2560.,r0,lnfact_memo);
+
+
    }
    exit(EXIT_SUCCESS);
    
