@@ -9,6 +9,7 @@
 #ifndef computation_hpp
 #define computation_hpp
 
+//#include "wigner_val.hpp"
 #include <stdio.h>
 #include <iostream>
 
@@ -28,7 +29,7 @@ double wigner3j(int l1,int l2,int l3,int m1,int m2,int m3);
 double j_l(int l,double z);//spherical bessel function of order l
 double dj_ldz(int l,double z); //Derivative of the spherical bessel function of order l
 int dfactorial(int n);
-i//double ln_factorial(int n,double *memo);
+//double ln_factorial(int n,double *memo);
 void fact_prime_decomposer(int N, int* N_prime);
 
 #endif /* computation_hpp */

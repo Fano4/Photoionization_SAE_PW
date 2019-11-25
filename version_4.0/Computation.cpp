@@ -166,7 +166,7 @@ std::complex<double> contraction_FT( double k, double thet, double phi,double* n
    if(ml<0)
    {
    value=
-      (sqrt(2)*associated_legendre(l,-ml,cos(thet),lnfact_memo)*sin(-ml*phi)) // Real spherical harmonics
+      (sqrt(2)*associated_legendre(l,-ml,cos(thet))*sin(-ml*phi)) // Real spherical harmonics
       *((pow(std::complex<double>(0,-k),l)*exp(-k*k/(4*contraction_zeta)))/(pow(2*contraction_zeta,1.5+l))) // Radial part
       *phase_factor // phase factor
       ;
@@ -174,7 +174,7 @@ std::complex<double> contraction_FT( double k, double thet, double phi,double* n
    else if(ml>0)
    {
    value=
-      (sqrt(2)*associated_legendre(l,ml,cos(thet),lnfact_memo)*cos(ml*phi)) // Real spherical harmonics
+      (sqrt(2)*associated_legendre(l,ml,cos(thet))*cos(ml*phi)) // Real spherical harmonics
       *((pow(std::complex<double>(0,-k),l)*exp(-k*k/(4*contraction_zeta)))/(pow(2*contraction_zeta,1.5+l))) // Radial part
       *phase_factor // phase factor
       ;
@@ -183,7 +183,7 @@ std::complex<double> contraction_FT( double k, double thet, double phi,double* n
    else
    {
    value=
-      (associated_legendre(l,ml,cos(thet),lnfact_memo)) // Real spherical harmonics
+      (associated_legendre(l,ml,cos(thet))) // Real spherical harmonics
       *((pow(std::complex<double>(0,-k),l)*exp(-k*k/(4*contraction_zeta)))/(pow(2*contraction_zeta,1.5+l))) // Radial part
       *phase_factor // phase factor
       ;
@@ -765,7 +765,7 @@ bool build_ao_s(double* S,int *nucl_basis_func,int *contraction_number,double **
             {
                for(int jp=0;jp!=contraction_number[j];jp++)
                {
-                  val+=0.5*(contraction_coeff[i][ip]*contraction_coeff[j][jp]*intplushalf_gamma(0.5*l_val+1.5,lnfact_memo))/(pow(contraction_zeta[i][ip]+contraction_zeta[j][jp],1.5+l_val))*kronecker_delta(l_val,l_valp);
+                  val+=0.5*(contraction_coeff[i][ip]*contraction_coeff[j][jp]*intplushalf_gamma(0.5*l_val+1.5))/(pow(contraction_zeta[i][ip]+contraction_zeta[j][jp],1.5+l_val))*kronecker_delta(l_val,l_valp);
                }
             }
             std::cout<<"<"<<i+1<<"|"<<j+1<<"> = "<<val<<std::endl;

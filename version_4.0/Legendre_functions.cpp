@@ -1,7 +1,8 @@
 double associated_legendre(unsigned int l,int m,double x)
 {
-   int sign(-bool( m % 2 != 0 ) + bool( m % 2 == 0 ));
-   double val(0);
+   double sign(-bool( m % 2 != 0 ) + bool( m % 2 == 0 ));
+   double val(1);
+   double temp(0);
 
    if(fabs(m) > fabs(l))
    {
@@ -14,21 +15,26 @@ double associated_legendre(unsigned int l,int m,double x)
    {
       if(m == 0)
       {
+//          std::cout<<"P_"<<l<<"("<<x<<") : "<<sqrt((2*l+1)/(4*acos(-1)))<<" * "<<legendre(l,x)<<std::endl;
          return sqrt((2*l+1)/(4*acos(-1)))*legendre(l,x);
       }
       else if(m > 0)
       {
-         val=sign * sqrt(2) * sqrt((2*l+1)/ (4*acos(-1)));
+         val=sign * sqrt((2*l+1)/ (4*acos(-1)));
          temp=1;
          for (int tt=l-m+1;tt!=l+m+1;tt++)
          {
             temp/=tt;
          }
+//         std::cout<<"sqrt("<<l<<"!-"<<m<<"!)/("<<l<<"!+"<<m<<"!) = "<<sqrt(temp)<<std::endl;
          val*=sqrt(temp);
+         //std::cout<<"===="<<val<<std::endl;
          return val * ((l-m+1) * x * associated_legendre_nonorm(l,m-1,x) - (l+m-1) * associated_legendre_nonorm(l-1,m-1,x)) / sqrt(1-x*x);
       }
       else 
       {
+         std::cout<<"Legendre functions line 34"<<std::endl;
+         return NAN;
          return sign * associated_legendre(l,-m,x);
       }
    }
@@ -36,7 +42,7 @@ double associated_legendre(unsigned int l,int m,double x)
 double associated_legendre_nonorm(unsigned int l,int m,double x)
 {
 
-   int sign(-bool( m % 2 != 0 ) + bool( m % 2 == 0 ));
+   int sign(1);//(-bool( m % 2 != 0 ) + bool( m % 2 == 0 ));
 
    if(fabs(m) > fabs(l))
    {
@@ -65,6 +71,8 @@ double associated_legendre_der(unsigned int l,int m,double x)
 {
 
    int sign(-bool( m % 2 != 0 ) + bool( m % 2 == 0 ));
+   double temp(0);
+   double val(0);
 
    if( x == 1 )
       return 0;
@@ -84,12 +92,14 @@ double associated_legendre_der(unsigned int l,int m,double x)
          }
          val*=sqrt(temp);
          return -sign * val
-//         return -sign * sqrt((2*l+1)*exp(ln_factorial(l-m,lnfact_memo)-ln_factorial(l+m,lnfact_memo))/(4*acos(-1)))
+//         return -sign * sqrt((2*l+1)*exp(ln_factorial(l-m)-ln_factorial(l+m))/(4*acos(-1)))
             *(l*x*associated_legendre_nonorm(l,m,x)-(l+m)*associated_legendre_nonorm(l-1,m,x))/sqrt(1-x*x);
       }
       else 
       {
-         return sign * exp(ln_factorial(l+m,lnfact_memo)-ln_factorial(l-m,lnfact_memo))*associated_legendre_der(l,-m,x,lnfact_memo);
+         std::cout<<"Legendre function line 95"<<std::endl;
+         return double(NAN);
+//         return sign * exp(ln_factorial(l+m)-ln_factorial(l-m))*associated_legendre_der(l,-m,x);
          //return sign * double(factorial(l+m,fact_memo))*associated_legendre_der(l,-m,x,fact_memo)/double(factorial(l-m,fact_memo));
       }
    }

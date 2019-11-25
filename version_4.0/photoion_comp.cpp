@@ -6,24 +6,71 @@ int main(int argc,char* argv[])
 {
    int photoion_comp(int argc, char* argv[]);
    omp_set_num_threads(1); 
+   
+   int lmax=20;
+   for(int l1=0;l1!=lmax+1;l1++)
+   {
+      for(int m1=-l1;m1!=l1+1;m1++)
+      {
+//         std::cout<<l1*l1+l1+m1<<"/120"<<std::endl;;
+         std::cout<<"{";
+         for(int l2=0;l2!=lmax+1;l2++)
+         {
+            for(int m2=-l2;m2!=l2+1;m2++)
+            {
+               std::cout<<"{";
+               for(int l3=0;l3!=lmax+1;l3++)
+               {
+                  for(int m3=-l3;m3!=l3+1;m3++)
+                  {
+                      //std::cout<<"<<<<"<<l1<<","<<l2<<","<<l3<<";"<<m1<<","<<m2<<","<<m3<<std::endl;
 
+                     wigner3j(l1,l2,l3,m1,m2,m3);
+                        
+                     if(l3*l3+l3+m3<lmax*lmax+2*lmax+1)
+                     std::cout<<std::setprecision(15)<<wigner3j(l1,l2,l3,m1,m2,m3)<<",";
+                     else
+                     std::cout<<std::setprecision(15)<<wigner3j(l1,l2,l3,m1,m2,m3);
+          /*           
+                     if(l3*l3+l3+m3<120)
+                     std::cout<<std::setprecision(15)<<gaunt_formula(l1,l2,l3,m1,m2,m3)<<",";
+                     else
+                     std::cout<<std::setprecision(15)<<gaunt_formula(l1,l2,l3,m1,m2,m3);
+                     */
+                  }
+               }
+               if(l2*l2+l2+m2<lmax*lmax+2*lmax+1)
+                   std::cout<<"},"<<std::endl;
+               else
+                  std::cout<<"}";
+            }
+         }
+               if(l1*l1+l1+m1<lmax*lmax+2*lmax+1)
+                   std::cout<<"},"<<std::endl;
+               else
+                  std::cout<<"}";
+      }
+   }
+   exit(EXIT_SUCCESS);
+   
+//   double* r0=new double [3];
 
-   double* r0=new double [3];
+//   r0[0]=2.5;
+//   r0[1]=0;
+//   r0[2]=0;
 
-   r0[0]=2.5;
-   r0[1]=0;
-   r0[2]=0;
-
-   pw_bessel_overlap_comparison(0,0,0.125,0.3,0.25,2.1,r0);
-   for(int k=0;k!=256;k++)
+   
+//   pw_bessel_overlap_comparison(2,1,0.125,0.3,0.5,2.1,r0);
+//   pw_bessel_comparison(0.3,0.25,2.1,3.75,1.25,0.887);
+//   for(int k=0;k!=256;k++)
    {
 //      std::cout<<(k+1)*15/2560.<<","<<j_l(1,(k+1)*15/2560.,lnfact_memo)<<std::endl;
-//      numerical_integral(0,0,0,0,0.125,(k+1)*15/2560.,r0,lnfact_memo);
-//      analytic_integral(0,0,0,0,0.125,(k+1)*15/2560.,r0,lnfact_memo);
+//      numerical_integral(1,1,1,1,0.125,(k+1)*15/2560.,r0);
+//      analytic_integral(1,1,1,1,0.125,(k+1)*15/2560.,r0);
 
 
    }
-   exit(EXIT_SUCCESS);
+//   exit(EXIT_SUCCESS);
    
    /*
    int l1(0);
@@ -282,7 +329,7 @@ for(int x=0;x!=grid_size;x++)
        }
     }
     std::cout<<"INITIALIZED ALL BASIS SET ARRAYS"<<std::endl;
-    basis_data_reader(n_sym,basis_size_sym,contraction_number_sym,contraction_coeff_sym,contraction_zeta_sym,nucl_basis_func_sym,basis_func_type_sym,molpro_output_path,angular_mom_numbers_sym,lnfact_memo);
+    basis_data_reader(n_sym,basis_size_sym,contraction_number_sym,contraction_coeff_sym,contraction_zeta_sym,nucl_basis_func_sym,basis_func_type_sym,molpro_output_path,angular_mom_numbers_sym);
     total=0;
     int total2(0);
     for(int s=0;s!=n_sym;s++)
@@ -626,7 +673,7 @@ std::cout<<"********"<<std::endl;
     double kmax(1.5);
     int state_neut(0);
     int nk=256;
-    int jl_max(5);
+    int jl_max(6);
     int x(0);
     double *temp=new double[3];
 

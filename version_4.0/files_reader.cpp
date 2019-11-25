@@ -1665,7 +1665,7 @@ bool basis_size_data_reader(int n_sym, int* basis_size_sym,int** contraction_num
 }
 return 0;
 }
-bool basis_data_reader(int n_sym, int* basis_size_sym,int** contraction_number,double*** contraction_coeff,double*** contraction_zeta,int** nucl_basis_func,std::string **basis_func_type,std::string file_address,int ***angular_mom_numbers,double* lnfact_memo)
+bool basis_data_reader(int n_sym, int* basis_size_sym,int** contraction_number,double*** contraction_coeff,double*** contraction_zeta,int** nucl_basis_func,std::string **basis_func_type,std::string file_address,int ***angular_mom_numbers)
 {
    using namespace std;
    ifstream input;
@@ -1724,7 +1724,7 @@ bool basis_data_reader(int n_sym, int* basis_size_sym,int** contraction_number,d
                contraction_zeta[s][i][l]=atof(temps.c_str());
                input>>temps;
                contraction_coeff[s][i][l]=atof(temps.c_str());
-               contraction_coeff[s][i][l]/=(sqrt(0.5*intplushalf_gamma(l_val+1,lnfact_memo)/pow(2*contraction_zeta[s][i][l],l_val+1.5)));
+               contraction_coeff[s][i][l]/=(sqrt(0.5*intplushalf_gamma(l_val+1)/pow(2*contraction_zeta[s][i][l],l_val+1.5)));
                l++;
                if(l>=contraction_number[s][i])
                {
