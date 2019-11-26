@@ -7,7 +7,8 @@ int main(int argc,char* argv[])
    int photoion_comp(int argc, char* argv[]);
    omp_set_num_threads(1); 
    
-   int lmax=20;
+   /*
+   int lmax=12;
    for(int l1=0;l1!=lmax+1;l1++)
    {
       for(int m1=-l1;m1!=l1+1;m1++)
@@ -25,41 +26,42 @@ int main(int argc,char* argv[])
                   {
                       //std::cout<<"<<<<"<<l1<<","<<l2<<","<<l3<<";"<<m1<<","<<m2<<","<<m3<<std::endl;
 
-                     wigner3j(l1,l2,l3,m1,m2,m3);
-                        
-                     if(l3*l3+l3+m3<lmax*lmax+2*lmax+1)
+                    // wigner3j(l1,l2,l3,m1,m2,m3);
+                      / *  
+                     if(l3*l3+l3+m3<lmax*lmax+2*lmax)
                      std::cout<<std::setprecision(15)<<wigner3j(l1,l2,l3,m1,m2,m3)<<",";
                      else
                      std::cout<<std::setprecision(15)<<wigner3j(l1,l2,l3,m1,m2,m3);
-          /*           
-                     if(l3*l3+l3+m3<120)
+          * /           
+                     if(l3*l3+l3+m3<lmax*lmax+2*lmax)
                      std::cout<<std::setprecision(15)<<gaunt_formula(l1,l2,l3,m1,m2,m3)<<",";
                      else
                      std::cout<<std::setprecision(15)<<gaunt_formula(l1,l2,l3,m1,m2,m3);
-                     */
+                   // * / 
                   }
                }
-               if(l2*l2+l2+m2<lmax*lmax+2*lmax+1)
+               if(l2*l2+l2+m2<lmax*lmax+2*lmax)
                    std::cout<<"},"<<std::endl;
                else
                   std::cout<<"}";
             }
          }
-               if(l1*l1+l1+m1<lmax*lmax+2*lmax+1)
+               if(l1*l1+l1+m1<lmax*lmax+2*lmax)
                    std::cout<<"},"<<std::endl;
                else
                   std::cout<<"}";
       }
    }
    exit(EXIT_SUCCESS);
-   
-//   double* r0=new double [3];
+   */
+   double* r0=new double [3];
 
-//   r0[0]=2.5;
-//   r0[1]=0;
-//   r0[2]=0;
+   r0[0]=2.5;
+   r0[1]=0;
+   r0[2]=0;
 
    
+   pw_bessel_gradient_y_comparison(3,-2,0.125,0.3,0.5,2.1,r0);
 //   pw_bessel_overlap_comparison(2,1,0.125,0.3,0.5,2.1,r0);
 //   pw_bessel_comparison(0.3,0.25,2.1,3.75,1.25,0.887);
 //   for(int k=0;k!=256;k++)
@@ -70,7 +72,7 @@ int main(int argc,char* argv[])
 
 
    }
-//   exit(EXIT_SUCCESS);
+   exit(EXIT_SUCCESS);
    
    /*
    int l1(0);

@@ -7,6 +7,7 @@ void cart_to_spher(double* x,double* y,double* z,double * r,double* t,double *f)
 double numerical_integral(int l1,int m1,int l2,int m2,double zeta,double kp,double* r0);
 void pw_bessel_overlap_comparison(int l2,int m2,double zeta,double kp,double thet,double phi,double* r0);
 void pw_bessel_comparison(double kp,double kthet,double kphi,double r,double thet,double phi);
+void pw_bessel_gradient_y_comparison(int l2,int m2,double zeta,double kp,double thet,double phi,double* r0);
 
 
 

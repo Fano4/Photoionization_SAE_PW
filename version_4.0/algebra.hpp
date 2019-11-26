@@ -16,7 +16,7 @@
 void matrix_product(double *result_matrix,double *first_matrix,double *second_matrix,int dim1,int dim2,int dim3);
 void transpose(double *input,double *transposed, int n_rows_input, int n_col_input);
 double determinant(double *A,int dim);
-//unsigned long long int factorial(int n,unsigned long long int* fact_memo);
+unsigned long long int factorial(int n);
 bool kronecker_delta(int a, int b);
 bool two_cubes_moment(double *cube1,double *cube2,double *moment,int nx,int ny,int nz,double xmin,double xmax,double ymin,double ymax,double zmin,double zmax);
 double cube_dot_product(double *cube1,double *cube2,int nx,int ny, int nz,double dx,double dy,double dz,int angle_vec_size,double *output);

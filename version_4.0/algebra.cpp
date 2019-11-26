@@ -93,8 +93,8 @@ double ln_factorial(int n,double *memo)
          memo[n]=log(n)+ln_factorial(n-1,memo);
       return memo[n];
    }
-}
-unsigned long long int factorial(int n,unsigned long long int* memo)
+}*/
+unsigned long long int factorial(int n)
 {
    if(n>MAX_N_FACTORIAL)
    {
@@ -106,22 +106,15 @@ unsigned long long int factorial(int n,unsigned long long int* memo)
       std::cout<<"FATAL ERROR! NEGATIVE ARGUMENT IN FACTORIAL"<<std::endl<<"N = "<<n<<std::endl<<"EXIT"<<std::endl;
       exit(EXIT_SUCCESS);
    }
-   else if(!(memo[n]==0))
-   {
-
-      return memo[n];
-   }
    else
    {
-     // std::cout<<"Computing factorial of "<<n<<std::endl;
-      if(n==0)
-         memo[n]=1;
+      if (n==1 || n==0)
+         return 1;
       else
-         memo[n]=n*factorial(n-1,memo);
-      return memo[n];
+         return n*factorial(n-1);
    }
 }
-*/
+
 long double intplushalf_gamma(int n) //(Gamma(n+1/2))
 {
    int fac1[MAX_FACTORIAL_PRIME];
@@ -215,8 +208,9 @@ double wigner3j(int l1,int l2,int l3,int m1,int m2,int m3)
 {
    double temp2(1);
 
-//   return WIGNER_VAL[l1*l1+l1+m1][l2*l2+l2+m2][l3*l3+l3+m3];
-
+/*   if(l1 <= 12 && l2<=12 && l3<=12)
+      return WIGNER_VAL[l1*l1+l1+m1][l2*l2+l2+m2][l3*l3+l3+m3];
+*/
    if(m1+m2+m3 !=0)
       return 0;
    else if( l3 > fabs(l1+l2) || l3 < fabs(l1-l2))
