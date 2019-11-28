@@ -56,13 +56,15 @@ int main(int argc,char* argv[])
    */
    double* r0=new double [3];
 
-   r0[0]=2.5;
+   r0[0]=0;
    r0[1]=0;
    r0[2]=0;
 
    
-   pw_bessel_gradient_y_comparison(3,-2,0.125,0.3,0.5,2.1,r0);
-//   pw_bessel_overlap_comparison(2,1,0.125,0.3,0.5,2.1,r0);
+
+   pw_bessel_comparison(0.3,0.723,2.3,0.3430,1.145,4.2049);
+   pw_bessel_overlap_comparison(1,-1,0.125,0.3,0.5,2.1,r0);
+   pw_bessel_gradient_y_comparison(0,0,0.384,0.1,0.22,2.1,r0);
 //   pw_bessel_comparison(0.3,0.25,2.1,3.75,1.25,0.887);
 //   for(int k=0;k!=256;k++)
    {

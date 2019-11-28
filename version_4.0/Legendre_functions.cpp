@@ -6,8 +6,9 @@ double associated_legendre(unsigned int l,int m,double x)
 
    if(fabs(m) > fabs(l))
    {
-      std::cout<<"FATAL ERROR IN ASSOCIATED LEGENDRE COMPUTATION. M>L:"<<m<<">"<<l<<std::endl;
       return 0;
+//      std::cout<<"FATAL ERROR IN ASSOCIATED LEGENDRE COMPUTATION. M>L:"<<m<<">"<<l<<std::endl;
+//      exit(EXIT_SUCCESS);
    }
    else if(fabs(x)==1 && m!=0)
       return 0;
@@ -24,18 +25,22 @@ double associated_legendre(unsigned int l,int m,double x)
          temp=1;
          for (int tt=l-m+1;tt!=l+m+1;tt++)
          {
-            temp/=tt;
+            temp/=double(tt);
          }
 //         std::cout<<"sqrt("<<l<<"!-"<<m<<"!)/("<<l<<"!+"<<m<<"!) = "<<sqrt(temp)<<std::endl;
          val*=sqrt(temp);
          //std::cout<<"===="<<val<<std::endl;
+//         std::cout<<" From associated Legendre, calling associated legendre nonorm with parameters "<<l<<","<<m-1<<";"<<l-1<<","<<m-1<<std::endl;
          return val * ((l-m+1) * x * associated_legendre_nonorm(l,m-1,x) - (l+m-1) * associated_legendre_nonorm(l-1,m-1,x)) / sqrt(1-x*x);
       }
       else 
       {
-         std::cout<<"Legendre functions line 34"<<std::endl;
-         return NAN;
-         return sign * associated_legendre(l,-m,x);
+         temp=1;
+         for (int tt=l-fabs(m)+1;tt!=l+fabs(m)+1;tt++)
+         {
+            temp/=tt;
+         }
+         return sign * temp * associated_legendre(l,-m,x);
       }
    }
 }
@@ -46,8 +51,9 @@ double associated_legendre_nonorm(unsigned int l,int m,double x)
 
    if(fabs(m) > fabs(l))
    {
-      std::cout<<"FATAL ERROR IN ASSOCIATED LEGENDRE COMPUTATION. M>L:"<<m<<">"<<l<<std::endl;
       return 0;
+//      std::cout<<"FATAL ERROR IN ASSOCIATED LEGENDRE COMPUTATION LINE 52. M>L:"<<m<<">"<<l<<std::endl;
+//      exit(EXIT_SUCCESS);
    }
    else if(fabs(x)==1 && m!=0)
       return 0;
@@ -59,10 +65,12 @@ double associated_legendre_nonorm(unsigned int l,int m,double x)
       }
       else if(m > 0)
       {
+//         std::cout<<" Recalling associated legendre nonorm with parameters "<<l<<","<<m-1<<";"<<l-1<<","<<m-1<<std::endl;
          return sign * ((l-m+1)*x*associated_legendre_nonorm(l,m-1,x)-(l+m-1)*associated_legendre_nonorm(l-1,m-1,x))/sqrt(1-x*x);
       }
       else 
       {
+//         std::cout<<" From negative m part, Recalling associated legendre nonorm with parameters "<<l<<","<<-m<<std::endl;
          return sign * associated_legendre_nonorm(l,-m,x);
       }
    }
@@ -91,6 +99,7 @@ double associated_legendre_der(unsigned int l,int m,double x)
             temp/=tt;
          }
          val*=sqrt(temp);
+//         std::cout<<" From associated Legendre der, calling associated legendre nonorm with parameters "<<l<<","<<m<<";"<<l-1<<","<<m<<std::endl;
          return -sign * val
 //         return -sign * sqrt((2*l+1)*exp(ln_factorial(l-m)-ln_factorial(l+m))/(4*acos(-1)))
             *(l*x*associated_legendre_nonorm(l,m,x)-(l+m)*associated_legendre_nonorm(l-1,m,x))/sqrt(1-x*x);
@@ -98,7 +107,7 @@ double associated_legendre_der(unsigned int l,int m,double x)
       else 
       {
          std::cout<<"Legendre function line 95"<<std::endl;
-         return double(NAN);
+         exit(EXIT_SUCCESS);
 //         return sign * exp(ln_factorial(l+m)-ln_factorial(l-m))*associated_legendre_der(l,-m,x);
          //return sign * double(factorial(l+m,fact_memo))*associated_legendre_der(l,-m,x,fact_memo)/double(factorial(l-m,fact_memo));
       }
