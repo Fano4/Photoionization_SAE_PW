@@ -304,16 +304,16 @@ void pw_bessel_gradient_y_comparison(int l2,int m2,double zeta,double kp,double 
 //             std::cout<<l1<<","<<m1<<" - "<<l2<<","<<m2<<" : j_"<<l3<<"("<<kp*r0[0]<<") = "<<bessel_val<<std::endl;
              for(int m3=-l3;m3!=l3+1;m3++)
              {
-//                ang_int4=gaunt_formula(l1,l2,l3,m1,m2,m3);
+                ang_int4=J_int_p1_D(l1,l2,l3,fabs(m1),fabs(m2),fabs(m3));
 
 //                std::cout<<l1<<","<<m1<<" - "<<l2<<","<<m2<<" - "<<l3<<","<<m3<<"prefactors : "<<prefactor_rYlm(l1,fabs(m1))<<" , "<<prefactor_rYlm(l2,fabs(m2))<<" , "<<prefactor_rYlm(l3,fabs(m3))<<std::endl;
 //                std::cout<<l1<<","<<m1<<" - "<<l2<<","<<m2<<" - "<<l3<<","<<m3<<" : Gaunt = "<<ang_int4<<std::endl;
 //                  std::cout<<l1<<","<<m1<<" - "<<l2<<","<<m2<<" - "<<l3<<","<<m3<<" : Jm1 = "<<J_int_m1(l1,l2,l3,fabs(m1),fabs(m2),fabs(m3))<<std::endl;
-//                std::cout<<l1<<","<<m1<<" - "<<l2<<","<<m2<<" - "<<l3<<","<<m3<<" : Jm2 = "<<J_int_m2(l1,l2,l3,m1,m2,m3)<<std::endl;
+                std::cout<<l1<<","<<m1<<" - "<<l2<<","<<m2<<" - "<<l3<<","<<m3<<" : Jm2 = "<<J_int_m2(l1,l2,l3,m1,m2,m3)<<std::endl;
 //                std::cout<<l1<<","<<m1<<" - "<<l2<<","<<m2<<" - "<<l3<<","<<m3<<" : Jp1 = "<<J_int_p1(l1,l2,l3,m1,m2,m3)<<std::endl;
 //                std::cout<<l1<<","<<m1<<" - "<<l2<<","<<m2<<" - "<<l3<<","<<m3<<" : Jm1D = "<<J_int_m1_D(l1,l2,l3,m1,m2,m3)<<std::endl;
-                std::cout<<l1<<","<<m1<<" - "<<l2<<","<<m2<<" - "<<l3<<","<<m3<<" : Jp1D = "<<J_int_p1_D(l1,l2,l3,fabs(m1),fabs(m2),fabs(m3))<<std::endl;
-                  std::cout<<l1<<","<<m1<<" - "<<l2<<","<<m2<<" - "<<l3<<","<<m3<<" : Im1 = "<<I_m1_integral(m1,m2,m3)<<std::endl;
+                std::cout<<l1<<","<<m1<<" - "<<l2<<","<<m2<<" - "<<l3<<","<<m3<<" : Jp1D = "<<ang_int4<<std::endl;
+//                  std::cout<<l1<<","<<m1<<" - "<<l2<<","<<m2<<" - "<<l3<<","<<m3<<" : Im1 = "<<I_m1_integral(m1,m2,m3)<<std::endl;
 //                  std::cout<<l1<<","<<m1<<" - "<<l2<<","<<m2<<" - "<<l3<<","<<m3<<" : Ipm1 = "<<I_p1_integral(m1,m2,m3)<<std::endl;
 /*                ang_int4=
                          pow(std::complex<double>(0,-1),(l2+l3))
@@ -322,12 +322,13 @@ void pw_bessel_gradient_y_comparison(int l2,int m2,double zeta,double kp,double 
                           *J_int_m1(l1,l2,l3,fabs(m1),fabs(m2),fabs(m3))*I_m1_integral(m1,m2,m3);
 */
 //                std::cout<<l1<<","<<m1<<" - "<<l2<<","<<m2<<" - "<<l3<<","<<m3<<" : ang int 4 = "<<ang_int4<<std::endl;
-
+/*
                 ang_int5=
                          pow(std::complex<double>(0,-1),(l2+l3))
                           *(4.*acos(-1)*rYlm(l3,m3,r0[1],r0[2]))
                           *prefactor_rYlm(l1,fabs(m1))*prefactor_rYlm(l2,fabs(m2))*prefactor_rYlm(l3,fabs(m3))
                           *J_int_p1_D(l1,l2,l3,fabs(m1),fabs(m2),fabs(m3))*I_m1_integral(m1,m2,m3);
+                          */
  /*               ang_int6=
                           pow(std::complex<double>(0,-1),(l2+l3))
                           *(4.*acos(-1)*rYlm(l3,m3,r0[1],r0[2]))

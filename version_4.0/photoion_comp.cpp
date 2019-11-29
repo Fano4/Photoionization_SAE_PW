@@ -61,10 +61,30 @@ int main(int argc,char* argv[])
    r0[2]=0;
 
    
+   for(int l1=0;l1!=5;l1++)
+   {
+   for(int m1=0;m1!=l1+1;m1++)
+   {
+   for(int l2=0;l2!=5;l2++)
+   {
+   for(int m2=0;m2!=l2+1;m2++)
+   {
+   for(int l3=0;l3!=5;l3++)
+   {
+   for(int m3=0;m3!=l3+1;m3++)
+   {
+   std::cout<<l1<<","<<m1<<" - "<<l2<<","<<m2<<" - "<<l3<<","<<m3<<" : Jm2 = "<<J_int_m2(l1,l2,l3,m1,m2,m3)<<std::endl;
+   }
+   }
+   }
+   }
+   }
+   }
+   exit(EXIT_SUCCESS);
 
    pw_bessel_comparison(0.3,0.723,2.3,0.3430,1.145,4.2049);
    pw_bessel_overlap_comparison(1,-1,0.125,0.3,0.5,2.1,r0);
-   pw_bessel_gradient_y_comparison(0,0,0.384,0.1,0.22,2.1,r0);
+   pw_bessel_gradient_y_comparison(1,1,0.384,0.1,0.22,2.1,r0);
 //   pw_bessel_comparison(0.3,0.25,2.1,3.75,1.25,0.887);
 //   for(int k=0;k!=256;k++)
    {
