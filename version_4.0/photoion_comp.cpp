@@ -73,7 +73,7 @@ int main(int argc,char* argv[])
    {
    for(int m3=0;m3!=l3+1;m3++)
    {
-   std::cout<<l1<<","<<m1<<" - "<<l2<<","<<m2<<" - "<<l3<<","<<m3<<" : Jm2 = "<<J_int_m2(l1,l2,l3,m1,m2,m3)<<std::endl;
+   std::cout<<l1<<","<<m1<<" - "<<l2<<","<<m2<<" - "<<l3<<","<<m3<<" : JM1D = "<<J_int_m1_D(l1,l2,l3,m1,m2,m3)<<std::endl;
    }
    }
    }

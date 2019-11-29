@@ -243,12 +243,22 @@ double J_int_m2(int l1,int l2,int l3,int m1,int m2,int m3)
 
    if(l1==0 && l2 == 0 && l3 == 0 && m1 == 0 && m2 == 0 && m3 == 0 )
       return (acos(-1));
+
    else if(l1<0 || l2<0 || l3<0 || m1>l1 || m2>l2 || m3>l3)
       return 0;
+
    else if(l1>0)
    {
       if(l1 == m1)
          return -(2*l1-1)*gaunt_formula(l1-1,l2,l3,m1-1,m2,m3);
+
+      else if(l1-1 == m1 && l1>=2)
+         return (2.*l1-3)*(gaunt_formula(l1-1,l2,l3,l1-2,m2,m3)+2*(l1-2.)*gaunt_formula(l1-3,l2,l3,l1-2,m2,m3));
+
+      else if(l1==1 && m1==0)
+      {
+         return J_int_m1_D(0,l2,l3,0,m2,m3);
+      }
 
       if(l1-1>=m1+1)
          sum+=(double(2*l1-1)/double((l1-m1)*(l1-1-m1)))*gaunt_formula(l1-1,l2,l3,m1+1,m2,m3);
@@ -262,6 +272,12 @@ double J_int_m2(int l1,int l2,int l3,int m1,int m2,int m3)
    {
       if(l2 == m2)
          return -(2*l2-1)*gaunt_formula(l1,l2-1,l3,m1,m2-1,m3);
+      else if(l2-1 == m2 && l2>=2)
+         return (2.*l2-3)*(gaunt_formula(l1,l2-1,l3,m1,l2-2,m3)+2*(l2-2.)*gaunt_formula(l1,l2-3,l3,m1,l2-2,m3));
+      else if(l2==1 && m2==0)
+      {
+         return J_int_m1_D(l1,0,l3,m1,0,m3);
+      }
 
       if(l2-1>=m2+1)
          sum+=(double(2*l2-1)/double((l2-m2)*(l2-1-m2)))*gaunt_formula(l1,l2-1,l3,m1,m2+1,m3);
@@ -275,6 +291,12 @@ double J_int_m2(int l1,int l2,int l3,int m1,int m2,int m3)
    {
       if(l3 == m3)
          return -(2*l3-1)*gaunt_formula(l1,l2,l3-1,m1,m2,m3-1);
+      else if(l3-1 == m3 && l3>=2)
+         return (2.*l3-3)*(gaunt_formula(l1,l2,l3-1,m1,m2,l3-2)+2*(l3-2.)*gaunt_formula(l1,l2,l3-3,m1,m2,l3-2));
+      else if(l3==1 && m3==0)
+      {
+         return J_int_m1_D(l1,l2,0,m1,m2,0);
+      }
 
       if(l3-1>=m3+1)
          sum+=(double(2*l3-1)/double((l3-m3)*(l3-1-m3)))*gaunt_formula(l1,l2,l3-1,m1,m2,m3+1);
@@ -284,18 +306,6 @@ double J_int_m2(int l1,int l2,int l3,int m1,int m2,int m3)
          sum-=(double((l3-1+m3))/double((l3-m3)))*J_int_m2(l1,l2,l3-2,m1,m2,m3);
    }
    return sum;
-   /*
-      if(fabs(m1)>0)
-         return (-1./(2*m1))*(gaunt_formula(l1+1,l2,l3,m1+1,m2,m3)+(l1-m1+1)*(l1-m1+2)*gaunt_formula(l1+1,l2,l3,m1-1,m2,m3));
-//       return (-1./(2*m1))*(gaunt_formula(l1-1,l2,l3,m1+1,m2,m3,fact_memo)+(l1+m1-1)*(l1+m1)*gaunt_formula(l1-1,l2,l3,m1-1,m2,m3,fact_memo));
-      else if(fabs(m2>0))
-         return (-1./(2*m2))*(gaunt_formula(l1,l2+1,l3,m1,m2+1,m3)+(l2-m2+1)*(l2-m2+2)*gaunt_formula(l1,l2+1,l3,m1,m2-1,m3));
-//       return (-1./(2*m2))*(gaunt_formula(l1,l2-1,l3,m1,m2+1,m3,fact_memo)+(l2+m2-1)*(l2+m2)*gaunt_formula(l1,l2-1,l3,m1,m2-1,m3,fact_memo));
-      else if(fabs(m3>0))
-         return (-1./(2.*m3))*(gaunt_formula(l1,l2,l3+1,m1,m2,m3+1)+(l3-m3+1)*(l3-m3+2)*gaunt_formula(l1,l2,l3+1,m1,m2,m3-1));
-      else // If all the three m numbers are zero, this integral will be multiplied by zero because of the I integral, whatever the values of the l numbers => We set it to zero
-         return 0; 
-         */
 }
 double J_int_m1(int l1,int l2,int l3,int m1,int m2,int m3)
 {
@@ -320,6 +330,8 @@ double J_int_m1(int l1,int l2,int l3,int m1,int m2,int m3)
    norm2*=sqrt(temp);
    //std::cout<<"norm2 = "<<norm2<<std::endl;
 */
+   if(l1<0 || l2<0 || l3<0 || m1>l1 || m2>l2 || m3>l3)
+      return 0;
    if(l1==0 || l1-1 < m1+1)
    {
       return -(1./(2.*l1+1))*gaunt_formula(l1+1,l2,l3,m1+1,m2,m3);
@@ -342,6 +354,8 @@ double J_int_p1(int l1,int l2,int l3,int m1,int m2,int m3)
 //   if((l1+m1+l2+m2+l3+m3)%2==0) //If the integrand is odd
 //      return 0;
 //   else
+   if(l1<0 || l2<0 || l3<0 || m1>l1 || m2>l2 || m3>l3)
+      return 0;
    if(l1==0 || l1-1 < m1)
    {
       return (1./(2.*l1+1.))*(double(l1-m1+1.)*gaunt_formula(l1+1,l2,l3,m1,m2,m3));
@@ -356,7 +370,20 @@ double J_int_m1_D(int l1,int l2,int l3,int m1,int m2,int m3)
 //   if((l1+m1+l2+m2+l3+m3)%2==0) //If the integrand is odd
 //      return 0;
 //   else
-   {
+   if( l2 == 0 && l3 == 0  )
+      return 0;
+
+   else if(l1<0 || l2<0 || l3<0 || m1>l1 || m2>l2 || m3>l3)
+      return 0;
+
+   else if(l2 == 0)
+      return (1./(2.*l3+1.))*((l3+1)*(l3+m3)*gaunt_formula(l1,l2,l3-1,m1,m2,m3)-l3*(l3-m3+1)*gaunt_formula(l1,l2,l3+1,m1,m2,m3));
+   else if(l3 == 0)
+      return (1./(2.*l2+1.))*((l2+1)*(l2+m2)*gaunt_formula(l1,l2-1,l3,m1,m2,m3)-l2*(l2-m2+1)*gaunt_formula(l1,l2+1,l3,m1,m2,m3));
+   else
+      return (1./(2.*l2+1.))*((l2+1)*(l2+m2)*gaunt_formula(l1,l2-1,l3,m1,m2,m3)-l2*(l2-m2+1)*gaunt_formula(l1,l2+1,l3,m1,m2,m3))
+            +(1./(2.*l3+1.))*((l3+1)*(l3+m3)*gaunt_formula(l1,l2,l3-1,m1,m2,m3)-l3*(l3-m3+1)*gaunt_formula(l1,l2,l3+1,m1,m2,m3));
+/*
       return -(1./(4.*l1+2.))*(
          double(l3+m3)*double(l3-m3+1.)*gaunt_formula(l1-1,l2,l3,m1+1,m2,m3-1)
          -gaunt_formula(l1-1,l2,l3,m1+1,m2,m3+1)
@@ -367,104 +394,66 @@ double J_int_m1_D(int l1,int l2,int l3,int m1,int m2,int m3)
          -double(l2+m2)*double(l2-m2+1)*gaunt_formula(l1+1,l2,l3,m1+1,m2-1,m3)
          +gaunt_formula(l1+1,l2,l3,m1+1,m2+1,m3)
          );
-   }
+         */
 }
 double J_int_p1_D(int l1,int l2,int l3,int m1,int m2,int m3)
 {
-//   if((l1+m1+l2+m2+l3+m3)%2!=0) //If the integrand is odd
-//      return 0;
-//   else
-
-      std::cout<<"+1+2 : "<<-(1./(2.*l1+1.))*(1./2.*l2+1.)*l2*(l2-m2+1) * (l1-m1+1)*J_int_m2(l1+1,l2+1,l3,m1,m2,m3)<<std::endl;
-      std::cout<<"-1+2 : "<<-(1./(2.*l1+1.))*(1./2.*l2+1.)*l2*(l2-m2+1) * (l1+m1)*J_int_m2(l1-1,l2+1,l3,m1,m2,m3)<<std::endl;
-      std::cout<<"+1-2 : "<<-(1./(2.*l1+1.))*(1./2.*l2+1.)*(l2+1)*(l2+m2) * (l1-m1+1)*J_int_m2(l1+1,l2-1,l3,m1,m2,m3)<<std::endl;
-      std::cout<<"-1-2 : "<<-(1./(2.*l1+1.))*(1./2.*l2+1.)*(l2+1)*(l2+m2) * (l1+m1)*J_int_m2(l1-1,l2-1,l3,m1,m2,m3)<<std::endl;
-
-   if(l1 > 0 && l2> 0 && l3>0 && l1-1>=m1 && l2-1 >=m2 && l3-1 >= m3)
-   {
-      return -(1./(2.*l1+1.))
-         *(
-               (1./2.*l2+1.)*(l2*(l2-m2+1) *  ((l1-m1+1)*J_int_m2(l1+1,l2+1,l3,m1,m2,m3) + (l1+m1)*J_int_m2(l1-1,l2+1,l3,m1,m2,m3)) 
-                            -(l2+1)*(l2+m2) * ((l1-m1+1)*J_int_m2(l1+1,l2-1,l3,m1,m2,m3) + (l1+m1)*J_int_m2(l1-1,l2-1,l3,m1,m2,m3)))
-              +(1./2.*l3+1.)*(l3*(l3-m3+1) *  ((l1-m1+1)*J_int_m2(l1+1,l2,l3+1,m1,m2,m3) + (l1+m1)*J_int_m2(l1-1,l2,l3+1,m1,m2,m3))
-                            -(l3+1)*(l3+m3) * ((l1-m1+1)*J_int_m2(l1+1,l2,l3-1,m1,m2,m3) + (l1+m1)*J_int_m2(l1-1,l2,l3-1,m1,m2,m3)))
-          );
-   }
-   else if(l1 > 0 && l2> 0 && l1-1>=m1 && l2-1 >=m2)
-   {
-      return -(1./(2.*l1+1.))
-         *(
-               (1./2.*l2+1.)*(l2*(l2-m2+1) *  ((l1-m1+1)*J_int_m2(l1+1,l2+1,l3,m1,m2,m3) + (l1+m1)*J_int_m2(l1-1,l2+1,l3,m1,m2,m3)) 
-                            -(l2+1)*(l2+m2) * ((l1-m1+1)*J_int_m2(l1+1,l2-1,l3,m1,m2,m3) + (l1+m1)*J_int_m2(l1-1,l2-1,l3,m1,m2,m3)))
-          );
-   }
-   else if(l1 > 0 && l3 > 0 && l1-1>=m1 && l3-1 >= m3)
-   {
-      return -(1./(2.*l1+1.))
-         *(
-               (1./2.*l3+1.)*(l3*(l3-m3+1) *  ((l1-m1+1)*J_int_m2(l1+1,l2,l3+1,m1,m2,m3) + (l1+m1)*J_int_m2(l1-1,l2,l3+1,m1,m2,m3))
-                            -(l3+1)*(l3+m3) * ((l1-m1+1)*J_int_m2(l1+1,l2,l3-1,m1,m2,m3) + (l1+m1)*J_int_m2(l1-1,l2,l3-1,m1,m2,m3)))
-          );
-   }
-   else if(l2 > 0 && l3 > 0 && l2-1 >=m2 && l3-1 >= m3)
-   {
-      return -(1./(2.*l1+1.))
-         *(
-               (1./2.*l2+1.)*(l2*(l2-m2+1) *  ((l1-m1+1)*J_int_m2(l1+1,l2+1,l3,m1,m2,m3)) 
-                            -(l2+1)*(l2+m2) * ((l1-m1+1)*J_int_m2(l1+1,l2-1,l3,m1,m2,m3)))
-              +(1./2.*l3+1.)*(l3*(l3-m3+1) *  ((l1-m1+1)*J_int_m2(l1+1,l2,l3+1,m1,m2,m3))
-                            -(l3+1)*(l3+m3) * ((l1-m1+1)*J_int_m2(l1+1,l2,l3-1,m1,m2,m3)))
-          );
-   }
-   else if( l2 > 0 && l2-1 >=m2)
-   {
-      return -(1./(2.*l1+1.))
-         *(
-               (1./2.*l2+1.)*(l2*(l2-m2+1) *  ((l1-m1+1)*J_int_m2(l1+1,l2+1,l3,m1,m2,m3)) 
-                            -(l2+1)*(l2+m2) * ((l1-m1+1)*J_int_m2(l1+1,l2-1,l3,m1,m2,m3)))
-          );
-   }
-   else if(l3 > 0 && l3-1 >= m3)
-   {
-      return -(1./(2.*l1+1.))
-         *(
-              (1./2.*l3+1.)*(l3*(l3-m3+1) *  ((l1-m1+1)*J_int_m2(l1+1,l2,l3+1,m1,m2,m3))
-                            -(l3+1)*(l3+m3) * ((l1-m1+1)*J_int_m2(l1+1,l2,l3-1,m1,m2,m3)))
-          );
-   }
-   else
+   if((l2 == 0 && l3 == 0))
       return 0;
-/*
-   if(l1 == 0 || l1-1 < m1)
+
+   else if(l3 == 0)
    {
-      return (1./(4.*double(l1)+2.))*(
-          double(l3+m3)*double(l3-m3+1)*double(l1-m1+1)*gaunt_formula(l1+1,l2,l3,m1,m2,m3-1)
-
-         -double(l1-m1+1)*gaunt_formula(l1+1,l2,l3,m1,m2,m3+1)
-
-         +double(l2+m2)*double(l2-m2+1)*double(l1-m1+1)*gaunt_formula(l1+1,l2,l3,m1,m2-1,m3)
-
-         -double(l1-m1+1)*gaunt_formula(l1+1,l2,l3,m1,m2+1,m3)
-         );
+         return (1/(2.*l1+1))*(
+              (l1-m1+1)*(
+                 (l2/(l2+m2+1))*( 
+                    (l2-m2+1)*J_int_m2(l1+1,l2+1,l3,m1,m2,m3)
+                    -gaunt_formula(l1+1,l2,l3,m1,m2+1,m3)) 
+                 -(l2+m2)*J_int_m2(l1+1,l2-1,l3,m1,m2,m3))
+             +(l1+m1)*(
+                 (l2/(l2+m2+1))*( 
+                    (l2-m2+1)*J_int_m2(l1-1,l2+1,l3,m1,m2,m3)
+                    -gaunt_formula(l1-1,l2,l3,m1,m2+1,m3)) 
+                 -(l2+m2)*J_int_m2(l1-1,l2-1,l3,m1,m2,m3)));
+   }
+   else if(l2 == 0)
+   {
+      std::cout<<"l1+1 = "<<l1+1<<", l2 = "<<l2<<", l3+1 = "<<l3+1<<",m1 = "<<m1<<",m2 = "<<m2<<",m3 = "<<m3<<"====>"<<J_int_m2(l1+1,l2,l3+1,m1,m2,m3)<<std::endl;
+         return (1./(2.*l1+1))*(
+              (l1-m1+1)*(
+                 (double(l3)/double(l3+m3+1))*double( 
+                    (l3-m3+1)*J_int_m2(l1+1,l2,l3+1,m1,m2,m3)
+                    -gaunt_formula(l1+1,l2,l3,m1,m2,m3+1)) 
+                 -(l3+m3)*J_int_m2(l1+1,l2,l3-1,m1,m2,m3))
+             +(l1+m1)*(
+                 (double(l3)/double((l3+m3+1)))*( 
+                    (l3-m3+1)*J_int_m2(l1-1,l2,l3+1,m1,m2,m3)
+                    -gaunt_formula(l1-1,l2,l3,m1,m2,m3+1)) 
+                 -(l3+m3)*J_int_m2(l1-1,l2,l3-1,m1,m2,m3)));
    }
    else
    {
-
-      return (1./(4.*double(l1)+2.))*(
-          double(l3+m3)*double(l3-m3+1)*double(l1-m1+1)*gaunt_formula(l1+1,l2,l3,m1,m2,m3-1)
-         +double(l3+m3)*double(l3-m3+1)*double(l1+m1)*gaunt_formula(l1-1,l2,l3,m1,m2,m3-1)
-
-         -double(l1-m1+1)*gaunt_formula(l1+1,l2,l3,m1,m2,m3+1)
-         -double(l1+m1)*gaunt_formula(l1-1,l2,l3,m1,m2,m3+1)
-
-         +double(l2+m2)*double(l2-m2+1)*double(l1-m1+1)*gaunt_formula(l1+1,l2,l3,m1,m2-1,m3)
-         +double(l2+m2)*double(l2-m2+1)*double(l1+m1)*gaunt_formula(l1-1,l2,l3,m1,m2-1,m3)
-
-         -double(l1-m1+1)*gaunt_formula(l1+1,l2,l3,m1,m2+1,m3)
-         -double(l1+m1)*gaunt_formula(l1-1,l2,l3,m1,m2+1,m3)
-         );
+         return (1./(2.*l1+1))*(
+              (l1-m1+1)*(
+                 (double(l3)/double(l3+m3+1))*( 
+                    (l3-m3+1)*J_int_m2(l1+1,l2,l3+1,m1,m2,m3)
+                    -gaunt_formula(l1+1,l2,l3,m1,m2,m3+1)) 
+                 -(l3+m3)*J_int_m2(l1+1,l2,l3-1,m1,m2,m3))
+             +(l1+m1)*(
+                 (double(l3)/double(l3+m3+1))*( 
+                    (l3-m3+1)*J_int_m2(l1-1,l2,l3+1,m1,m2,m3)
+                    -gaunt_formula(l1-1,l2,l3,m1,m2,m3+1)) 
+                 -(l3+m3)*J_int_m2(l1-1,l2,l3-1,m1,m2,m3))
+              +(l1-m1+1)*(
+                 (double(l2)/double(l2+m2+1))*( 
+                    (l2-m2+1)*J_int_m2(l1+1,l2+1,l3,m1,m2,m3)
+                    -gaunt_formula(l1+1,l2,l3,m1,m2+1,m3)) 
+                 -(l2+m2)*J_int_m2(l1+1,l2-1,l3,m1,m2,m3))
+             +(l1+m1)*(
+                 (double(l2)/double(l2+m2+1))*( 
+                    (l2-m2+1)*J_int_m2(l1-1,l2+1,l3,m1,m2,m3)
+                    -gaunt_formula(l1-1,l2,l3,m1,m2+1,m3)) 
+                 -(l2+m2)*J_int_m2(l1-1,l2-1,l3,m1,m2,m3)));
    }
-*/
 }
 
 double I_m1_integral(int m1,int m2,int m3)
