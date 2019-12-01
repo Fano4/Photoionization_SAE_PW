@@ -61,6 +61,7 @@ double I_p1_D_integral(int m1,int m2,int m3);
 double I_m1_D_integral(int m1,int m2,int m3);
 double I_p1_integral(int m1,int m2,int m3);
 double I_m1_integral(int m1,int m2,int m3);
+double J_int_D(int l1,int l2,int l3,int m1,int m2,int m3);
 double J_int_p1_D(int l1,int l2,int l3,int m1,int m2,int m3);
 double J_int_m1_D(int l1,int l2,int l3,int m1,int m2,int m3);
 double J_int_p1(int l1,int l2,int l3,int m1,int m2,int m3);
