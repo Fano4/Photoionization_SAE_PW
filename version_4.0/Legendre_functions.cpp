@@ -1,6 +1,7 @@
 double associated_legendre(unsigned int l,int m,double x)
 {
-   double sign(-bool( m % 2 != 0 ) + bool( m % 2 == 0 ));
+   return prefactor_rYlm(l,m)*associated_legendre_nonorm(l,m,x);
+/*   double sign(-bool( m % 2 != 0 ) + bool( m % 2 == 0 ));
    double val(1);
    double temp(0);
 
@@ -43,6 +44,7 @@ double associated_legendre(unsigned int l,int m,double x)
          return sign * temp * associated_legendre(l,-m,x);
       }
    }
+   */
 }
 double associated_legendre_nonorm(unsigned int l,int m,double x)
 {
@@ -66,7 +68,12 @@ double associated_legendre_nonorm(unsigned int l,int m,double x)
       else if(m > 0)
       {
 //         std::cout<<" Recalling associated legendre nonorm with parameters "<<l<<","<<m-1<<";"<<l-1<<","<<m-1<<std::endl;
-         return sign * ((l-m+1)*x*associated_legendre_nonorm(l,m-1,x)-(l+m-1)*associated_legendre_nonorm(l-1,m-1,x))/sqrt(1-x*x);
+//         return sign * ((l-m+1)*x*associated_legendre_nonorm(l,m-1,x)-(l+m-1)*associated_legendre_nonorm(l-1,m-1,x))/sqrt(1-x*x);
+//
+         if(l == m)
+            return pow(-1,l)*dfactorial(2*l-1)*pow(1-x*x,double(l)/2);
+         else
+            return (double(2*l-1)/double(l-m))*x*associated_legendre_nonorm(l-1,m,x) - double((l+m-1)/double(l-m))*associated_legendre_nonorm(l-2,m,x);
       }
       else 
       {

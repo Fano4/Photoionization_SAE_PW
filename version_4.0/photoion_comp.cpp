@@ -56,11 +56,11 @@ int main(int argc,char* argv[])
    */
    double* r0=new double [3];
 
-   r0[0]=0;
+   r0[0]=1.5;
    r0[1]=0;
    r0[2]=0;
 
-   
+  /* 
    for(int l1=0;l1!=5;l1++)
    {
    for(int m1=0;m1!=l1+1;m1++)
@@ -73,7 +73,7 @@ int main(int argc,char* argv[])
    {
    for(int m3=0;m3!=l3+1;m3++)
    {
-   std::cout<<l1<<","<<m1<<" - "<<l2<<","<<m2<<" - "<<l3<<","<<m3<<" : JM2 = "<<J_int_m2(l1,l2,l3,m1,m2,m3)<<std::endl;
+   std::cout<<l1<<","<<m1<<" - "<<l2<<","<<m2<<" - "<<l3<<","<<m3<<" : JP1D = "<<J_int_p1_D(l1,l2,l3,m1,m2,m3)<<std::endl;
    }
    }
    }
@@ -81,10 +81,10 @@ int main(int argc,char* argv[])
    }
    }
    exit(EXIT_SUCCESS);
-
-   pw_bessel_comparison(0.3,0.723,2.3,0.3430,1.145,4.2049);
-   pw_bessel_overlap_comparison(1,-1,0.125,0.3,0.5,2.1,r0);
-   pw_bessel_gradient_y_comparison(1,1,0.384,0.1,0.22,2.1,r0);
+*/
+//   pw_bessel_comparison(0.3,0.723,2.3,0.3430,1.145,4.2049);
+//   pw_bessel_overlap_comparison(1,-1,0.125,0.3,0.5,2.1,r0);
+//   pw_bessel_gradient_y_comparison(2,-1,0.384,0.1,0.22,2.1,r0);
 //   pw_bessel_comparison(0.3,0.25,2.1,3.75,1.25,0.887);
 //   for(int k=0;k!=256;k++)
    {
@@ -94,7 +94,7 @@ int main(int argc,char* argv[])
 
 
    }
-   exit(EXIT_SUCCESS);
+//   exit(EXIT_SUCCESS);
    
    /*
    int l1(0);
@@ -786,8 +786,8 @@ std::cout<<"********"<<std::endl;
 //      std::cout<<kp<<","<<pow(std::abs(pice_z[0*n_states_cat][0][k]),2)<<std::endl;
    for(int ji=0;ji!=jl_max*jl_max+2*jl_max+1;ji++)
    {
-//      ddtemp+=abs(pice_z[0*n_states_cat][ji][k]);
-      ddtemp+=(pice_z[0*n_states_cat][ji][k]);
+      ddtemp+=abs(pice_z[0*n_states_cat][ji][k]);
+//      ddtemp+=(pice_z[0*n_states_cat][ji][k]);
    }
    std::cout<<kp*kp*27.211/2<<","<<kp*kp*pow(std::abs(ddtemp),2)<<std::endl;
    }

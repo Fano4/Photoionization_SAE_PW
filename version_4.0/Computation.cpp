@@ -1033,6 +1033,7 @@ void compute_bessel_pice_mo(double*** pice_ortho_mo,double*** pice_ddx_mo,double
                           *(-4.*acos(-1)*rYlm(ll3,mm3,nucl_spher_pos[nucl_basis_func[ww]][1],nucl_spher_pos[nucl_basis_func[ww]][2]))
                           *prefactor_rYlm(ll1,fabs(mm1))*prefactor_rYlm(ll2,fabs(mm2))*prefactor_rYlm(ll3,fabs(mm3))
                           *J_int_m1_D(ll1,ll2,ll3,fabs(mm1),fabs(mm2),fabs(mm3))*azim_integ(mm1,mm2,mm3);
+
                       ang_int9[ll1*ll1+ll1+mm1][ww][ll3*ll3+ll3+mm3]=
                          pow(-1,((ll2+ll3-ll1)/2))
                           *(4.*acos(-1)*rYlm(ll3,mm3,nucl_spher_pos[nucl_basis_func[ww]][1],nucl_spher_pos[nucl_basis_func[ww]][2]))
