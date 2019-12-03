@@ -9,7 +9,7 @@
 #ifndef computation_hpp
 #define computation_hpp
 
-#include "wigner_val.hpp"
+//#include "wigner_val.hpp"
 #include <stdio.h>
 #include <iostream>
 

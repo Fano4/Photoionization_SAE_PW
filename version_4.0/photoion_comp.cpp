@@ -6,23 +6,22 @@ int main(int argc,char* argv[])
 {
    int photoion_comp(int argc, char* argv[]);
    omp_set_num_threads(1); 
-   
-   /*
-   int lmax=12;
+  /* 
+   int lmax=10;
    for(int l1=0;l1!=lmax+1;l1++)
    {
-      for(int m1=-l1;m1!=l1+1;m1++)
+      for(int m1=0;m1!=l1+1;m1++)
       {
 //         std::cout<<l1*l1+l1+m1<<"/120"<<std::endl;;
          std::cout<<"{";
          for(int l2=0;l2!=lmax+1;l2++)
          {
-            for(int m2=-l2;m2!=l2+1;m2++)
+            for(int m2=0;m2!=l2+1;m2++)
             {
                std::cout<<"{";
                for(int l3=0;l3!=lmax+1;l3++)
                {
-                  for(int m3=-l3;m3!=l3+1;m3++)
+                  for(int m3=0;m3!=l3+1;m3++)
                   {
                       //std::cout<<"<<<<"<<l1<<","<<l2<<","<<l3<<";"<<m1<<","<<m2<<","<<m3<<std::endl;
 
@@ -33,30 +32,31 @@ int main(int argc,char* argv[])
                      else
                      std::cout<<std::setprecision(15)<<wigner3j(l1,l2,l3,m1,m2,m3);
           * /           
-                     if(l3*l3+l3+m3<lmax*lmax+2*lmax)
-                     std::cout<<std::setprecision(15)<<gaunt_formula(l1,l2,l3,m1,m2,m3)<<",";
+//                     if(l3*l3+l3+m3<lmax*lmax+2*lmax)
+                     if((l3*(l3+1)/2+m3)<(lmax*(lmax+1)/2+lmax))
+                        std::cout<<std::setprecision(15)<<gaunt_formula(l1,l2,l3,m1,m2,m3)<<",";
                      else
-                     std::cout<<std::setprecision(15)<<gaunt_formula(l1,l2,l3,m1,m2,m3);
+                        std::cout<<std::setprecision(15)<<gaunt_formula(l1,l2,l3,m1,m2,m3);
                    // * / 
                   }
                }
-               if(l2*l2+l2+m2<lmax*lmax+2*lmax)
+//               if(l2*l2+l2+m2<lmax*lmax+2*lmax)
+               if((l2*(l2+1)/2+m2)<lmax*(lmax+1)/2+lmax)
                    std::cout<<"},"<<std::endl;
                else
                   std::cout<<"}";
             }
          }
-               if(l1*l1+l1+m1<lmax*lmax+2*lmax)
+               if((l1*(l1+1)/2+m1)<lmax*(lmax+1)/2+lmax)
                    std::cout<<"},"<<std::endl;
                else
                   std::cout<<"}";
       }
    }
-   exit(EXIT_SUCCESS);
-   */
+   exit(EXIT_SUCCESS);*/
    double* r0=new double [3];
 
-   r0[0]=1.5;
+   r0[0]=0;
    r0[1]=0;
    r0[2]=0;
 
@@ -84,7 +84,7 @@ int main(int argc,char* argv[])
 */
 //   pw_bessel_comparison(0.3,0.723,2.3,0.3430,1.145,4.2049);
 //   pw_bessel_overlap_comparison(1,-1,0.125,0.3,0.5,2.1,r0);
-//   pw_bessel_gradient_y_comparison(2,-1,0.384,0.1,0.22,2.1,r0);
+   pw_bessel_gradient_y_comparison(1,-1,0.384,0.1,0.22,2.1,r0);
 //   pw_bessel_comparison(0.3,0.25,2.1,3.75,1.25,0.887);
 //   for(int k=0;k!=256;k++)
    {
@@ -94,7 +94,7 @@ int main(int argc,char* argv[])
 
 
    }
-//   exit(EXIT_SUCCESS);
+   exit(EXIT_SUCCESS);
    
    /*
    int l1(0);
@@ -382,6 +382,7 @@ for(int x=0;x!=grid_size;x++)
     contraction_zeta_array=new double *[basis_size];
     for(int i=0;i!=basis_size;i++)
     {
+//       std::cout<<"nucl_basis_func "<<i<<" == "<<nucl_basis_func[i]<<std::endl;
        contraction_coeff_array[i]=new double[max_contraction_num];
        contraction_zeta_array[i]=new double[max_contraction_num];
 

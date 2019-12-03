@@ -249,7 +249,7 @@ void pw_bessel_gradient_y_comparison(int l2,int m2,double zeta,double kp,double 
    std::complex<double> phase_factor(exp(-std::complex<double>(0,1)*kp*r0[0]*f));
    std::complex<double> ddk_exp(-std::complex<double>(0,1)*r0[0]*f*phase_factor );
    std::complex<double> ddt_exp(-std::complex<double>(0,1)*r0[0]*dfdt*phase_factor);
-   std::complex<double> ddf_exp(-std::complex<double>(0,1)*kp*r0[0]*dfdf*phase_factor);
+   std::complex<double> ddf_exp(-std::complex<double>(0,1)*r0[0]*dfdf*phase_factor);
    double ass_legendre_over_sint(0);
 
    
@@ -272,12 +272,13 @@ void pw_bessel_gradient_y_comparison(int l2,int m2,double zeta,double kp,double 
    std::complex<double> pw_integt(pow(std::complex<double>(0,-1),l2-1) 
                *(ddt_exp*rYlm(l2,m2,thet,phi)+phase_factor*pow(2.,0.5*bool(m2!=0))*associated_legendre_der(l2,fabs(m2),cos(thet))*(bool(m2>=0) * cos(m2 * phi) + bool(m2<0) * sin(fabs(m2) * phi)))
                *Kval);
-   std::cout<<" l2 , m2 = "<<l2<<","<<m2<<std::endl;
-   std::complex<double> pw_integf(pow(std::complex<double>(0,-1),l2-1)
-         *(ddf_exp*rYlm(l2,m2,thet,phi)
-            +(prefactor_rYlm(l2,fabs(m2))*ass_legendre_over_sint
-               *(-fabs(m2) * bool(m2>=0) * sin(fabs(m2) * phi) + fabs(m2) * bool(m2<0) * cos(fabs(m2) * phi)))*phase_factor)
-         *Kval/kp);
+
+   std::complex<double> pw_integf(
+         pow(std::complex<double>(0,-1),l2-1)
+         *(
+              ddf_exp*prefactor_rYlm(l2,fabs(m2))*ass_legendre_over_sint*(bool(m2>=0) * cos(m2 * phi) + bool(m2<0) * sin(fabs(m2) * phi))
+             +phase_factor*prefactor_rYlm(l2,fabs(m2))*ass_legendre_over_sint*(-fabs(m2) * bool(m2>0) * sin(fabs(m2) * phi) + fabs(m2) * bool(m2<0) * cos(fabs(m2) * phi))
+          )*Kval/kp);
 
 //   std::cout<<"***"<<sin(thet)*sin(phi)*pw_integk/sqrt(0.5*intplushalf_gamma(l2+1)/pow(2.*zeta,1.5+l2))<<std::endl;
 //   std::cout<<"***"<<cos(thet)*sin(phi)*pw_integt/sqrt(0.5*intplushalf_gamma(l2+1)/pow(2.*zeta,1.5+l2))<<std::endl;
@@ -325,6 +326,7 @@ void pw_bessel_gradient_y_comparison(int l2,int m2,double zeta,double kp,double 
                           *J_int_m1(l1,l2,l3,fabs(m1),fabs(m2),fabs(m3))*I_m1_integral(m1,m2,m3);
 
 //                std::cout<<l1<<","<<m1<<" - "<<l2<<","<<m2<<" - "<<l3<<","<<m3<<" : ang int 4 = "<<ang_int4<<std::endl;
+//                std::cout<<"l3 = "<<l3<<"; m3 = "<<m3<<"thet = "<<r0[1]<<" ; phi = "<<r0[2]<<" =>"<<rYlm(l3,m3,r0[1],r0[2])<<std::endl;
                 ang_int5=
                          pow(std::complex<double>(0,-1),(l2+l3))
                           *(4.*acos(-1)*rYlm(l3,m3,r0[1],r0[2]))

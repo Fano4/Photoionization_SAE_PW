@@ -208,9 +208,9 @@ double wigner3j(int l1,int l2,int l3,int m1,int m2,int m3)
 {
    double temp2(1);
 
-   if(l1 <= 12 && l2<=12 && l3<=12)
+/*   if(l1 <= 12 && l2<=12 && l3<=12)
       return WIGNER_VAL[l1*l1+l1+m1][l2*l2+l2+m2][l3*l3+l3+m3];
-
+*/
    if(m1+m2+m3 !=0)
       return 0;
    else if( l3 > fabs(l1+l2) || l3 < fabs(l1-l2))
