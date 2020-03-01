@@ -6,27 +6,26 @@ int main(int argc,char* argv[])
 {
    int photoion_comp(int argc, char* argv[]);
    omp_set_num_threads(1); 
-  /* 
    int lmax=10;
    for(int l1=0;l1!=lmax+1;l1++)
    {
       for(int m1=0;m1!=l1+1;m1++)
       {
 //         std::cout<<l1*l1+l1+m1<<"/120"<<std::endl;;
-         std::cout<<"{";
+//         std::cout<<"{";
          for(int l2=0;l2!=lmax+1;l2++)
          {
             for(int m2=0;m2!=l2+1;m2++)
             {
-               std::cout<<"{";
+//               std::cout<<"{";
                for(int l3=0;l3!=lmax+1;l3++)
                {
                   for(int m3=0;m3!=l3+1;m3++)
                   {
-                      //std::cout<<"<<<<"<<l1<<","<<l2<<","<<l3<<";"<<m1<<","<<m2<<","<<m3<<std::endl;
+                     std::cout<<"<<<<"<<l1<<","<<l2<<","<<l3<<";"<<m1<<","<<m2<<","<<m3<<std::endl;
 
-                    // wigner3j(l1,l2,l3,m1,m2,m3);
-                      / *  
+                     std::cout<<J_int_m2(l1,l2,l3,m1,m2,m3)<<" == "<<test2_integral(l1,l2,l3,m1,m2,m3)<<std::endl; // wigner3j(l1,l2,l3,m1,m2,m3);
+                      /*  
                      if(l3*l3+l3+m3<lmax*lmax+2*lmax)
                      std::cout<<std::setprecision(15)<<wigner3j(l1,l2,l3,m1,m2,m3)<<",";
                      else
@@ -37,23 +36,23 @@ int main(int argc,char* argv[])
                         std::cout<<std::setprecision(15)<<gaunt_formula(l1,l2,l3,m1,m2,m3)<<",";
                      else
                         std::cout<<std::setprecision(15)<<gaunt_formula(l1,l2,l3,m1,m2,m3);
-                   // * / 
+                    */ 
                   }
                }
 //               if(l2*l2+l2+m2<lmax*lmax+2*lmax)
-               if((l2*(l2+1)/2+m2)<lmax*(lmax+1)/2+lmax)
-                   std::cout<<"},"<<std::endl;
-               else
-                  std::cout<<"}";
+//               if((l2*(l2+1)/2+m2)<lmax*(lmax+1)/2+lmax)
+//                   std::cout<<"},"<<std::endl;
+//               else
+//                  std::cout<<"}";
             }
          }
-               if((l1*(l1+1)/2+m1)<lmax*(lmax+1)/2+lmax)
-                   std::cout<<"},"<<std::endl;
-               else
-                  std::cout<<"}";
+//               if((l1*(l1+1)/2+m1)<lmax*(lmax+1)/2+lmax)
+//                   std::cout<<"},"<<std::endl;
+//               else
+//                  std::cout<<"}";
       }
    }
-   exit(EXIT_SUCCESS);*/
+   exit(EXIT_SUCCESS);
    double* r0=new double [3];
 
    r0[0]=0;

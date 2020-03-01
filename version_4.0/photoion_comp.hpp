@@ -122,13 +122,13 @@ const int PRIME_DECOMPOSED_FAC[MAX_N_FACTORIAL+1][MAX_FACTORIAL_PRIME]={
 
 //include program headers files
 #include "files_reader.hpp"
-#include "dyson_cube_writer.hpp"
+//#include "dyson_cube_writer.hpp"
 #include "algebra.hpp"
 #include "Computation.hpp"
 #include "hf5_photoion.hpp"
 
 #include "files_reader.cpp"
-#include "dyson_cube_writer.cpp"
+//#include "dyson_cube_writer.cpp"
 #include "algebra.cpp"
 #include "angular_int_aux.cpp"
 #include "Computation.cpp"

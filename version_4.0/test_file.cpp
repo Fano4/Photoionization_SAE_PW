@@ -9,8 +9,8 @@ void test_radial(int l1,int l2,int l3,int m1,int m2,int m3,double zeta,double kp
 }
 double test2_integral(int l1,int l2,int l3,int m1,int m2,int m3)
 {
-   double xmin(-1);
-   double xmax(1);
+   double xmin(-0.999999999);
+   double xmax(0.999999999);
    int nx(10000000);
    double dx((xmax-xmin)/double(nx));
 
@@ -20,7 +20,7 @@ double test2_integral(int l1,int l2,int l3,int m1,int m2,int m3)
    for(int i=0;i!=nx+1;i++)
    {
       x=xmin+i*dx;
-      sum+=pow(-1,m1+m2+m3)*associated_legendre_nonorm(l1,m1,x)*associated_legendre_nonorm(l2,m2,x)*associated_legendre_nonorm(l3,m3,x)*dx;
+      sum+=associated_legendre_nonorm(l1,m1,x)*associated_legendre_nonorm(l2,m2,x)*associated_legendre_nonorm(l3,m3,x)*dx/sqrt(1-x*x);
 //      std::cout<<x<<" ; "<<associated_legendre_nonorm(l1,m1,x)*associated_legendre_nonorm(l2,m2,x)*associated_legendre_nonorm(l3,m3,x)<<std::endl;
    }
 

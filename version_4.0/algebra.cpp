@@ -68,32 +68,6 @@ void transpose(double *A,double *B, int dim1, int dim2)
         }
     }
 }
-/*
-double ln_factorial(int n,double *memo)
-{
-   if(n>MAX_LN_FACTORIAL)
-   {
-      std::cout<<"WARNING LARGE FACTORIAL ARGUMENT : N ="<<n<<std::endl<<"EXIT"<<std::endl;
-      exit(EXIT_SUCCESS);
-   }
-   else if(n<0)
-   {
-      std::cout<<"FATAL ERROR! NEGATIVE ARGUMENT IN FACTORIAL"<<std::endl<<"N = "<<n<<std::endl<<"EXIT"<<std::endl;
-      exit(EXIT_SUCCESS);
-   }
-   else if(!(memo[n]==0))
-   {
-      return memo[n];
-   }
-   else
-   {
-      if(n==0)
-         memo[n]=0;
-      else
-         memo[n]=log(n)+ln_factorial(n-1,memo);
-      return memo[n];
-   }
-}*/
 unsigned long long int factorial(int n)
 {
    if(n>MAX_N_FACTORIAL)

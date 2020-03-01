@@ -124,6 +124,7 @@ std::complex<double> bessel_cont_angleint(int jl,int jml,double* nucl_spher_pos,
 */
 double azim_integ(int m1,int m2,int m3)
 {
+   //CHECKED ON FEB 28 2020
    using namespace std;
    double sum(0);
    if(m1 ==0 && m2 ==0 && m3 ==0)
@@ -240,6 +241,7 @@ double prefactor_rYlm(int l,int m)
 }
 double J_int_m2(int l1,int l2,int l3,int m1,int m2,int m3)
 {
+
    double sum(0);
    double sign(1);
 
