@@ -7,13 +7,14 @@ int main(int argc,char* argv[])
    int photoion_comp(int argc, char* argv[]);
    omp_set_num_threads(1); 
    int lmax=10;
-   for(int l1=0;l1!=lmax+1;l1++)
+   /*
+   for(int l1=2;l1!=lmax+1;l1++)
    {
-      for(int m1=0;m1!=l1+1;m1++)
+      for(int m1=1;m1!=l1+1;m1++)
       {
 //         std::cout<<l1*l1+l1+m1<<"/120"<<std::endl;;
 //         std::cout<<"{";
-         for(int l2=0;l2!=lmax+1;l2++)
+         for(int l2=1;l2!=lmax+1;l2++)
          {
             for(int m2=0;m2!=l2+1;m2++)
             {
@@ -24,8 +25,8 @@ int main(int argc,char* argv[])
                   {
                      std::cout<<"<<<<"<<l1<<","<<l2<<","<<l3<<";"<<m1<<","<<m2<<","<<m3<<std::endl;
 
-                     std::cout<<J_int_m2(l1,l2,l3,m1,m2,m3)<<" == "<<test2_integral(l1,l2,l3,m1,m2,m3)<<std::endl; // wigner3j(l1,l2,l3,m1,m2,m3);
-                      /*  
+                     std::cout<<J_int_p1_D(l1,l2,l3,m1,m2,m3)<<" == "<<test2_integral(l1,l2,l3,m1,m2,m3)<<std::endl; // wigner3j(l1,l2,l3,m1,m2,m3);
+                      / *  
                      if(l3*l3+l3+m3<lmax*lmax+2*lmax)
                      std::cout<<std::setprecision(15)<<wigner3j(l1,l2,l3,m1,m2,m3)<<",";
                      else
@@ -36,7 +37,7 @@ int main(int argc,char* argv[])
                         std::cout<<std::setprecision(15)<<gaunt_formula(l1,l2,l3,m1,m2,m3)<<",";
                      else
                         std::cout<<std::setprecision(15)<<gaunt_formula(l1,l2,l3,m1,m2,m3);
-                    */ 
+                    * / 
                   }
                }
 //               if(l2*l2+l2+m2<lmax*lmax+2*lmax)
@@ -53,6 +54,7 @@ int main(int argc,char* argv[])
       }
    }
    exit(EXIT_SUCCESS);
+   */
    double* r0=new double [3];
 
    r0[0]=0;
@@ -83,7 +85,7 @@ int main(int argc,char* argv[])
 */
 //   pw_bessel_comparison(0.3,0.723,2.3,0.3430,1.145,4.2049);
 //   pw_bessel_overlap_comparison(1,-1,0.125,0.3,0.5,2.1,r0);
-   pw_bessel_gradient_y_comparison(1,-1,0.384,0.1,0.22,2.1,r0);
+//   pw_bessel_gradient_y_comparison(1,-1,0.384,0.1,0.22,2.1,r0);
 //   pw_bessel_comparison(0.3,0.25,2.1,3.75,1.25,0.887);
 //   for(int k=0;k!=256;k++)
    {
@@ -93,7 +95,7 @@ int main(int argc,char* argv[])
 
 
    }
-   exit(EXIT_SUCCESS);
+//   exit(EXIT_SUCCESS);
    
    /*
    int l1(0);
@@ -786,8 +788,8 @@ std::cout<<"********"<<std::endl;
 //      std::cout<<kp<<","<<pow(std::abs(pice_z[0*n_states_cat][0][k]),2)<<std::endl;
    for(int ji=0;ji!=jl_max*jl_max+2*jl_max+1;ji++)
    {
+//      ddtemp+=pice_z[0*n_states_cat][ji][k];
       ddtemp+=abs(pice_z[0*n_states_cat][ji][k]);
-//      ddtemp+=(pice_z[0*n_states_cat][ji][k]);
    }
    std::cout<<kp*kp*27.211/2<<","<<kp*kp*pow(std::abs(ddtemp),2)<<std::endl;
    }

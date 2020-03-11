@@ -107,13 +107,46 @@ double associated_legendre_der(unsigned int l,int m,double x)
          }
          val*=sqrt(temp);
 //         std::cout<<" From associated Legendre der, calling associated legendre nonorm with parameters "<<l<<","<<m<<";"<<l-1<<","<<m<<std::endl;
-         return -sign * val
+         return sign * val
 //         return -sign * sqrt((2*l+1)*exp(ln_factorial(l-m)-ln_factorial(l+m))/(4*acos(-1)))
             *(l*x*associated_legendre_nonorm(l,m,x)-(l+m)*associated_legendre_nonorm(l-1,m,x))/sqrt(1-x*x);
       }
       else 
       {
          std::cout<<"Legendre function line 95"<<std::endl;
+         exit(EXIT_SUCCESS);
+//         return sign * exp(ln_factorial(l+m)-ln_factorial(l-m))*associated_legendre_der(l,-m,x);
+         //return sign * double(factorial(l+m,fact_memo))*associated_legendre_der(l,-m,x,fact_memo)/double(factorial(l-m,fact_memo));
+      }
+   }
+}
+double associated_legendre_nonorm_der(unsigned int l,int m,double x)
+{
+
+   int sign(-bool( m % 2 != 0 ) + bool( m % 2 == 0 ));
+   double temp(0);
+   double val(0);
+
+   if( x == 1 )
+      return 0;
+   else
+   {
+      if(m == 0)
+      {
+         return legendre_der(l,x);
+      }
+      else if(m > 0)
+      {
+//         return (l/(l+m+1))*((l-m+1)*associated_legendre_nonorm(l,m+1,x)/sqrt(1-x*x)-associated_legendre_nonorm(l,m+1,x))-(l+m)*associated_legendre_nonorm(l-1,m,x)/sqrt(1-x*x);
+          val=-sign;
+//         std::cout<<" From associated Legendre der, calling associated legendre nonorm with parameters "<<l<<","<<m<<";"<<l-1<<","<<m<<std::endl;
+         return sign * val
+//         return -sign * sqrt((2*l+1)*exp(ln_factorial(l-m)-ln_factorial(l+m))/(4*acos(-1)))
+            *(l*x*associated_legendre_nonorm(l,m,x)-(l+m)*associated_legendre_nonorm(l-1,m,x))/sqrt(1-x*x);
+      }
+      else 
+      {
+         std::cout<<"Legendre function line 148"<<std::endl;
          exit(EXIT_SUCCESS);
 //         return sign * exp(ln_factorial(l+m)-ln_factorial(l-m))*associated_legendre_der(l,-m,x);
          //return sign * double(factorial(l+m,fact_memo))*associated_legendre_der(l,-m,x,fact_memo)/double(factorial(l-m,fact_memo));

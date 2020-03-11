@@ -17,10 +17,12 @@ double test2_integral(int l1,int l2,int l3,int m1,int m2,int m3)
    double x(0);
    double sum(0);
 
-   for(int i=0;i!=nx+1;i++)
+   if((l1+m1+l2+m2+l3+m3+1)%2==0)
+      return 0;
+   for(int i=nx/2;i!=nx+1;i++)
    {
       x=xmin+i*dx;
-      sum+=associated_legendre_nonorm(l1,m1,x)*associated_legendre_nonorm(l2,m2,x)*associated_legendre_nonorm(l3,m3,x)*dx/sqrt(1-x*x);
+      sum-=2*x*associated_legendre_nonorm(l1,m1,x)*(associated_legendre_nonorm_der(l2,m2,x)*associated_legendre_nonorm(l3,m3,x)+associated_legendre_nonorm(l2,m2,x)*associated_legendre_nonorm_der(l3,m3,x))*dx;
 //      std::cout<<x<<" ; "<<associated_legendre_nonorm(l1,m1,x)*associated_legendre_nonorm(l2,m2,x)*associated_legendre_nonorm(l3,m3,x)<<std::endl;
    }
 

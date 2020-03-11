@@ -241,7 +241,7 @@ double prefactor_rYlm(int l,int m)
 }
 double J_int_m2(int l1,int l2,int l3,int m1,int m2,int m3)
 {
-
+   // CHECKED ON MARCH 2 2020
    double sum(0);
    double sign(1);
 
@@ -343,6 +343,7 @@ double J_int_m2(int l1,int l2,int l3,int m1,int m2,int m3)
 }
 double J_int_m1(int l1,int l2,int l3,int m1,int m2,int m3)
 {
+   //CHECKED ON MARCH 2 2020
    /*
    if((l1+m1+l2+m2+l3+m3)%2!=0) //If the integrand is odd
       return 0;
@@ -393,6 +394,7 @@ double J_int_m1(int l1,int l2,int l3,int m1,int m2,int m3)
 }
 double J_int_p1(int l1,int l2,int l3,int m1,int m2,int m3)
 {
+   //CHECKED ON MARCH 2 2020
    /*
    std::cout<<l1<<";"<<l2<<";"<<l3<<";"<<m1<<";"<<m2<<";"<<m3<<std::endl;
    std::cout<<gaunt_formula(l1+1,l2,l3,m1,m2,m3,fact_memo)<<std::endl;
@@ -465,38 +467,42 @@ double J_int_D(int l1,int l2,int l3,int m1,int m2,int m3)
 }
 double J_int_m1_D(int l1,int l2,int l3,int m1,int m2,int m3)
 {
-//   if((l1+m1+l2+m2+l3+m3)%2==0) //If the integrand is odd
-//      return 0;
-//   else
-   double sign(1);
-   if(m1<0)
-   {
-      sign*=pow(-1,m1);
-      m1=-m1;
-   }
-   if(m2<0)
-   {
-      sign*=pow(-1,m2);
-      m2=-m2;
-   }
-   if(m3<0)
-   {
-      sign*=pow(-1,m3);
-      m3=-m3;
-   }
-   if( l2 == 0 && l3 == 0  )
+   //CHECKED ON MARCH 10 2020
+//   std::cout<<(l1+m1+l2+m2+l3+m3)<<std::endl;
+   if((l1+m1+l2+m2+l3+m3)%2==0) //If the integrand is odd
       return 0;
-
-   else if(l1<0 || l2<0 || l3<0 || m1>l1 || m2>l2 || m3>l3)
-      return 0;
-
-   else if(l2 == 0)
-      return sign*(1./(2.*l3+1.))*((l3+1)*(l3+m3)*gaunt_formula(l1,l2,l3-1,m1,m2,m3)-l3*(l3-m3+1)*gaunt_formula(l1,l2,l3+1,m1,m2,m3));
-   else if(l3 == 0)
-      return sign*(1./(2.*l2+1.))*((l2+1)*(l2+m2)*gaunt_formula(l1,l2-1,l3,m1,m2,m3)-l2*(l2-m2+1)*gaunt_formula(l1,l2+1,l3,m1,m2,m3));
    else
-      return sign*((1./(2.*l2+1.))*((l2+1)*(l2+m2)*gaunt_formula(l1,l2-1,l3,m1,m2,m3)-l2*(l2-m2+1)*gaunt_formula(l1,l2+1,l3,m1,m2,m3))
-            +(1./(2.*l3+1.))*((l3+1)*(l3+m3)*gaunt_formula(l1,l2,l3-1,m1,m2,m3)-l3*(l3-m3+1)*gaunt_formula(l1,l2,l3+1,m1,m2,m3)));
+   {
+      double sign(1);
+      if(m1<0)
+      {
+         sign*=pow(-1,m1);
+         m1=-m1;
+      }
+      if(m2<0)
+      {
+         sign*=pow(-1,m2);
+         m2=-m2;
+      }
+      if(m3<0)
+      {
+         sign*=pow(-1,m3);
+         m3=-m3;
+      }
+      if( l2 == 0 && l3 == 0  )
+         return 0;
+
+      else if(l1<0 || l2<0 || l3<0 || m1>l1 || m2>l2 || m3>l3)
+         return 0;
+
+      else if(l2 == 0)
+         return sign*(-1./(2.*l3+1.))*((l3+1)*(l3+m3)*gaunt_formula(l1,l2,l3-1,m1,m2,m3)-l3*(l3-m3+1)*gaunt_formula(l1,l2,l3+1,m1,m2,m3));
+      else if(l3 == 0)
+         return sign*(-1./(2.*l2+1.))*((l2+1)*(l2+m2)*gaunt_formula(l1,l2-1,l3,m1,m2,m3)-l2*(l2-m2+1)*gaunt_formula(l1,l2+1,l3,m1,m2,m3));
+      else
+         return sign*((-1./(2.*l2+1.))*((l2+1)*(l2+m2)*gaunt_formula(l1,l2-1,l3,m1,m2,m3)-l2*(l2-m2+1)*gaunt_formula(l1,l2+1,l3,m1,m2,m3))
+               +(-1./(2.*l3+1.))*((l3+1)*(l3+m3)*gaunt_formula(l1,l2,l3-1,m1,m2,m3)-l3*(l3-m3+1)*gaunt_formula(l1,l2,l3+1,m1,m2,m3)));
+   }
 /*
       return -(1./(4.*l1+2.))*(
          double(l3+m3)*double(l3-m3+1.)*gaunt_formula(l1-1,l2,l3,m1+1,m2,m3-1)
@@ -512,6 +518,9 @@ double J_int_m1_D(int l1,int l2,int l3,int m1,int m2,int m3)
 }
 double J_int_p1_D(int l1,int l2,int l3,int m1,int m2,int m3)
 {
+   //CHECKED ON MARCH 10 2020
+   if((l1+m1+l2+m2+l3+m3+1)%2 == 0)
+      return 0;
    double sign(1);
 
    if(m1<0)
