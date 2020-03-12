@@ -241,9 +241,15 @@ void pw_bessel_gradient_y_comparison(int l2,int m2,double zeta,double kp,double 
    double ddk_Kval((double(l2)/kp-kp/(2.*zeta))*Kval);
    double bessel_val(0);
    double ddk_bessel_val(0);
+   std::complex<double> ang_int1(0);
+   std::complex<double> ang_int2(0);
+   std::complex<double> ang_int3(0);
    std::complex<double> ang_int4(0);
    std::complex<double> ang_int5(0);
    std::complex<double> ang_int6(0);
+   std::complex<double> ang_int7(0);
+   std::complex<double> ang_int8(0);
+   std::complex<double> ang_int9(0);
    std::complex<double> f(sin(thet)*sin(r0[1])*cos(phi-r0[2])+cos(thet)*cos(r0[1]));
    std::complex<double> dfdt(cos(thet)*sin(r0[1])*cos(phi-r0[2])-sin(thet)*cos(r0[1])); 
    std::complex<double> dfdf(-sin(thet)*sin(r0[1])*sin(phi-r0[2]));
@@ -326,9 +332,6 @@ void pw_bessel_gradient_y_comparison(int l2,int m2,double zeta,double kp,double 
                           *(4.*acos(-1)*rYlm(l3,m3,r0[1],r0[2]))
                           *prefactor_rYlm(l1,fabs(m1))*prefactor_rYlm(l2,fabs(m2))*prefactor_rYlm(l3,fabs(m3))
                           *J_int_m1(l1,l2,l3,fabs(m1),fabs(m2),fabs(m3))*I_m1_integral(m1,m2,m3);
-
-//                std::cout<<l1<<","<<m1<<" - "<<l2<<","<<m2<<" - "<<l3<<","<<m3<<" : ang int 4 = "<<ang_int4<<std::endl;
-//                std::cout<<"l3 = "<<l3<<"; m3 = "<<m3<<"thet = "<<r0[1]<<" ; phi = "<<r0[2]<<" =>"<<rYlm(l3,m3,r0[1],r0[2])<<std::endl;
                 ang_int5=
                          pow(std::complex<double>(0,-1),(l2+l3))
                           *(4.*acos(-1)*rYlm(l3,m3,r0[1],r0[2]))
@@ -340,18 +343,7 @@ void pw_bessel_gradient_y_comparison(int l2,int m2,double zeta,double kp,double 
                           *prefactor_rYlm(l1,fabs(m1))*prefactor_rYlm(l2,fabs(m2))*prefactor_rYlm(l3,fabs(m3))
                           *J_int_m2(l1,l2,l3,fabs(m1),fabs(m2),fabs(m3))*I_p1_D_integral(m1,m2,m3);
 
-               /*   if(prefactor*Kval*bessel_val*ang_int9/sqrt(0.5*intplushalf_gamma(l2+1)/pow(2.*zeta,1.5+l2)) != std::complex<double>(0,0))
-                  {
-                     std::cout<<l1<<","<<m1<<" - "<<l2<<","<<m2<<" - "<<l3<<","<<m3<<" Sign = "<<pow(-1,(int(l1-l2+l3)/2))<<std::endl;
-                      std::cout<<l1<<","<<m1<<" - "<<l2<<","<<m2<<" - "<<l3<<","<<m3<<" : Gaunt = "<<gaunt_formula(l1,l2,l3,fabs(m1),fabs(m2),fabs(m3))<<std::endl;
-                      std::cout<<l1<<","<<m1<<" - "<<l2<<","<<m2<<" - "<<l3<<","<<m3<<" : Prefactor = "<<prefactor_rYlm(l1,fabs(m1))*prefactor_rYlm(l2,fabs(m2))*prefactor_rYlm(l3,fabs(m3))<<std::endl;
-                      std::cout<<l1<<","<<m1<<" - "<<l2<<","<<m2<<" - "<<l3<<","<<m3<<" : rYl3m3 = "<<rYlm(l3,m3,r0[1],r0[2])<<std::endl;
-                      std::cout<<"azim = "<<azim_integ(m1,m2,m3)<< " ; Bessel = "<< bessel_val<<std::endl;
-                     std::cout<<" ===== "<<prefactor*Kval*bessel_val*ang_int9/sqrt(0.5*intplushalf_gamma(l2+1)/pow(2.*zeta,1.5+l2))<<std::endl;
-                  }*/
-//                  sum+=prefactor*(((ddk_Kval*bessel_val+Kval*ddk_bessel_val)*ang_int4)+(1./kp)*Kval*bessel_val*ang_int5+(1./kp)*Kval*bessel_val*ang_int6)/sqrt(0.5*intplushalf_gamma(l2+1)/pow(2.*zeta,1.5+l2));
                   sum+=prefactor*((1./kp)*bessel_val*Kval*ang_int6)/sqrt(0.5*intplushalf_gamma(l2+1)/pow(2.*zeta,1.5+l2));
-//                  sum+=prefactor*((ddk_Kval*bessel_val+Kval*ddk_bessel_val)*ang_int4);
              }
           }
           
