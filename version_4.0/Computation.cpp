@@ -199,6 +199,10 @@ void compute_bessel_pice_mo(double*** pice_ortho_mo,double*** pice_ddx_mo,double
    int l2max(0);
    int max_contraction_num(0);
 
+
+   double antiphase(1); //THE GAUNT INTEGRAL AND RECURRENCE RELATIONS ARE BASED ON EXPRESSIONS INCLUDING THE CONDON-SHORTLEY PHASE
+                        // WHICH IS EXPLICITELY ACCOUNTED FOR IN THE SPHERICAL HARMINCS PREFACTORS. TO AVOIS COUNTING IT TWICE, 
+                        // WE ADD AN ANTIPHASE IN THE INTEGRAL EXPRESSIONS
    double kp(0);
 
    for(int ww=0;ww!=basis_size;ww++)
@@ -305,66 +309,67 @@ void compute_bessel_pice_mo(double*** pice_ortho_mo,double*** pice_ddx_mo,double
             {
                for(int mm1=-ll1;mm1!=ll1+1;mm1++)
                {
+                  antiphase=pow(-1,mm1+mm2+mm3);
 //                  std::cout<<"l1 = "<<ll1<<", l2 = "<<ll2<<", l3 = "<<ll3<<", m1 = "<<mm1<<", m2 = "<<mm2<<", m3 = "<<mm3<<std::endl;
 //                  std::cout<<"ang_int1 , ";
                       ang_int1[ll1*ll1+ll1+mm1][ww][ll3*ll3+ll3+mm3]=
-                         pow(-1,((ll2+ll3-ll1-1)/2))
+                         antiphase*pow(-1,((ll2+ll3-ll1-1)/2))
                           *(4.*acos(-1)*rYlm(ll3,mm3,nucl_spher_pos[nucl_basis_func[ww]-1][1],nucl_spher_pos[nucl_basis_func[ww]-1][2]))
                           *prefactor_rYlm(ll1,fabs(mm1))*prefactor_rYlm(ll2,fabs(mm2))*prefactor_rYlm(ll3,fabs(mm3))
                           *J_int_m1(ll1,ll2,ll3,fabs(mm1),fabs(mm2),fabs(mm3))*I_p1_integral(mm1,mm2,mm3);
 
 //                  std::cout<<"ang_int2 , ";
                       ang_int2[ll1*ll1+ll1+mm1][ww][ll3*ll3+ll3+mm3]=
-                         pow(-1,((ll2+ll3-ll1-1)/2))
+                         antiphase*pow(-1,((ll2+ll3-ll1-1)/2))
                           *(4.*acos(-1)*rYlm(ll3,mm3,nucl_spher_pos[nucl_basis_func[ww]-1][1],nucl_spher_pos[nucl_basis_func[ww]-1][2]))
                           *prefactor_rYlm(ll1,fabs(mm1))*prefactor_rYlm(ll2,fabs(mm2))*prefactor_rYlm(ll3,fabs(mm3))
                           *J_int_p1_D(ll1,ll2,ll3,fabs(mm1),fabs(mm2),fabs(mm3))*I_p1_integral(mm1,mm2,mm3);
 
 //                  std::cout<<"ang_int3 , ";
                       ang_int3[ll1*ll1+ll1+mm1][ww][ll3*ll3+ll3+mm3]=
-                         pow(-1,((ll2+ll3-ll1-1)/2))
+                         antiphase*pow(-1,((ll2+ll3-ll1-1)/2))
                           *(-4.*acos(-1)*rYlm(ll3,mm3,nucl_spher_pos[nucl_basis_func[ww]-1][1],nucl_spher_pos[nucl_basis_func[ww]-1][2]))
                           *prefactor_rYlm(ll1,fabs(mm1))*prefactor_rYlm(ll2,fabs(mm2))*prefactor_rYlm(ll3,fabs(mm3))
                           *J_int_m2(ll1,ll2,ll3,fabs(mm1),fabs(mm2),fabs(mm3))*I_m1_D_integral(mm1,mm2,mm3);
 
 //                  std::cout<<"ang_int4 , ";
                       ang_int4[ll1*ll1+ll1+mm1][ww][ll3*ll3+ll3+mm3]=
-                         pow(-1,((ll2+ll3-ll1-1)/2))
+                         antiphase*pow(-1,((ll2+ll3-ll1-1)/2))
                           *(4.*acos(-1)*rYlm(ll3,mm3,nucl_spher_pos[nucl_basis_func[ww]-1][1],nucl_spher_pos[nucl_basis_func[ww]-1][2]))
                           *prefactor_rYlm(ll1,fabs(mm1))*prefactor_rYlm(ll2,fabs(mm2))*prefactor_rYlm(ll3,fabs(mm3))
                           *J_int_m1(ll1,ll2,ll3,fabs(mm1),fabs(mm2),fabs(mm3))*I_m1_integral(mm1,mm2,mm3);
 
 //                  std::cout<<"ang_int5 , ";
                       ang_int5[ll1*ll1+ll1+mm1][ww][ll3*ll3+ll3+mm3]=
-                         pow(-1,((ll2+ll3-ll1-1)/2))
+                         antiphase*pow(-1,((ll2+ll3-ll1-1)/2))
                           *(4.*acos(-1)*rYlm(ll3,mm3,nucl_spher_pos[nucl_basis_func[ww]-1][1],nucl_spher_pos[nucl_basis_func[ww]-1][2]))
                           *prefactor_rYlm(ll1,fabs(mm1))*prefactor_rYlm(ll2,fabs(mm2))*prefactor_rYlm(ll3,fabs(mm3))
                           *J_int_p1_D(ll1,ll2,ll3,fabs(mm1),fabs(mm2),fabs(mm3))*I_m1_integral(mm1,mm2,mm3);
 
 //                  std::cout<<"ang_int6 , ";
                       ang_int6[ll1*ll1+ll1+mm1][ww][ll3*ll3+ll3+mm3]=
-                         pow(-1,((ll2+ll3-ll1-1)/2))
+                         antiphase*pow(-1,((ll2+ll3-ll1-1)/2))
                           *(4.*acos(-1)*rYlm(ll3,mm3,nucl_spher_pos[nucl_basis_func[ww]-1][1],nucl_spher_pos[nucl_basis_func[ww]-1][2]))
                           *prefactor_rYlm(ll1,fabs(mm1))*prefactor_rYlm(ll2,fabs(mm2))*prefactor_rYlm(ll3,fabs(mm3))
                           *J_int_m2(ll1,ll2,ll3,fabs(mm1),fabs(mm2),fabs(mm3))*I_p1_D_integral(mm1,mm2,mm3);
 
 //                  std::cout<<"ang_int7 , ";
                       ang_int7[ll1*ll1+ll1+mm1][ww][ll3*ll3+ll3+mm3]=
-                         pow(-1,((ll2+ll3-ll1-1)/2))
+                         antiphase*pow(-1,((ll2+ll3-ll1-1)/2))
                           *(4.*acos(-1)*rYlm(ll3,mm3,nucl_spher_pos[nucl_basis_func[ww]-1][1],nucl_spher_pos[nucl_basis_func[ww]-1][2]))
                           *prefactor_rYlm(ll1,fabs(mm1))*prefactor_rYlm(ll2,fabs(mm2))*prefactor_rYlm(ll3,fabs(mm3))
                           *J_int_p1(ll1,ll2,ll3,fabs(mm1),fabs(mm2),fabs(mm3))*azim_integ(mm1,mm2,mm3);
 
 //                  std::cout<<"ang_int8 , ";
                       ang_int8[ll1*ll1+ll1+mm1][ww][ll3*ll3+ll3+mm3]=
-                         pow(-1,((ll2+ll3-ll1-1)/2))
+                         antiphase*pow(-1,((ll2+ll3-ll1-1)/2))
                           *(-4.*acos(-1)*rYlm(ll3,mm3,nucl_spher_pos[nucl_basis_func[ww]-1][1],nucl_spher_pos[nucl_basis_func[ww]-1][2]))
                           *prefactor_rYlm(ll1,fabs(mm1))*prefactor_rYlm(ll2,fabs(mm2))*prefactor_rYlm(ll3,fabs(mm3))
                           *J_int_m1_D(ll1,ll2,ll3,fabs(mm1),fabs(mm2),fabs(mm3))*azim_integ(mm1,mm2,mm3);
 
 //                  std::cout<<"ang_int9 , ";
                       ang_int9[ll1*ll1+ll1+mm1][ww][ll3*ll3+ll3+mm3]=
-                         pow(-1,((ll2+ll3-ll1)/2))
+                         antiphase*pow(-1,((ll2+ll3-ll1)/2))
                           *(4.*acos(-1)*rYlm(ll3,mm3,nucl_spher_pos[nucl_basis_func[ww]-1][1],nucl_spher_pos[nucl_basis_func[ww]-1][2]))
                           *prefactor_rYlm(ll1,fabs(mm1))*prefactor_rYlm(ll2,fabs(mm2))*prefactor_rYlm(ll3,fabs(mm3))
                           *gaunt_formula(ll1,ll2,ll3,fabs(mm1),fabs(mm2),fabs(mm3))*azim_integ(mm1,mm2,mm3);

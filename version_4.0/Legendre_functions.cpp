@@ -1,55 +1,78 @@
-double associated_legendre(unsigned int l,int m,double x)
+double rYlm (int l,int m,double thet,double phi)
 {
-   return prefactor_rYlm(l,m)*associated_legendre_nonorm(l,m,x);
-/*   double sign(-bool( m % 2 != 0 ) + bool( m % 2 == 0 ));
-   double val(1);
-   double temp(0);
+//   std::cout<<"Entering rYlm with parameters "<<l<<","<<m<<","<<thet<<","<<phi<<std::endl;
+      if(m<0)
+      {
+         return prefactor_rYlm(l,m)*associated_legendre_nonorm(l,-m,cos(thet))*sin(fabs(m)*phi);
+      }
+      else if(m>0)
+      {
+         return prefactor_rYlm(l,m)*associated_legendre_nonorm(l,m,cos(thet))*cos(m*phi);
+      }
+      else
+      {
+         return prefactor_rYlm(l,m)*associated_legendre_nonorm(l,m,cos(thet));
+      }
+}
+double prefactor_rYlm(int l,int m)
+{
+   /*
+    * THIS FUNCTION COMPUTES THE SPHERICAL HARMONICS NORMALIZATION PREFACTOR 
+    * WE EXPLICITELY INCLUDE THE CONDON SHORTLEY PHASE IN THE ECXPRESSION OF THE SPHERICAL HARMIONICS PREFACTOR
+    * SO THAT WE DO NOT TAKE IT  TWICE INTO ACCOUNT WHENEVALUATING THE ASSOCIATED LEGENDRE POLYNOMIALS.
+    */
+   double temp(1);
+   double val(0);
 
    if(fabs(m) > fabs(l))
    {
+      std::cout<<"FATAL ERROR IN SPHERICAL HARMONICS PREFACTOR. M>L:"<<m<<">"<<l<<std::endl;
       return 0;
-//      std::cout<<"FATAL ERROR IN ASSOCIATED LEGENDRE COMPUTATION. M>L:"<<m<<">"<<l<<std::endl;
-//      exit(EXIT_SUCCESS);
    }
-   else if(fabs(x)==1 && m!=0)
-      return 0;
-   else
+
+   if(m == 0)
    {
-      if(m == 0)
-      {
-//          std::cout<<"P_"<<l<<"("<<x<<") : "<<sqrt((2*l+1)/(4*acos(-1)))<<" * "<<legendre(l,x)<<std::endl;
-         return sqrt((2*l+1)/(4*acos(-1)))*legendre(l,x);
-      }
-      else if(m > 0)
-      {
-         val=sign * sqrt((2*l+1)/ (4*acos(-1)));
-         temp=1;
-         for (int tt=l-m+1;tt!=l+m+1;tt++)
-         {
-            temp/=double(tt);
-         }
-//         std::cout<<"sqrt("<<l<<"!-"<<m<<"!)/("<<l<<"!+"<<m<<"!) = "<<sqrt(temp)<<std::endl;
-         val*=sqrt(temp);
-         //std::cout<<"===="<<val<<std::endl;
-//         std::cout<<" From associated Legendre, calling associated legendre nonorm with parameters "<<l<<","<<m-1<<";"<<l-1<<","<<m-1<<std::endl;
-         return val * ((l-m+1) * x * associated_legendre_nonorm(l,m-1,x) - (l+m-1) * associated_legendre_nonorm(l-1,m-1,x)) / sqrt(1-x*x);
-      }
-      else 
-      {
-         temp=1;
-         for (int tt=l-fabs(m)+1;tt!=l+fabs(m)+1;tt++)
-         {
-            temp/=tt;
-         }
-         return sign * temp * associated_legendre(l,-m,x);
-      }
+      return sqrt((2*l+1)/(4*acos(-1)));
    }
-   */
+   else if(m > 0)
+   {
+      val= pow(-1,m) * sqrt(2.) * sqrt((2*l+1)/ (4*acos(-1)));
+      temp=1.;
+      for (int tt=l-m+1;tt!=l+m+1;tt++)
+      {
+         temp/=double(tt);
+      }
+      val*=sqrt(temp);
+
+      return val;
+   }
+   else 
+   {
+      return pow(-1,m) * prefactor_rYlm(l,fabs(m));
+   }
 }
+/*
+ * double associated_legendre(unsigned int l,int m,double x)
+ * {
+ *  return prefactor_rYlm(l,m)*associated_legendre_nonorm(l,m,x);
+ * }
+ */
 double associated_legendre_nonorm(unsigned int l,int m,double x)
 {
 
-   int sign(1);//(-bool( m % 2 != 0 ) + bool( m % 2 == 0 ));
+   /*
+    * COMPUTATION OF THE ASSOCIATED LEGENDRE POLYNOMIAL,!!! ___EXCLUDING THE CONDON-SHORTLEY PHASE___ !!!
+    * THE POLYMOMIALS ARE COMUPTED USING RECCURENCE RELATIONS.
+    *
+    * THE FOLLOWING IDENTITIES ARE USED :
+    *
+    * P_{L}^{M}(1) = P_{L}^{M}(-1) = 0 FOR M != 0
+    *
+    * P_{L}^{L}(X) = (2L-1)!! * (1-X**2)^{L/2}
+    *
+    * P_{L}^{M}(X) = [ (2L-1) / (L-M) ] * X * P_{L-1}^{M}(X) -  [ (L+M-1) / (L-M) ] * P_{L-2}^{M}(X)
+    *
+    */
 
    if(fabs(m) > fabs(l))
    {
@@ -67,89 +90,44 @@ double associated_legendre_nonorm(unsigned int l,int m,double x)
       }
       else if(m > 0)
       {
-//         std::cout<<" Recalling associated legendre nonorm with parameters "<<l<<","<<m-1<<";"<<l-1<<","<<m-1<<std::endl;
-//         return sign * ((l-m+1)*x*associated_legendre_nonorm(l,m-1,x)-(l+m-1)*associated_legendre_nonorm(l-1,m-1,x))/sqrt(1-x*x);
-//
          if(l == m)
-            return pow(-1,l)*dfactorial(2*l-1)*pow(1-x*x,double(l)/2);
+            return dfactorial(2*l-1)*pow(1-x*x,double(l)/2);
          else
             return (double(2*l-1)/double(l-m))*x*associated_legendre_nonorm(l-1,m,x) - double((l+m-1)/double(l-m))*associated_legendre_nonorm(l-2,m,x);
       }
       else 
       {
-//         std::cout<<" From negative m part, Recalling associated legendre nonorm with parameters "<<l<<","<<-m<<std::endl;
-         return sign * associated_legendre_nonorm(l,-m,x);
+         return associated_legendre_nonorm(l,-m,x);
       }
    }
 }
-double associated_legendre_der(unsigned int l,int m,double x)
-{
-
-   int sign(-bool( m % 2 != 0 ) + bool( m % 2 == 0 ));
-   double temp(0);
-   double val(0);
-
-   if( x == 1 )
-      return 0;
-   else
-   {
-      if(m == 0)
-      {
-         return sqrt((2*l+1)/(4*acos(-1)))*legendre_der(l,x);
-      }
-      else if(m > 0)
-      {
-         val=sign * sqrt((2*l+1)/ (4*acos(-1)));
-         temp=1;
-         for (int tt=l-m+1;tt!=l+m+1;tt++)
-         {
-            temp/=tt;
-         }
-         val*=sqrt(temp);
-//         std::cout<<" From associated Legendre der, calling associated legendre nonorm with parameters "<<l<<","<<m<<";"<<l-1<<","<<m<<std::endl;
-         return sign * val
-//         return -sign * sqrt((2*l+1)*exp(ln_factorial(l-m)-ln_factorial(l+m))/(4*acos(-1)))
-            *(l*x*associated_legendre_nonorm(l,m,x)-(l+m)*associated_legendre_nonorm(l-1,m,x))/sqrt(1-x*x);
-      }
-      else 
-      {
-         std::cout<<"Legendre function line 95"<<std::endl;
-         exit(EXIT_SUCCESS);
-//         return sign * exp(ln_factorial(l+m)-ln_factorial(l-m))*associated_legendre_der(l,-m,x);
-         //return sign * double(factorial(l+m,fact_memo))*associated_legendre_der(l,-m,x,fact_memo)/double(factorial(l-m,fact_memo));
-      }
-   }
-}
+/*
+ * double associated_legendre_der(unsigned int l,int m,double x)
+ * {
+ *  return associated_legendre_nonorm_der(l,m,x);
+ * }
+ */ 
 double associated_legendre_nonorm_der(unsigned int l,int m,double x)
 {
 
-   int sign(-bool( m % 2 != 0 ) + bool( m % 2 == 0 ));
-   double temp(0);
    double val(0);
 
    if( x == 1 )
       return 0;
    else
    {
-      if(m == 0)
+      if( m == 0 )
       {
          return legendre_der(l,x);
       }
-      else if(m > 0)
+      else if( m > 0 )
       {
-//         return (l/(l+m+1))*((l-m+1)*associated_legendre_nonorm(l,m+1,x)/sqrt(1-x*x)-associated_legendre_nonorm(l,m+1,x))-(l+m)*associated_legendre_nonorm(l-1,m,x)/sqrt(1-x*x);
-          val=-sign;
-//         std::cout<<" From associated Legendre der, calling associated legendre nonorm with parameters "<<l<<","<<m<<";"<<l-1<<","<<m<<std::endl;
-         return sign * val
-//         return -sign * sqrt((2*l+1)*exp(ln_factorial(l-m)-ln_factorial(l+m))/(4*acos(-1)))
-            *(l*x*associated_legendre_nonorm(l,m,x)-(l+m)*associated_legendre_nonorm(l-1,m,x))/sqrt(1-x*x);
+         return (l*x*associated_legendre_nonorm(l,m,x)-(l+m)*associated_legendre_nonorm(l-1,m,x))/sqrt(1-x*x);
       }
       else 
       {
-         std::cout<<"Legendre function line 148"<<std::endl;
+         std::cout<<"Error: Negative ml value in associated legendre der function. exit"<<std::endl;
          exit(EXIT_SUCCESS);
-//         return sign * exp(ln_factorial(l+m)-ln_factorial(l-m))*associated_legendre_der(l,-m,x);
-         //return sign * double(factorial(l+m,fact_memo))*associated_legendre_der(l,-m,x,fact_memo)/double(factorial(l-m,fact_memo));
       }
    }
 }
