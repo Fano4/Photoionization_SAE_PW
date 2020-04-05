@@ -4,7 +4,7 @@
 #include <hdf5.h>
 #include <H5Cpp.h>
 
-bool write_output(std::string h5filename,int* n_states_neut,int* n_states_cat,int *n_occ,int *n_closed,int *n_nucl_dim,int *grid_size,int *num_of_nucl,int* basis_size,int *contraction_number,double *nucl_coord,double ***nucl_spher_pos,double ***mo_dipoles_mat,double **MO_coeff_neutral,double **dyson_mo_coeff,double **contraction_coeff,double **contraction_zeta,int* nucleus_basis_func,std::string *basis_func_type,double ***tran_den_mat_mo);
+bool write_output(std::string h5filename,int* n_states_neut,int* n_states_cat,int *n_occ,int *n_closed,int *n_nucl_dim,int *n_elec_neut,int *ci_size_neut,int *ci_size_cat,int *grid_size,int *num_of_nucl,int* basis_size,int *contraction_number,double *nucl_coord,double ***nucl_spher_pos,double ***mo_dipoles_mat,double **MO_coeff_neutral,double **dyson_mo_coeff,double*** ci_vec_neut,double ***ci_vec_cat,double **contraction_coeff,double **contraction_zeta,int* nucleus_basis_func,std::string *basis_func_type,double ***tran_den_mat_mo);
 
 bool read_output(std::string h5filename,int* n_states_neut,int* n_states_cat,int *n_occ,int *n_closed,int *n_nucl_dim,int *grid_size,int *num_of_nucl,int* basis_size,int *contraction_number=NULL,double *nucl_coord=NULL,double ***nucl_spher_pos=NULL,double ***mo_dipoles_mat=NULL,double **MO_coeff_neutral=NULL,double **dyson_mo_coeff=NULL,double **contraction_coeff=NULL,double **contraction_zeta=NULL,int* nucleus_basis_func=NULL,std::string *basis_func_type=NULL);
 int spherical_harmonics_translator(std::string basis_func_type,bool component);

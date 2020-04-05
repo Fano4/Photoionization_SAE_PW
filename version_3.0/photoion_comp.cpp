@@ -74,6 +74,12 @@ int photoion_comp(int argc, char* argv[])
     int ci_size_cat(0);
     int ci_size_neut_sym[n_sym];
     int ci_size_cat_sym[n_sym];
+    int *save_ci_size_neut;
+    int *save_ci_size_cat;
+    int **save_ci_size_neut_sym=new int*[n_sym];
+    int **save_ci_size_cat_sym=new int*[n_sym];
+    double ***save_ci_vec_neut=new double**[2];
+    double ***save_ci_vec_cat=new double**[2];
     double **ci_vec_neut=new double*[2];
     double **ci_vec_cat=new double*[2];
     double ***contraction_coeff_sym;
@@ -105,11 +111,13 @@ int photoion_comp(int argc, char* argv[])
        {
           n_states_neut+=n_states_neutral_sym[i];
           n_states_cat+=n_states_cat_sym[i];
+          save_ci_size_neut_sym[i]=new int[grid_size];
+          save_ci_size_cat_sym[i]=new int[grid_size];
        }
     }
     //variables depending on grid size
-    const std::string hf5_outfile("LiH_testing_continuum.h5");
-    int grid_size(1);
+    const std::string hf5_outfile("LiH_ci_vectors.h5");
+    int grid_size(512);
     double **MO_coeff_neutral=new double*[grid_size];
     double *overlap;
     double ***mo_dipole=new double**[grid_size];
@@ -120,6 +128,12 @@ int photoion_comp(int argc, char* argv[])
     double rLi(0);
     double rH(0);
     double *nucl_coord=new double[grid_size];
+    save_ci_vec_neut[0]=new double*[grid_size];
+    save_ci_vec_neut[1]=new double*[grid_size];
+    save_ci_vec_cat[0]=new double*[grid_size];
+    save_ci_vec_cat[1]=new double*[grid_size];
+    save_ci_size_neut=new int[grid_size];
+    save_ci_size_cat=new int[grid_size];
 
     double ***nucl_spher_pos=new double**[grid_size];
 
@@ -128,8 +142,8 @@ int photoion_comp(int argc, char* argv[])
     int index(0);
     int index2(0);
     int temp_int(0);
-    double xmin(1.6125);
-    double xmax(1.6125);
+    double xmin(0.8);
+    double xmax(21.6);
     double mLi(6.015122795);
     double mH(1.007825);
     std::string file_root("/data1/home/stephan/LiH_gridtest_+++custom/LiH_");
@@ -140,7 +154,14 @@ int photoion_comp(int argc, char* argv[])
     {
        nucl_spher_pos[x]=new double* [num_of_nucl]; 
 
+       save_ci_size_neut[x]=0;
+       save_ci_size_cat=[x]=0;
 
+       for(int i=0;i!=n_sym;i++)
+       {
+          save_ci_size_neut_sym[i][x]=0;
+          save_ci_size_cat_sym[i][x]=0;
+       }
        for(int i=0;i!=num_of_nucl;i++)
        {
           nucl_spher_pos[x][i]=new double [3]; 
@@ -317,6 +338,14 @@ for(int x=0;x!=grid_size;x++)
     }
     else
        num_of_ci_reader(&n_states_neut, &n_states_cat, &ci_size_neut, &ci_size_cat, molpro_output_path,n_occs);
+
+    save_ci_size_neut[x]=ci_size_neut;
+    save_ci_size_cat[x]=ci_size_cat;
+    for(int i=0;i!=n_sym;i++)
+    {
+       save_ci_size_neut_sym[i][x]=ci_size_neut_sym[i];
+       save_ci_size_cat_sym[i][x]=ci_size_cat_sym[i];
+    }
     //std::cout<<"ci size neut is "<<ci_size_neut<<std::endl<<"ci size cat is "<<ci_size_cat<<std::endl;
 
     //ALLOCATE ARRAYS THAT DEPEND ON THE SIZE OF THE CI VECTOR
@@ -324,6 +353,10 @@ for(int x=0;x!=grid_size;x++)
     ci_vec_neut[1]=new double[n_elec_neut*ci_size_neut];//this vector represents the spin state of each electron
     ci_vec_cat[0]=new double [(n_elec_neut-1)*ci_size_cat+n_states_cat*ci_size_cat];
     ci_vec_cat[1]=new double [(n_elec_neut-1)*ci_size_cat];
+    save_ci_vec_neut[0][x]=new double [n_elec_neut*ci_size_neut+n_states_neut*ci_size_neut];
+    save_ci_vec_neut[1][x]=new double [n_elec_neut*ci_size_neut];
+    save_ci_vec_cat[0][x]=new double [(n_elec_neut-1)*ci_size_cat+n_states_cat*ci_size_cat];
+    save_ci_vec_cat[1][x]=new double [(n_elec_neut-1)*ci_size_cat];
 
 /*   for(int j=0;j!=num_of_nucl;j++)
    {
@@ -344,6 +377,15 @@ for(int x=0;x!=grid_size;x++)
     else
       ci_vec_reader(&n_states_neut, &n_states_cat, &n_occ,&n_closed, n_elec_neut,&ci_size_neut,&ci_size_cat, ci_vec_neut, ci_vec_cat, molpro_output_path);
     std::cout<<"CI_VEC_READER ROUTINE ENDED WITHOUT ISSUE"<<std::endl;
+
+    for(int i=0;i!=n_elec_neut*ci_size_neut+n_states_neut*ci_size_neut;i++)
+       save_ci_vec_neut[0][x][i]=ci_vec_neut[0][i];
+    for(int i=0;i!=n_elec_neut*ci_size_neut;i++)
+       save_ci_vec_neut[1][x][i]=ci_vec_neut[1][i];
+    for(int i=0;i!=(n_elec_neut-1)*ci_size_cat+n_states_cat*ci_size_cat;i++)
+       save_ci_vec_cat[0][x][i]=ci_vec_cat[0][i];
+    for(int i=0;i!=(n_elec_neut-1)*ci_size_cat;i++)
+       save_ci_vec_cat[1][x][i]=ci_vec_cat[1][i];
 //DEBOGAGE
 /*
     for(int i=0;i!=ci_size_neut;i++)
@@ -573,7 +615,7 @@ std::cout<<"********"<<std::endl;
     /*
      TESTING HF5 DIALOG
      */
-      write_output(hf5_outfile, &n_states_neut, &n_states_cat, &n_occ, &n_closed,&nucl_dim,&grid_size,&num_of_nucl,&basis_size,contraction_number,nucl_coord,nucl_spher_pos,mo_dipole,MO_coeff_neutral,dyson_mo_basis_coeff,contraction_coeff_array,contraction_zeta_array,nucl_basis_func,basis_func_type,tran_den_mat_mo);
+      write_output(hf5_outfile, &n_states_neut, &n_states_cat, &n_occ, &n_closed,&nucl_dim,&n_elec_neut,save_ci_size_neut,save_ci_size_cat,&grid_size,&num_of_nucl,&basis_size,contraction_number,nucl_coord,nucl_spher_pos,mo_dipole,MO_coeff_neutral,dyson_mo_basis_coeff,save_ci_vec_neut,save_ci_vec_cat,contraction_coeff_array,contraction_zeta_array,nucl_basis_func,basis_func_type,tran_den_mat_mo);
 //      exit(EXIT_SUCCESS);
    //   read_output(hf5_outfile, &n_states_neut, &n_states_cat, &n_occ, &n_closed,&nucl_dim,&grid_size,&num_of_nucl,&basis_size,nucl_spher_pos,mo_dipole,MO_coeff_neutral,dyson_mo_basis_coeff,contraction_number,contraction_coeff,contraction_zeta,nucl_basis_func,basis_func_type);
     /*

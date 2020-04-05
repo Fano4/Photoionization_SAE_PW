@@ -1,6 +1,6 @@
 #include "hf5_photoion.hpp"
 
-bool write_output(std::string h5filename,int* n_states_neut,int* n_states_cat,int *n_occ,int *n_closed,int *n_nucl_dim,int *grid_size,int *num_of_nucl,int* basis_size,int *contraction_number,double *nucl_coord,double ***nucl_spher_pos,double ***mo_dipoles_mat,double **MO_coeff_neutral,double **dyson_mo_coeff,double **contraction_coeff,double **contraction_zeta,int* nucleus_basis_func,std::string *basis_func_type,double ***tran_den_mat_mo)
+bool write_output(std::string h5filename,int* n_states_neut,int* n_states_cat,int *n_occ,int *n_closed,int *n_nucl_dim,int *n_elec_neut,int *ci_size_neut,int *ci_size_cat,int *grid_size,int *num_of_nucl,int* basis_size,int *contraction_number,double *nucl_coord,double ***nucl_spher_pos,double ***mo_dipoles_mat,double **MO_coeff_neutral,double **dyson_mo_coeff,double*** ci_vec_neut,double ***ci_vec_cat,double **contraction_coeff,double **contraction_zeta,int* nucleus_basis_func,std::string *basis_func_type,double ***tran_den_mat_mo)
 {
    using namespace H5;
       double nucl_cart_coord[*grid_size][*num_of_nucl][3];
@@ -9,6 +9,28 @@ bool write_output(std::string h5filename,int* n_states_neut,int* n_states_cat,in
       double dyson_mo_coeff_array[*grid_size][*n_states_neut][*n_states_cat][*n_occ+*n_closed];
       int basis_func_type_array[*basis_size][2];
       double tdmm[*grid_size][*n_states_neut**n_states_neut][(*n_occ+*n_closed)*(*n_occ+*n_closed)];
+
+
+      int temp1=0;
+      int temp2=0;
+
+      for(int i=0;i!=*grid_size;i++)
+      {
+         if(temp1 < ci_size_neut[i])
+            temp1=ci_size_neut[i];
+         if(temp2 < ci_size_cat[i])
+            temp2=ci_size_cat[i];
+      }
+      const int max_ci_size_neut(temp1);
+      const int max_ci_size_cat(temp2);
+
+      int ci_mo_label_neut[*grid_size][max_ci_size_neut][*n_elec_neut];
+      int ci_spin_label_neut[*grid_size][max_ci_size_neut][*n_elec_neut];
+      double ci_vector_neut_array[*grid_size][*n_states_neut][max_ci_size_neut];
+      int ci_mo_label_cat[*grid_size][max_ci_size_cat][*n_elec_cat];
+      int ci_spin_label_cat[*grid_size][max_ci_size_cat][*n_elec_cat];
+      double ci_vector_cat_array[*grid_size][*n_states_cat][max_ci_size_cat];
+
       for(int i=0;i!=*grid_size;i++)
       {
          std::cout<<"position "<<i<<std::endl;
@@ -60,6 +82,32 @@ bool write_output(std::string h5filename,int* n_states_neut,int* n_states_cat,in
                tdmm[kp][i][k]=tran_den_mat_mo[kp][i][k];
             }
          }
+
+         for(int i=0;i!=ci_size_neut[kp];i++)
+         {
+            for(int j=0;j!=*n_elec_neut;j++)
+            {
+               ci_mo_label_neut[kp][i][j]=int(ci_vec_neut[0][kp][(*n_elec_neut+*n_states_neut)*i+j]);
+               ci_spin_label_neut[kp][i][j]=int(ci_vec_neut[1][kp][(*n_elec_neut)*i+j]);
+            }
+            for(int j=0;j!=*n_states_neut;j++)
+            {
+               ci_vector_neut_array[kp][j][i]=ci_vec_neut[0][kp][(*n_elec_neut+*n_states_neut)*i+*n_elec_neut+j];
+            }
+         }
+         for(int i=0;i!=ci_size_cat[kp];i++)
+         {
+            for(int j=0;j!=*n_elec_neut-1;j++)
+            {
+               ci_mo_label_cat[kp][i][j]=int(ci_vec_cat[0][kp][(*n_elec_neut-1+*n_states_neut)*i+j]);
+               ci_spin_label_cat[kp][i][j]=int(ci_vec_cat[1][kp][(*n_elec_neut-1)*i+j]);
+            }
+            for(int j=0;j!=*n_states_cat;j++)
+            {
+               ci_vector_cat_array[kp][j][i]=ci_vec_neut[0][kp][(*n_elec_neut-1+*n_states_neut)*i+*n_elec_neut-1+j];
+            }
+         }
+
       }
    try
    {
@@ -104,8 +152,28 @@ bool write_output(std::string h5filename,int* n_states_neut,int* n_states_cat,in
       delete dataspace;
       delete dataset;
 
+   //create ci_size_neut_dataset in electronic_struc_parameters group
+      temp=*grid_size;
+      dim1=temp;
+      dataspace=new DataSpace(1,&dim1);
+      dataset=new DataSet(electronic_struct_param.createDataSet("ci_size_neut",PredType::NATIVE_INT, *dataspace));
+      dataset->write(ci_size_neut,PredType::NATIVE_INT);
+
+      delete dataspace;
+      delete dataset;
+
+   //create ci_size_cat_dataset in electronic_struc_parameters group
+      temp=*grid_size;
+      dim1=temp;
+      dataspace=new DataSpace(1,&dim1);
+      dataset=new DataSet(electronic_struct_param.createDataSet("ci_size_cat",PredType::NATIVE_INT, *dataspace));
+      dataset->write(ci_size_cat,PredType::NATIVE_INT);
+
+      delete dataspace;
+      delete dataset;
    // CLOSE ELECTRONIC STRUCT PARAMETERS GROUP
       electronic_struct_param.close();
+
 
    //CREATE NUCLEAR COORDINATES GROUP
       Group nuclear_coord(file.createGroup("/nuclear_coord"));
@@ -301,6 +369,72 @@ bool write_output(std::string h5filename,int* n_states_neut,int* n_states_cat,in
       delete dataset;
    //CLOSE BASIS SET INFO GROUP
       basis_set_info.close();
+
+
+   //CREATE CI VECTORS GROUP
+      Group ci_vectors(file.createGroup("/configuration_neut"));
+      //create configurations_neut dataset
+      dim3[0]=*grid_size;
+      dim3[1]=max_ci_size_neut;
+      dim3[2]=*n_elec_neut;
+      dataspace = new DataSpace(3,dim3);
+      dataset = new DataSet(ci_vectors.createDataSet("config_neut",PredType::NATIVE_INT, *dataspace));
+      dataset->write(ci_mo_label_neut,PredType::NATIVE_INT);
+      
+      delete dataspace;
+      delete dataset;
+      //create spin_conf_neut dataset
+      dim3[0]=*grid_size;
+      dim3[1]=max_ci_size_neut;
+      dim3[2]=*n_elec_neut;
+      dataspace = new DataSpace(3,dim3);
+      dataset = new DataSet(ci_vectors.createDataSet("spin_conf_neut",PredType::NATIVE_INT, *dataspace));
+      dataset->write(ci_spin_label_neut,PredType::NATIVE_INT);
+      
+      delete dataspace;
+      delete dataset;
+      //create ci_coeff_neut dataset
+      dim3[0]=*grid_size;
+      dim3[1]=*n_states_neut;
+      dim3[2]=max_ci_size_neut;
+      dataspace = new DataSpace(3,dim3);
+      dataset = new DataSet(ci_vectors.createDataSet("ci_coeff_neut",PredType::NATIVE_DOUBLE, *dataspace));
+      dataset->write(ci_vector_neut_array,PredType::NATIVE_DOUBLE);
+      
+      delete dataspace;
+      delete dataset;
+      //create configurations_cat dataset
+      dim3[0]=*grid_size;
+      dim3[1]=max_ci_size_neut;
+      dim3[2]=*n_elec_neut-1;
+      dataspace = new DataSpace(3,dim3);
+      dataset = new DataSet(ci_vectors.createDataSet("config_cat",PredType::NATIVE_INT, *dataspace));
+      dataset->write(ci_mo_label_cat,PredType::NATIVE_INT);
+      
+      delete dataspace;
+      delete dataset;
+      //create spin_conf_cat dataset
+      dim3[0]=*grid_size;
+      dim3[1]=max_ci_size_neut;
+      dim3[2]=*n_elec_neut-1;
+      dataspace = new DataSpace(3,dim3);
+      dataset = new DataSet(ci_vectors.createDataSet("spin_conf_cat",PredType::NATIVE_INT, *dataspace));
+      dataset->write(ci_spin_label_cat,PredType::NATIVE_INT);
+      
+      delete dataspace;
+      delete dataset;
+      //create ci_coeff_neut dataset
+      dim3[0]=*grid_size;
+      dim3[1]=*n_states_cat;
+      dim3[2]=max_ci_size_cat;
+      dataspace = new DataSpace(3,dim3);
+      dataset = new DataSet(ci_vectors.createDataSet("ci_coeff_cat",PredType::NATIVE_DOUBLE, *dataspace));
+      dataset->write(ci_vector_cat_array,PredType::NATIVE_DOUBLE);
+      
+      delete dataspace;
+      delete dataset;
+   //CLOSE CI VECTORS GROUP
+      ci_vectors.close();
 
       file.close();
 
