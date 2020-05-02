@@ -15,13 +15,13 @@
 #include "omp.h"
 
 //include program headers files
+#include "prime.hpp"
 #include "files_reader.hpp"
 //#include "dyson_cube_writer.hpp"
 #include "algebra.hpp"
 #include "Computation.hpp"
 #include "hf5_photoion.hpp"
-#include "prime.hpp"
-#include "wignerSymbols-master/build/include/wignerSymbols.h"
+#include "wignerSymbols-master/src/wignerSymbols-cpp.cpp"
 #include "files_reader.cpp"
 //#include "dyson_cube_writer.cpp"
 #include "algebra.cpp"

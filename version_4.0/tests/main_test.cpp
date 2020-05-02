@@ -40,5 +40,13 @@ int main(int argc,char* argv[])
 {
    test_determinant();
    test_legendre();
+   test_prime_decomposer();
+   test_fact_prime_decomposer();
+   //test_factorized_sum();
+   //test_wigner3j();
+   test_associated_legendre_nonorm();
+   gaunt_formula_test();
+//   J_int_m2_test();
+//   azim_integ_test();
    return 0;
 }

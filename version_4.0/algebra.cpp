@@ -520,7 +520,7 @@ void fact_prime_decomposer(int N, int* N_prime)
    //This routine factorizes the factorial of an integer number into prime numbers. It uses a global and constant array with maximum integer MAX_N_FACTORIAL
    if(N>MAX_N_FACTORIAL)
    {
-      std::cout<<"ERROR ! FACTORIAL ARGUMENT LARGER THAN MAx AUTHORIZED VALUE ! N = "<<N<<std::endl;
+      std::cout<<"ERROR ! FACTORIAL ARGUMENT LARGER THAN MAX AUTHORIZED VALUE ! N = "<<N<<std::endl;
       exit(EXIT_SUCCESS);
    }
    else

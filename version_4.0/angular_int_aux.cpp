@@ -50,19 +50,6 @@ double azim_integ(int m1,int m2,int m3)
       return 0;
       */
 }
-double polar_integ(int l1,int l2,int l3,int m1,int m2,int m3)
-{
-   // This function uses the formula for an integral over three spherical harmonics ant the azim_integ function to compute the integral over three legendre polynomials
-   // S = A.J
-
-   double prefactor(sqrt((2*l1+1)*(2*l2+1)*(2*l3+1)/(4*acos(-1))));
-   //double I(azim_integ(m1,m2,m3));
-   double cg1(WignerSymbols::wigner3j(l1,l2,l3,0,0,0));
-   double cg2(WignerSymbols::wigner3j(l1,l2,l3,m1,m2,m3));
-   double A(prefactor_rYlm(l1,m1)*prefactor_rYlm(l2,m2)*prefactor_rYlm(l3,m3));
-
-   return prefactor*cg1*cg2/(A);
-}
 double J_int_m2(int l1,int l2,int l3,int m1,int m2,int m3)
 {
    // CHECKED ON MARCH 2 2020
@@ -502,29 +489,45 @@ double I_p1_D_integral(int m1,int m2,int m3)
 double gaunt_formula(int l1,int l2,int l3,int m1,int m2,int m3)
 {
 
-   //Compute the prefactor due to negative degree
-   double sign(1);
-   if(m1<0)
-   {
-      m1=-m1;
-      sign*=(l1-m1)/(l1+m1);
-   }
-   if(m2<0)
-   {
-      m2=-m2;
-      sign*=(l2-m2)/(l2+m2);
-   }
-   if(m3<0)
-   {
-      m3=-m3;
-      sign*=(l3-m3)/(l3+m3);
-   }
-
    //Bypassing algorithm by using fixd header files.
    //
 //   if(l1 <= 10 && l2<=10 && l3<=10)
 //      return sign*GAUNT_COEFF_VAL[l1*(l1+1)/2+m1][l2*(l2+1)/2+m2][l3*(l3+1)/2+m3];
    //end of bypass. Resuming to the routine
+
+   //rearrange the array for getting l1<l2<l3
+   int tmpl;
+   int tmpm;
+   if(l1>l2)
+   {
+      tmpl=l1;
+      tmpm=m1;
+      l1=l2;
+      m1=m2;
+      l2=tmpl;
+      m2=tmpl;
+   }
+   if(l1>l3)
+   {
+      tmpl=l1;
+      tmpm=m1;
+      l1=l3;
+      m1=m3;
+      l3=tmpl;
+      m3=tmpl;
+   }
+   if(l2>l3)
+   {
+      tmpl=l2;
+      tmpm=m2;
+      l2=l3;
+      m2=m3;
+      l3=tmpl;
+      m3=tmpl;
+   }
+
+   if(l1>l2 || l1>l3 || l2>l3 )
+      std::cout<<"Shitty implemented the sorting algorithm..."<<std::endl;
 
    double temp;
    double factor(0);
@@ -534,14 +537,29 @@ double gaunt_formula(int l1,int l2,int l3,int m1,int m2,int m3)
    double ALP_integ(0);
    double prefactor(0);
 
+   bool sgnm1( bool ( m1 < 0 ) );
+   bool sgnm2( bool ( m2 < 0 ) );
+   bool sgnm3( bool ( m3 < 0 ) );
 
-   int m12(m1+m2);
-   int m123(m12+m3);
+
 
    int fac1[MAX_FACTORIAL_PRIME];
    double temp2(1);
-   double val;
+   double val(1);
 
+
+   //Flip the sign of m's if they are negative
+   if(sgnm1)
+      m1=-m1;
+   if(sgnm2)
+      m2=-m2;
+   if(sgnm2)
+      m2=-m2;
+
+   //Declare intermediary m's
+   
+   int m12(m1+m2);
+   int m123(m12+m3);
 
    // Checking if any of the polynomials is zero
    
@@ -551,50 +569,70 @@ double gaunt_formula(int l1,int l2,int l3,int m1,int m2,int m3)
    else if(m1>l1 || m2>l2 || m3>l3)
       return 0;
 
-
-   //If none of the polynomials are zero, first compute the factor in front of expansion
+   //If none of the polynomials are zero, then check for special cases, first compute the factor in front of expansion. Account for the renormalization in case of sign flip
 
       temp=1;
       for (int tt=l1-m1+1;tt!=l1+m1+1;tt++)
       {
-         temp*=double(tt);
+         if(sgnm1)
+            temp*=pow(double(tt),-1);
+         else
+            temp*=double(tt);
       }
-      val=sqrt(temp);
+      val*=sqrt(temp);
 
       temp=1;
       for (int tt=l2-m2+1;tt!=l2+m2+1;tt++)
       {
-         temp*=double(tt);
+         if(sgnm2)
+            temp*=pow(double(tt),-1);
+         else
+            temp*=double(tt);
       }
       val*=sqrt(temp);
 
       temp=1;
       for (int tt=l3-m3+1;tt!=l3+m3+1;tt++)
       {
-         temp*=double(tt);
+         if(sgnm3)
+            temp*=pow(double(tt),-1);
+         else
+            temp*=double(tt);
       }
       val*=sqrt(temp);
 
-      prefactor=val;
+      prefactor=val*pow(-1,sgnm1*m1+sgnm2*m2+sgnm3*m3);
+   
+   //Then check for special cases
+   if(m1+m2==m3)
+       return 2.*pow(-1,m3)*prefactor*WignerSymbols::wigner3j(l1,l2,l3,0,0,0)*WignerSymbols::wigner3j(l1,l2,l3,m1,m2,-m3);
+   //m3=abs(m1-m2)
+   int delta(m2+(m1-m2)*bool(m2>=m1));
+   if(abs(m1+m2)==m3)
+       return 2.*pow(-1,delta-m1+m2)*prefactor*WignerSymbols::wigner3j(l1,l2,l3,0,0,0)*WignerSymbols::wigner3j(l1,l2,l3,-m1,m2,m1-m2);
 
    // then, compute the expansion of the Legendre polynomials product
-   for(int l12=fabs(l1-l2);l12!=l1+l2+1;l12++)
+
+   for(int l12=abs(l1-l2);l12!=l1+l2+1;l12++)
    {
-      if((l1+l2+l12)%2!=0 || m12 > l12)
+
+      if( (l1+l2+l12) % 2 !=0 || m12 > l12)
          continue;
       else
       {
 
          G12=pow(-1.,m12)*(2.*l12+1.)*WignerSymbols::wigner3j(l1,l2,l12,0,0,0)*WignerSymbols::wigner3j(l1,l2,l12,m1,m2,-m12);
+
          for(int l123=fabs(l12-l3);l123!=l12+l3+1;l123++)
          {
-            if((l12+l3+l123)%2!=0 || m123 > l123)
+            if( (l12+l3+l123) % 2 != 0 || m123 > l123)
                continue;
             else
             {
                G123=pow(-1,m123)*(2.*l123+1.)*WignerSymbols::wigner3j(l12,l3,l123,0,0,0)*WignerSymbols::wigner3j(l12,l3,l123,m12,m3,-m123);
+
                temp=1;
-               for (int tt=l123-m123+1;tt!=l123+m123+1;tt++)
+               for (int tt = l123-m123+1;tt!=l123+m123+1;tt++)
                {
                   temp/=double(tt);
                }

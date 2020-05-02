@@ -1,23 +1,25 @@
 #ifndef test_file_hpp
 #define test_file_hpp
 
-double test2_integral(int l1,int l2,int l3,int m1,int m2,int m3);
-void test_radial(int l1,int l2,int l3,int m1,int m2,int m3,double zeta,double kp,double* r0);
-void cart_to_spher(double* x,double* y,double* z,double * r,double* t,double *f);
-double numerical_integral(int l1,int m1,int l2,int m2,double zeta,double kp,double* r0);
-void pw_bessel_overlap_comparison(int l2,int m2,double zeta,double kp,double thet,double phi,double* r0);
-void pw_bessel_comparison(double kp,double kthet,double kphi,double r,double thet,double phi);
-void pw_bessel_gradient_y_comparison(int l2,int m2,double zeta,double kp,double thet,double phi,double* r0);
 
 //TEST_ALGEBRA.CPP
 
 bool test_determinant();
+bool test_prime_decomposer();
+bool test_factorized_sum();
+bool test_wigner3j();
 
 
+//angular_int_aux_test.cpp
+
+bool azim_integ_test();
+bool gaunt_formula_test();
+bool J_int_m2_test();
 
 #include "../photoion_comp.hpp"
 
 #include "test_utility.cpp"
 #include "algebra_test.cpp"
 #include "Legendre_functions_test.cpp"
+#include "angular_int_aux_test.cpp"
 #endif
