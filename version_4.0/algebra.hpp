@@ -23,13 +23,17 @@ double cube_dot_product(double *cube1,double *cube2,int nx,int ny, int nz,double
 double vector_prod(double vector1[],double vector2[],int gsize);
 long double intplushalf_gamma(int n); //(Gamma(n+1/2))
 long double gamma_int_or_half(double z);
-double w3j(int l1,int l2,int l3,int m1,int m2,int m3);
-double wdelta(int a,int b,int c);
-double wigner3j(int l1,int l2,int l3,int m1,int m2,int m3);
+//int w3j(int l1,int l2,int l3,int m1,int m2,int m3,int* Z,int* Zp);
+//bool w3j_prefac(int l1,int l2,int l3,int m1,int m2,int m3,int* fac);
+//bool wdelta(int a,int b,int c,int* fac);
+//double wigner3j(int l1,int l2,int l3,int m1,int m2,int m3);
 double j_l(int l,double z);//spherical bessel function of order l
 double dj_ldz(int l,double z); //Derivative of the spherical bessel function of order l
 int dfactorial(int n);
 //double ln_factorial(int n,double *memo);
 void fact_prime_decomposer(int N, int* N_prime);
+void prime_decomposer(int N, int* N_prime);
+int factorized_diff(int* x1,int* x2,int* out);
+bool factorized_sum(int* x1,int* x2,int* out);
 
 #endif /* computation_hpp */

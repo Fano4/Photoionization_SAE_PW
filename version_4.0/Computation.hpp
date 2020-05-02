@@ -44,6 +44,7 @@ double Dint(int l1,int l2,int l3,int m1,int m2,int m3);
 double gaunt_formula(int l1,int l2,int l3,int m1,int m2,int m3);
 double prefactor_rYlm(int l,int m);
 double azim_integ(int m1,int m2,int m3);
+double polar_integ(int l1,int l2,int l3,int m1,int m2,int m3);
 //std::complex<double> bessel_azimder_contraction_overlap( double k, int jl,int jml,double* nucl_spher_pos,double contraction_zeta,int* angular_mom_numbers);
 //std::complex<double> bessel_polarder_contraction_overlap( double k, int jl,int jml,double* nucl_spher_pos,double contraction_zeta,int* angular_mom_numbers);
 //std::complex<double> bessel_radialder_contraction_overlap( double k, int jl,int jml,double* nucl_spher_pos,double contraction_zeta,int* angular_mom_numbers);

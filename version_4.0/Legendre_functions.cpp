@@ -18,7 +18,7 @@ double prefactor_rYlm(int l,int m)
 {
    /*
     * THIS FUNCTION COMPUTES THE SPHERICAL HARMONICS NORMALIZATION PREFACTOR 
-    * WE EXPLICITELY INCLUDE THE CONDON SHORTLEY PHASE IN THE ECXPRESSION OF THE SPHERICAL HARMIONICS PREFACTOR
+    * WE EXPLICITELY INCLUDE THE CONDON SHORTLEY PHASE IN THE EXPRESSION OF THE SPHERICAL HARMONICS PREFACTOR
     * SO THAT WE DO NOT TAKE IT  TWICE INTO ACCOUNT WHENEVALUATING THE ASSOCIATED LEGENDRE POLYNOMIALS.
     */
    double temp(1);
@@ -86,7 +86,7 @@ double associated_legendre_nonorm(unsigned int l,int m,double x)
    {
       if(m == 0)
       {
-         return sign * legendre(l,x);
+         return  legendre(l,x);
       }
       else if(m > 0)
       {
@@ -97,7 +97,12 @@ double associated_legendre_nonorm(unsigned int l,int m,double x)
       }
       else 
       {
-         return associated_legendre_nonorm(l,-m,x);
+         double temp(1);
+         for (int tt=l-fabs(m)+1;tt!=l+fabs(m)+1;tt++)
+         {
+            temp/=double(tt);
+         }
+         return temp*associated_legendre_nonorm(l,-m,x);
       }
    }
 }
@@ -145,6 +150,9 @@ double legendre(unsigned int l,double x)
 }
 double legendre_der(unsigned int l,double x)
 {
+   //This is the derivative with respect to theta. x=cos(theta)
+   // d/dt = d/dx.dx/dt = -sin(t).d/dx = -sqrt(1-x**2) . d/dx
+   
    if(x==1)
    {
       return 0;
@@ -156,7 +164,7 @@ double legendre_der(unsigned int l,double x)
          case 0:
             return 0;
          case 1:
-            return sqrt(1-x*x);
+            return -sqrt(1-x*x);
          default:
             return (l/sqrt(1-x*x))*(x*legendre(l,x)-legendre(l-1,x)); 
       }
