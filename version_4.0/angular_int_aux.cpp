@@ -488,47 +488,6 @@ double I_p1_D_integral(int m1,int m2,int m3)
 }
 double gaunt_formula(int l1,int l2,int l3,int m1,int m2,int m3)
 {
-
-   //Bypassing algorithm by using fixd header files.
-   //
-//   if(l1 <= 10 && l2<=10 && l3<=10)
-//      return sign*GAUNT_COEFF_VAL[l1*(l1+1)/2+m1][l2*(l2+1)/2+m2][l3*(l3+1)/2+m3];
-   //end of bypass. Resuming to the routine
-
-   //rearrange the array for getting l1<l2<l3
-   int tmpl;
-   int tmpm;
-   if(l1>l2)
-   {
-      tmpl=l1;
-      tmpm=m1;
-      l1=l2;
-      m1=m2;
-      l2=tmpl;
-      m2=tmpl;
-   }
-   if(l1>l3)
-   {
-      tmpl=l1;
-      tmpm=m1;
-      l1=l3;
-      m1=m3;
-      l3=tmpl;
-      m3=tmpl;
-   }
-   if(l2>l3)
-   {
-      tmpl=l2;
-      tmpm=m2;
-      l2=l3;
-      m2=m3;
-      l3=tmpl;
-      m3=tmpl;
-   }
-
-   if(l1>l2 || l1>l3 || l2>l3 )
-      std::cout<<"Shitty implemented the sorting algorithm..."<<std::endl;
-
    double temp;
    double factor(0);
    double sum(0);
@@ -537,86 +496,28 @@ double gaunt_formula(int l1,int l2,int l3,int m1,int m2,int m3)
    double ALP_integ(0);
    double prefactor(0);
 
-   bool sgnm1( bool ( m1 < 0 ) );
-   bool sgnm2( bool ( m2 < 0 ) );
-   bool sgnm3( bool ( m3 < 0 ) );
+   // Sorting, sign flips and normalization
+   
+   Jint_sort_indices(&l1,&l2,&l3,&m1,&m2,&m3); // rearrange to get l1 < l2 < l3
+   prefactor=Jint_signflip_renormalize(l1,l2,l3,&m1,&m2,&m3); // Flip the sign of negative m's and renormalize accordingly
+   prefactor*=Jint_normalize(l1,l2,l3,m1,m2,m3); // Normalize the product of ALPs
 
+   // Check for zero integrand and for special cases
+   if( Jint_special_cases(l1,l2,l3,m1,m2,m3,&temp) ) 
+      return prefactor*temp;
 
-
-   int fac1[MAX_FACTORIAL_PRIME];
-   double temp2(1);
-   double val(1);
-
-
-   //Flip the sign of m's if they are negative
-   if(sgnm1)
-      m1=-m1;
-   if(sgnm2)
-      m2=-m2;
-   if(sgnm2)
-      m2=-m2;
+   // If the integrand is not special, compute the expansion of the Legendre polynomials product
 
    //Declare intermediary m's
    
    int m12(m1+m2);
    int m123(m12+m3);
 
-   // Checking if any of the polynomials is zero
-   
-   if(l1 <0 || l2<0 || l3<0)
-      return 0;
-
-   else if(m1>l1 || m2>l2 || m3>l3)
-      return 0;
-
-   //If none of the polynomials are zero, then check for special cases, first compute the factor in front of expansion. Account for the renormalization in case of sign flip
-
-      temp=1;
-      for (int tt=l1-m1+1;tt!=l1+m1+1;tt++)
-      {
-         if(sgnm1)
-            temp*=pow(double(tt),-1);
-         else
-            temp*=double(tt);
-      }
-      val*=sqrt(temp);
-
-      temp=1;
-      for (int tt=l2-m2+1;tt!=l2+m2+1;tt++)
-      {
-         if(sgnm2)
-            temp*=pow(double(tt),-1);
-         else
-            temp*=double(tt);
-      }
-      val*=sqrt(temp);
-
-      temp=1;
-      for (int tt=l3-m3+1;tt!=l3+m3+1;tt++)
-      {
-         if(sgnm3)
-            temp*=pow(double(tt),-1);
-         else
-            temp*=double(tt);
-      }
-      val*=sqrt(temp);
-
-      prefactor=val*pow(-1,sgnm1*m1+sgnm2*m2+sgnm3*m3);
-   
-   //Then check for special cases
-   if(m1+m2==m3)
-       return 2.*pow(-1,m3)*prefactor*WignerSymbols::wigner3j(l1,l2,l3,0,0,0)*WignerSymbols::wigner3j(l1,l2,l3,m1,m2,-m3);
-   //m3=abs(m1-m2)
-   int delta(m2+(m1-m2)*bool(m2>=m1));
-   if(abs(m1+m2)==m3)
-       return 2.*pow(-1,delta-m1+m2)*prefactor*WignerSymbols::wigner3j(l1,l2,l3,0,0,0)*WignerSymbols::wigner3j(l1,l2,l3,-m1,m2,m1-m2);
-
-   // then, compute the expansion of the Legendre polynomials product
-
+   sum=0;
    for(int l12=abs(l1-l2);l12!=l1+l2+1;l12++)
    {
 
-      if( (l1+l2+l12) % 2 !=0 || m12 > l12)
+      if( (l1+l2+l12) % 2 !=0 || m12 > l12) //Here, the selection rules for Wigner 3J symbols apply on each term
          continue;
       else
       {
@@ -625,7 +526,7 @@ double gaunt_formula(int l1,int l2,int l3,int m1,int m2,int m3)
 
          for(int l123=fabs(l12-l3);l123!=l12+l3+1;l123++)
          {
-            if( (l12+l3+l123) % 2 != 0 || m123 > l123)
+            if( (l12+l3+l123) % 2 != 0 || m123 > l123) // Wigner 3J selection rule
                continue;
             else
             {
@@ -636,38 +537,205 @@ double gaunt_formula(int l1,int l2,int l3,int m1,int m2,int m3)
                {
                   temp/=double(tt);
                }
-               val=sqrt(temp);
-               factor=val;
+               factor=sqrt(temp);
 
-               fact_prime_decomposer(int(double(l123-m123)/2),fac1);
-               temp=1;
-               for(int i=0;i!=MAX_FACTORIAL_PRIME;i++)
-               {
-                  temp*=pow(double(PRIME[i]),double(fac1[i]));
-               }
-
-               if(m123 == 0 && l123 == 0)
-               {
-                  ALP_integ=2.;
-               }
-               else
-               {
-                  ALP_integ=(pow(-1,m123)+pow(-1,l123))
-                     *pow(2.,m123-2)*m123
-                     *gamma_int_or_half(double(l123)/2.)
-                     *gamma_int_or_half(double(l123+m123+1)/2.)
-                     /(temp*gamma_int_or_half(double(l123+3)/2.));
-               }
-
-
-               sum+=G12*G123*factor*ALP_integ;
+               sum+=G12*G123*factor*ALP_integral(l123,m123);
             }
          }
       }
    }
    return prefactor*sum;
 }
-/*double Dint(int l1,int l2,int l3,int m1,int m2,int m3,double* lnfact_memo)
+double ALP_integral(int l,int m)
 {
-   return sqrt(((2*l1+1)*(2*l2+1)*(2*l3+1))/(4*acos(-1)))*wigner3j(l1,l2,l3,0,0,0,lnfact_memo)*wigner3j(l1,l2,l3,m1,m2,m3,lnfact_memo);
-}*/
+
+   if( (l+m) % 2 != 0)//Check for parity
+      return 0;
+
+   else if( l == 0 ) //Check for zero degree
+      return 2;
+   else
+   {
+      int fac1[MAX_FACTORIAL_PRIME];
+      double temp;
+      fact_prime_decomposer(int(double(l-m)/2),fac1);
+      temp=1;
+      for(int i=0;i!=MAX_FACTORIAL_PRIME;i++)
+      {
+          temp*=pow(double(PRIME[i]),double(fac1[i]));
+      }
+
+      return (pow(-1,m)+pow(-1,l))
+         *pow(2.,m-2)*m
+         *gamma_int_or_half(double(l)/2.)
+         *gamma_int_or_half(double(l+m+1)/2.)
+         /(temp*gamma_int_or_half(double(l+3)/2.));
+   }
+}
+bool Jint_special_cases(int l1,int l2,int l3,int m1,int m2,int m3,double* result)
+{
+   int delta(m2+(m1-m2)*bool(m2>=m1));
+   double temp;
+   double prefactor(0);
+
+   // Checking if any of the polynomials is zero
+   
+   if(l1 <0 || l2<0 || l3<0) //Negative degree should not occur
+   {
+      *result=0;
+      return 1;
+   }
+   else if(m1>l1 || m2>l2 || m3>l3) // These ensure the degree of the polynomial is at least zero
+   {
+      *result=0;
+      return 1;
+   }
+
+   else if( (l1+l2+l3) % 2 != (m1+m2+m3) % 2 ) // The integrand should be even,meaning that the sums of orders and degree have same parity
+   {
+      *result=0;
+      return 1;
+   }
+
+   //If none of the polynomials is zero and the integrand is even,
+   //
+   // Sorting, sign flips and normalization
+   
+   Jint_sort_indices(&l1,&l2,&l3,&m1,&m2,&m3); // rearrange to get l1 < l2 < l3
+   prefactor=Jint_signflip_renormalize(l1,l2,l3,&m1,&m2,&m3); // Flip the sign of negative m's and renormalize accordingly
+   prefactor*=Jint_normalize(l1,l2,l3,m1,m2,m3); // Normalize the product of ALPs
+   
+   //Then check for special cases
+
+   if( l1 == 0 ) //Overlap integral of two ALPs
+   {
+      temp=1;
+      for (int tt = l2-m2+1;tt!=l2+m2+1;tt++)
+      {
+          temp*=double(tt);
+      }
+      *result = bool( l2 == l3) * 2 * temp / (2 * l2 + 1);
+      return 1;
+   }
+   else if(m1+m2==m3)
+   {
+      *result = 2.*pow(-1,m3)*prefactor*WignerSymbols::wigner3j(l1,l2,l3,0,0,0)*WignerSymbols::wigner3j(l1,l2,l3,m1,m2,-m3);
+      return 1;
+   }
+
+   else if(abs(m1+m2)==m3)
+   {
+      *result = 2.*pow(-1,delta-m1+m2)*prefactor*WignerSymbols::wigner3j(l1,l2,l3,0,0,0)*WignerSymbols::wigner3j(l1,l2,l3,-m1,m2,m1-m2);
+      return 1;
+   }
+   else
+      return 0;
+
+}
+double Jint_normalize(int l1,int l2,int l3,int m1,int m2,int m3)
+{
+   double temp;
+   double val(1);
+
+      temp=1;
+      for (int tt=l1-m1+1;tt!=l1+m1+1;tt++)
+      {
+         temp*=pow(double(tt),1);
+      }
+      val*=temp;
+
+      temp=1;
+      for (int tt=l2-m2+1;tt!=l2+m2+1;tt++)
+      {
+         temp*=pow(double(tt),1);
+      }
+      val*=temp;
+
+      temp=1;
+      for (int tt=l3-m3+1;tt!=l3+m3+1;tt++)
+      {
+         temp*=pow(double(tt),1);
+      }
+      val*=sqrt(temp);
+
+      return val;
+}
+double Jint_signflip_renormalize(int l1,int l2,int l3,int* m1,int* m2,int* m3)
+{
+
+   bool sgnm1( bool ( *m1 < 0 ) );
+   bool sgnm2( bool ( *m2 < 0 ) );
+   bool sgnm3( bool ( *m3 < 0 ) );
+   double temp;
+   double val(1);
+
+   //Flip the sign of m's if they are negative
+   if(sgnm1)
+      *m1=-*m1;
+   if(sgnm2)
+      *m2=-*m2;
+   if(sgnm2)
+      *m2=-*m2;
+
+      temp=1;
+      if(sgnm1)
+      {
+          for (int tt=l1-*m1+1;tt!=l1+*m1+1;tt++)
+              temp*=pow(double(tt),-1);
+      }
+      val*=temp;
+
+      temp=1;
+      if(sgnm2)
+      {
+          for (int tt=l2-*m2+1;tt!=l2+*m2+1;tt++)
+              temp*=pow(double(tt),-1);
+      }
+      val*=temp;
+
+      temp=1;
+      if(sgnm3)
+      {
+          for (int tt=l3-*m3+1;tt!=l3+*m3+1;tt++)
+              temp*=pow(double(tt),-1);
+      }
+      val*=temp;
+
+      return pow(-1,sgnm1**m1+sgnm2**m2+sgnm3**m3)*val;
+
+}
+void Jint_sort_indices(int* l1,int* l2,int* l3,int* m1,int* m2,int* m3)
+{
+   //rearrange the array for getting l1<l2<l3
+   int tmpl;
+   int tmpm;
+   if(*l1 > *l2)
+   {
+      tmpl=*l1;
+      tmpm=*m1;
+      *l1=*l2;
+      *m1=*m2;
+      *l2=tmpl;
+      *m2=tmpl;
+   }
+   if(*l1 > *l3)
+   {
+      tmpl=*l1;
+      tmpm=*m1;
+      *l1=*l3;
+      *m1=*m3;
+      *l3=tmpl;
+      *m3=tmpl;
+   }
+   if(*l2 > *l3)
+   {
+      tmpl=*l2;
+      tmpm=*m2;
+      *l2=*l3;
+      *m2=*m3;
+      *l3=tmpl;
+      *m3=tmpl;
+   }
+
+   return;
+}

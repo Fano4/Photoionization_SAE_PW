@@ -96,38 +96,34 @@ long double intplushalf_gamma(int n) //(Gamma(n+1/2))
 
    fact_prime_decomposer(2*n,fac1);
    fact_prime_decomposer(n,fac2);
-
+   fac1[2]-=2*n;
 
    double temp=1;
    for(int i=0;i!=MAX_FACTORIAL_PRIME;i++)
    {
-//      std::cout<<"-- "<<PRIME[i]<<" ; "<<fac1[i]<<" - "<<fac2[i]<<std::endl;
       temp*=pow(PRIME[i],fac1[i]-fac2[i]);
    }
-   return sqrt(acos(-1))*temp/(pow(4,n));
-
-//   return sqrt(acos(-1))* exp(ln_factorial(2*n,lnfact_memo)-ln_factorial(n,lnfact_memo))/(pow(4,n));
-
-//   return sqrt(acos(-1))*double(factorial(2*n,fact_memo))/(pow(4,n)*double(factorial(n,fact_memo)));
+   return sqrt(acos(-1))*temp;
 }
 
 long double gamma_int_or_half(double z)
 {
    int fac1[MAX_FACTORIAL_PRIME];
 
-   if(ceil(z)==floor(z) && z > 0)
+   if(ceil(z)==floor(z) && z > 0) // if the argument is integer and positive
    {
-      fact_prime_decomposer(int(z)-1,fac1);
+      fact_prime_decomposer(int(z)-1,fac1); // Gamma(n+1) = n!
       long double temp=1;
       for(int i=0;i!=MAX_FACTORIAL_PRIME;i++)
       {
          temp*=pow(PRIME[i],fac1[i]);
       }
-      return temp;
-//      return exp(ln_factorial(int(z)-1,lnfact_memo));
+      return temp; // return (n-1)!
    }
-   else if(ceil(2*z) == floor(2*z) && z > 0)
-      return intplushalf_gamma(int(z-0.5));
+
+   else if(ceil(2*z) == floor(2*z) && z > 0) // if the argument is half integer and positive
+      return intplushalf_gamma(int(z-0.5)); // Gamma( N / 2 ) = Gamma( (N / 2) - 1/2 + 1/2 ) = Gamma( N' + 1/2)
+
    else
    {
       std::cout<<"ERROR ! NON HALF INTEGER OR NON INTEGER OR NON POSITIVE ARGUMENT IN GAMMA_INT_OR_HALF FUCNTION"<<std::endl;

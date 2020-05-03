@@ -86,7 +86,7 @@ double associated_legendre_nonorm(unsigned int l,int m,double x)
    {
       if(m == 0)
       {
-         return  legendre(l,x);
+         return  std::legendre(l,x);
       }
       else if(m > 0)
       {
@@ -136,7 +136,7 @@ double associated_legendre_nonorm_der(unsigned int l,int m,double x)
       }
    }
 }
-double legendre(unsigned int l,double x)
+/*double legendre(unsigned int l,double x)
 {
    switch (l)
    {
@@ -147,7 +147,7 @@ double legendre(unsigned int l,double x)
       default:
          return ((2*l-1)*x*legendre(l-1,x)-(l-1)*legendre(l-2,x))/l; 
    }
-}
+}*/
 double legendre_der(unsigned int l,double x)
 {
    //This is the derivative with respect to theta. x=cos(theta)
@@ -166,7 +166,7 @@ double legendre_der(unsigned int l,double x)
          case 1:
             return -sqrt(1-x*x);
          default:
-            return (l/sqrt(1-x*x))*(x*legendre(l,x)-legendre(l-1,x)); 
+            return (l/sqrt(1-x*x))*(x*std::legendre(l,x)-std::legendre(l-1,x)); 
       }
    }
 }
