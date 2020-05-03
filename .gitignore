@@ -40,6 +40,8 @@
 *.swp
 *.vX011
 *.vX001
-*.in
 *.h5
 *.log
+
+#Build directories
+build/

@@ -1,0 +1,6 @@
+#define PhotoICE_VERSION_MAJOR @PhotoICE_VERSION_MAJOR@
+#define PhotoICE_VERSION_MINOR @PhotoICE_VERSION_MINOR@
+
+#include <iostream>
+
+
