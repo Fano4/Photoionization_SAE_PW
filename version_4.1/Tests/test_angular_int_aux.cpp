@@ -12,18 +12,15 @@
 //////////////////////////////////////////
 //
 //////////////////////////////////////////
-bool azim_integ_test()
+bool two_azim_integ_test()
 {
-   std::cout<<"Testing azim_integ"<<std::endl;
-   int m1,m2,m3;
+   std::cout<<"Testing two_azim_integ"<<std::endl;
+   int m1,m2;
    double sum;
    double val;
    double thresh(1e-6);
 
    bool test1(1);
-   bool test2(1);
-   bool test3(1);
-   bool test4(1);
 
    //set up vector tor epresent function
    int nx=100000;
@@ -36,21 +33,85 @@ bool azim_integ_test()
    //Initialize random variable generation
    srand (time(0));
 
-   //test 1 : three positive m's
+   //test 1 : the integral gives good values
    std::cout<<"1..."<<std::endl;
-   for(int i=0;i!=25;i++)
+   for(int i=0;i!=1000;i++)
    {
-       m1=(rand() % 10);
-       m2=(rand() % 10);
-       m3=(rand() % 10);
+       m1=-10 + (rand() % 21);
+       m2=-10 + (rand() % 21);
 
        //Generate numerical value
        sum=0;
        for(int i=0;i!=nx;i++)
-          sum+=dx*cos(m1*x[i])*cos(m2*x[i])*cos(m3*x[i]);
+          sum+=dx*phi(m1,x[i])*phi(m2,x[i]);
        
        //generate function result
-       val=azim_integ(m1,m2,m3);
+       val=two_azim_integ(m1,m2);
+
+       //compare numerical value to function result
+       if(val==0 && fabs(sum)<=thresh)
+          test1*=1;
+       else if(val!=0 && fabs(val-sum)<=thresh)
+          test1*=1;
+       else
+       {
+          test1*=0;
+          std::cout<<m1<<","<<m2<<" : "<<val<<" ; "<<sum<<std::endl;
+       }
+   }
+
+   if(test1 )
+   {
+      std::cout<<"...passed"<<std::endl;
+      return 1;
+   }
+   else
+   {
+      std::cout<<"...FAILED...";
+      if(!test1)
+         std::cout<<"Error 1...";
+      std::cout<<std::endl;
+      return 0;
+   }
+}
+//////////////////////////////////////////
+//
+//////////////////////////////////////////
+bool three_azim_integ_test()
+{
+   std::cout<<"Testing three_azim_integ"<<std::endl;
+   int m1,m2,m3;
+   double sum;
+   double val;
+   double thresh(1e-6);
+
+   bool test1(1);
+   //set up vector tor epresent function
+   int nx=100000;
+   double*x=new double[nx];
+   for(int i=0;i!=nx;i++)
+      x[i]=2*acos(-1)*i/(nx);
+   double dx(x[1]-x[0]);
+
+
+   //Initialize random variable generation
+   srand (time(0));
+
+   //test 1 : the integral give good values
+   std::cout<<"1..."<<std::endl;
+   for(int i=0;i!=1000;i++)
+   {
+       m1=-10 + (rand() % 21);
+       m2=-10 + (rand() % 21);
+       m3=-10 + (rand() % 21);
+
+       //Generate numerical value
+       sum=0;
+       for(int i=0;i!=nx;i++)
+          sum+=dx*phi(m1,x[i])*phi(m2,x[i])*phi(m3,x[i]);
+       
+       //generate function result
+       val=three_azim_integ(m1,m2,m3);
 
        //compare numerical value to function result
        if(val==0 && fabs(sum)<=thresh)
@@ -63,89 +124,8 @@ bool azim_integ_test()
           std::cout<<m1<<","<<m2<<","<<m3<<" : "<<val<<" ; "<<sum<<std::endl;
        }
    }
-   //test 2 : two positive + 1 negative m's
-   std::cout<<"2..."<<std::endl;
-   for(int i=0;i!=25;i++)
-   {
-       m1=(rand() % 10);
-       m2=(rand() % 10);
-       m3=-(rand() % 9 + 1);
 
-       //Generate numerical value
-       sum=0;
-       for(int i=0;i!=nx;i++)
-          sum+=dx*cos(m1*x[i])*cos(m2*x[i])*sin(abs(m3)*x[i]);
-       
-       //generate function result
-       val=azim_integ(m1,m2,m3);
-
-       //compare numerical value to function result
-       if(val==0 && fabs(sum)<=thresh)
-          test2*=1;
-       else if(val!=0 && fabs(val-sum)<=thresh)
-          test2*=1;
-       else
-       {
-          std::cout<<m1<<","<<m2<<","<<m3<<" : "<<val<<" ; "<<sum<<std::endl;
-          test2*=0;
-       }
-   }
-   //test 3 : 1 positive + 2 negative m's
-   std::cout<<"3..."<<std::endl;
-   for(int i=0;i!=25;i++)
-   {
-       m1=(rand() % 10);
-       m2=-(rand() % 9 + 1);
-       m3=-(rand() % 9 + 1);
-
-       //Generate numerical value
-       sum=0;
-       for(int i=0;i!=nx;i++)
-          sum+=dx*cos(m1*x[i])*sin(abs(m2)*x[i])*sin(abs(m3)*x[i]);
-       
-       //generate function result
-       val=azim_integ(m1,m2,m3);
-
-       //compare numerical value to function result
-       if(val==0 && fabs(sum)<=thresh)
-          test3*=1;
-       else if(val!=0 && fabs(val-sum)<=thresh)
-          test3*=1;
-       else
-       {
-          std::cout<<m1<<","<<m2<<","<<m3<<" : "<<val<<" ; "<<sum<<std::endl;
-          test3*=0;
-       }
-   }
-   //test 4 : 3 negative m's
-   std::cout<<"4..."<<std::endl;
-   for(int i=0;i!=25;i++)
-   {
-       m1=-(rand() % 9 + 1);
-       m2=-(rand() % 9 + 1);
-       m3=-(rand() % 9 + 1);
-
-       //Generate numerical value
-       sum=0;
-       for(int i=0;i!=nx+1;i++)
-          sum+=dx*sin(abs(m1)*x[i])*sin(abs(m2)*x[i])*sin(abs(m3)*x[i]);
-       
-       //generate function result
-       val=azim_integ(m1,m2,m3);
-
-       //compare numerical value to function result
-       if(val==0 && fabs(sum)<=thresh)
-          test4*=1;
-       else if(val!=0 && fabs(val-sum)<=thresh)
-          test4*=1;
-       else
-       {
-          std::cout<<m1<<","<<m2<<","<<m3<<" : "<<val<<" ; "<<sum<<std::endl;
-          test4*=0;
-       }
-   }
-
-   if(test1 && test2 && test3 && test4)
+   if(test1 )
    {
       std::cout<<"...passed"<<std::endl;
       return 1;
@@ -155,12 +135,6 @@ bool azim_integ_test()
       std::cout<<"...FAILED...";
       if(!test1)
          std::cout<<"Error 1...";
-      if(!test2)
-         std::cout<<"Error 2...";
-      if(!test3)
-         std::cout<<"Error 3...";
-      if(!test4)
-         std::cout<<"Error 4...";
       std::cout<<std::endl;
       return 0;
    }
@@ -532,7 +506,11 @@ bool test_Jint_special_cases()
        if( fabs(val - check) / (check + bool(check <= thresh)) <=thresh)
           test3*=1;
        else
+       {
+          std::cout<<l1<<","<<l2<<","<<l3<<" - "<<m1<<","<<m2<<","<<"+++++"<<val<<" ----- ";
+          std::cout<<check<<std::endl;
           test3*=0;
+       }
        }
    }
    if(!integrated)
@@ -579,7 +557,7 @@ bool test_ALP_integral()
 
    //Test 1 : The ALP integral is correct
    std::cout<<"1..."<<std::endl;
-   for(int i=0;i!=100;i++)
+   for(int j=0;j!=100;j++)
    {
       double val(10);
       double check;
@@ -590,19 +568,23 @@ bool test_ALP_integral()
        //Send the parameters for computing the special cases
        val=ALP_integral(l1,m1); 
 
-     std::cout<<l1<<" - "<<m1<<"+++++"<<val<<" ----- ";
+     //std::cout<<l1<<" - "<<m1<<"+++++"<<val<<" ----- ";
        //Compute the renormalization constant using independent functions
        check=0;
        for(int i=0;i!=nx;i++)
           check+=dx*gsl_sf_legendre_Plm(l1,m1,x[i]);
-     std::cout<<check<<std::endl;
+    // std::cout<<check<<std::endl;
 
        //Check if the normalization constant is correct
 
        if( fabs(val - check) / (check + bool(check <= thresh)) <=thresh)
           test1*=1;
        else
+       {
+          std::cout<<l1<<" - "<<m1<<"+++++"<<val<<" ----- ";
+          std::cout<<check<<std::endl;
           test1*=0;
+       }
    }
    if(test1)
    {
@@ -618,3 +600,692 @@ bool test_ALP_integral()
       return 0;
    }
 }
+//////////////////////////////////////////
+//
+//
+//////////////////////////////////////////
+bool test_two_ALP_integral()
+{
+   bool test1(1);
+   double thresh(1e-5);
+   std::cout<<"Testing two_ALP_integral"<<std::endl;
+   int l1,l2,m1,m2;
+
+
+   //set up vector tor epresent function
+   int nx=1000000;
+   double*x=new double[nx];
+   for(int i=0;i!=nx;i++)
+      x[i]=-1+2*double(i)/double(nx);
+   double dx(x[1]-x[0]);
+
+   //Test 1 : The integral yields good results
+   std::cout<<"1..."<<std::endl;
+   for(int j=0;j!=100;j++)
+   {
+      double val(10);
+      double check;
+      //generate a random set of values
+       l1=(rand() % 10);
+       l2=(rand() % 10);
+       m1=( rand() % (l1+1));
+       m2=( rand() % (l2+1));
+
+       //Send the parameters for computing the special cases
+       val=two_ALP_integral(l1,l2,m1,m2); 
+
+          //Compute the renormalization constant using independent functions
+          check=0;
+          for(int i=0;i!=nx;i++)
+             check+=dx*gsl_sf_legendre_Plm(l1,m1,x[i])*gsl_sf_legendre_Plm(l2,m2,x[i]);
+
+       //Check if the normalization constant is correct
+
+       if( fabs(val - check) / (check + bool(check <= thresh)) <=thresh)
+          test1*=1;
+       else
+       {
+          std::cout<<l1<<","<<l2<<" - "<<m1<<","<<m2<<"+++++"<<val<<" ----- ";
+          std::cout<<check<<std::endl;
+          test1*=0;
+       }
+   }
+   if(test1)
+   {
+      std::cout<<"...passed"<<std::endl;
+      return 1;
+   }
+   else
+   {
+      std::cout<<"...FAILED...";
+      if(!test1)
+         std::cout<<"Error 1...";
+      std::cout<<std::endl;
+      return 0;
+   }
+}
+//////////////////////////////////////////
+//
+//
+//////////////////////////////////////////
+bool test_three_ALP_J_integral()
+{
+   bool test1(1);
+   double thresh(1e-5);
+   std::cout<<"Testing three_ALP_J_integral"<<std::endl;
+   int l1,l2,l3,m1,m2,m3;
+
+
+   //set up vector tor epresent function
+   int nx=1000000;
+   double*x=new double[nx];
+   for(int i=0;i!=nx;i++)
+      x[i]=-1+2*double(i)/double(nx);
+   double dx(x[1]-x[0]);
+   //Test 1 : The integral yields good results
+   std::cout<<"1..."<<std::endl;
+   for(int j=0;j!=100;j++)
+   {
+      double val(10);
+      double check;
+      //generate a random set of values
+       l1=(rand() % 10);
+       l2=(rand() % 10);
+       l3=( rand() % 10);
+       m1=( rand() % (l1+1));
+       m2=( rand() % (l2+1));
+       m3=( rand() % (l3+1));
+
+       //Send the parameters for computing the special cases
+       val=three_ALP_J_integral(l1,l2,l3,m1,m2,m3); 
+
+          //Compute the renormalization constant using independent functions
+          check=0;
+          for(int i=0;i!=nx;i++)
+             check+=dx*gsl_sf_legendre_Plm(l1,m1,x[i])*gsl_sf_legendre_Plm(l2,m2,x[i])*gsl_sf_legendre_Plm(l3,m3,x[i]);
+
+       //Check if the normalization constant is correct
+
+       if( fabs(val - check) / (check + bool(check <= thresh)) <=thresh)
+          test1*=1;
+       else
+       {
+          std::cout<<l1<<","<<l2<<","<<l3<<" - "<<m1<<","<<m2<<","<<m3<<"+++++"<<val<<" ----- ";
+          std::cout<<check<<std::endl;
+          test1*=0;
+       }
+   }
+   if(test1)
+   {
+      std::cout<<"...passed"<<std::endl;
+      return 1;
+   }
+   else
+   {
+      std::cout<<"...FAILED...";
+      if(!test1)
+         std::cout<<"Error 1...";
+      std::cout<<std::endl;
+      return 0;
+   }
+}
+
+//////////////////////////////////////////
+//
+//
+//////////////////////////////////////////
+bool test_I_m1_integral()
+{
+   std::cout<<"Testing I_m1_integral"<<std::endl;
+   int m1,m2,m3;
+   double sum;
+   double val;
+   double thresh(1e-6);
+
+   bool test1(1);
+   //set up vector tor epresent function
+   int nx=100000;
+   double*x=new double[nx];
+   for(int i=0;i!=nx;i++)
+      x[i]=2*acos(-1)*i/(nx);
+   double dx(x[1]-x[0]);
+
+
+   //Initialize random variable generation
+   srand (time(0));
+
+   //test 1 : the integral give good values
+   std::cout<<"1..."<<std::endl;
+   for(int j=0;j!=100;j++)
+   {
+       m1=-10 + (rand() % 21);
+       m2=-10 + (rand() % 21);
+       m3=-10 + (rand() % 21);
+
+       //Generate numerical value
+       sum=0;
+       for(int i=0;i!=nx;i++)
+          sum+=dx*sin(x[i])*phi(m1,x[i])*phi(m2,x[i])*phi(m3,x[i]);
+       
+       //generate function result
+       val=I_m1_integral(m1,m2,m3);
+
+       //compare numerical value to function result
+       if(val==0 && fabs(sum)<=thresh)
+          test1*=1;
+       else if(val!=0 && fabs(val-sum)<=thresh)
+          test1*=1;
+       else
+       {
+          test1*=0;
+          std::cout<<m1<<","<<m2<<","<<m3<<" : "<<val<<" ; "<<sum<<std::endl;
+       }
+   }
+
+   if(test1 )
+   {
+      std::cout<<"...passed"<<std::endl;
+      return 1;
+   }
+   else
+   {
+      std::cout<<"...FAILED...";
+      if(!test1)
+         std::cout<<"Error 1...";
+      std::cout<<std::endl;
+      return 0;
+   }
+}
+//////////////////////////////////////////
+//
+//
+//////////////////////////////////////////
+bool test_I_p1_integral()
+{
+   std::cout<<"Testing I_p1_integral"<<std::endl;
+   int m1,m2,m3;
+   double sum;
+   double val;
+   double thresh(1e-6);
+
+   bool test1(1);
+   //set up vector tor epresent function
+   int nx=100000;
+   double*x=new double[nx];
+   for(int i=0;i!=nx;i++)
+      x[i]=2*acos(-1)*i/(nx);
+   double dx(x[1]-x[0]);
+
+
+   //Initialize random variable generation
+   srand (time(0));
+
+   //test 1 : the integral give good values
+   std::cout<<"1..."<<std::endl;
+   for(int j=0;j!=100;j++)
+   {
+       m1=-10 + (rand() % 21);
+       m2=-10 + (rand() % 21);
+       m3=-10 + (rand() % 21);
+
+       //Generate numerical value
+       sum=0;
+       for(int i=0;i!=nx;i++)
+          sum+=dx*cos(x[i])*phi(m1,x[i])*phi(m2,x[i])*phi(m3,x[i]);
+       
+       //generate function result
+       val=I_p1_integral(m1,m2,m3);
+
+       //compare numerical value to function result
+       if(val==0 && fabs(sum)<=thresh)
+          test1*=1;
+       else if(val!=0 && fabs(val-sum)<=thresh)
+          test1*=1;
+       else
+       {
+          test1*=0;
+          std::cout<<m1<<","<<m2<<","<<m3<<" : "<<val<<" ; "<<sum<<std::endl;
+       }
+   }
+
+   if(test1 )
+   {
+      std::cout<<"...passed"<<std::endl;
+      return 1;
+   }
+   else
+   {
+      std::cout<<"...FAILED...";
+      if(!test1)
+         std::cout<<"Error 1...";
+      std::cout<<std::endl;
+      return 0;
+   }
+}
+//////////////////////////////////////////
+//
+//
+//////////////////////////////////////////
+bool test_I_m1_D_integral()
+{
+   std::cout<<"Testing I_m1_D_integral"<<std::endl;
+   int m1,m2,m3;
+   double sum;
+   double val;
+   double thresh(1e-6);
+
+   bool test1(1);
+   //set up vector tor epresent function
+   int nx=100000;
+   double*x=new double[nx];
+   for(int i=0;i!=nx;i++)
+      x[i]=2*acos(-1)*i/(nx);
+   double dx(x[1]-x[0]);
+
+
+   //Initialize random variable generation
+   srand (time(0));
+
+   //test 1 : the integral give good values
+   std::cout<<"1..."<<std::endl;
+   for(int j=0;j!=1000;j++)
+   {
+       m1=-10 + (rand() % 21);
+       m2=-10 + (rand() % 21);
+       m3=-10 + (rand() % 21);
+
+       //Generate numerical value
+       sum=0;
+       for(int i=0;i!=nx;i++)
+          sum+=dx*sin(x[i])*phi(m1,x[i])*(-m2*phi(-m2,x[i])*phi(m3,x[i])-m3*phi(m2,x[i])*phi(-m3,x[i]));
+       
+       //generate function result
+       val=I_m1_D_integral(m1,m2,m3);
+
+       //compare numerical value to function result
+       if(val==0 && fabs(sum)<=thresh)
+          test1*=1;
+       else if(val!=0 && fabs(val-sum)<=thresh)
+          test1*=1;
+       else
+       {
+          test1*=0;
+          std::cout<<m1<<","<<m2<<","<<m3<<" : "<<val<<" ; "<<sum<<std::endl;
+       }
+   }
+
+   if(test1 )
+   {
+      std::cout<<"...passed"<<std::endl;
+      return 1;
+   }
+   else
+   {
+      std::cout<<"...FAILED...";
+      if(!test1)
+         std::cout<<"Error 1...";
+      std::cout<<std::endl;
+      return 0;
+   }
+}
+//////////////////////////////////////////
+//
+//
+//////////////////////////////////////////
+bool test_I_p1_D_integral()
+{
+   std::cout<<"Testing I_p1_D_integral"<<std::endl;
+   int m1,m2,m3;
+   double sum;
+   double val;
+   double thresh(1e-6);
+
+   bool test1(1);
+   //set up vector tor epresent function
+   int nx=100000;
+   double*x=new double[nx];
+   for(int i=0;i!=nx;i++)
+      x[i]=2*acos(-1)*i/(nx);
+   double dx(x[1]-x[0]);
+
+
+   //Initialize random variable generation
+   srand (time(0));
+
+   //test 1 : the integral give good values
+   std::cout<<"1..."<<std::endl;
+   for(int j=0;j!=1000;j++)
+   {
+       m1=-10 + (rand() % 21);
+       m2=-10 + (rand() % 21);
+       m3=-10 + (rand() % 21);
+
+       //Generate numerical value
+       sum=0;
+       for(int i=0;i!=nx;i++)
+          sum+=dx*cos(x[i])*phi(m1,x[i])*(-m2*phi(-m2,x[i])*phi(m3,x[i])-m3*phi(m2,x[i])*phi(-m3,x[i]));
+       
+       //generate function result
+       val=I_p1_D_integral(m1,m2,m3);
+
+       //compare numerical value to function result
+       if(val==0 && fabs(sum)<=thresh)
+          test1*=1;
+       else if(val!=0 && fabs(val-sum)<=thresh)
+          test1*=1;
+       else
+       {
+          test1*=0;
+          std::cout<<m1<<","<<m2<<","<<m3<<" : "<<val<<" ; "<<sum<<std::endl;
+       }
+   }
+
+   if(test1 )
+   {
+      std::cout<<"...passed"<<std::endl;
+      return 1;
+   }
+   else
+   {
+      std::cout<<"...FAILED...";
+      if(!test1)
+         std::cout<<"Error 1...";
+      std::cout<<std::endl;
+      return 0;
+   }
+}
+//////////////////////////////////////////
+//
+//
+//////////////////////////////////////////
+bool test_J_int_m2()
+{
+   bool test1(1);
+   double thresh(1e-5);
+   std::cout<<"Testing J_int_m2"<<std::endl;
+   int l1,l2,l3,m1,m2,m3;
+
+   //Initialize random variable generation
+   srand (time(0));
+
+   //set up vector tor epresent function
+   int nx=1000000;
+   double*x=new double[nx];
+   for(int i=0;i!=nx;i++)
+      x[i]=-.99999+1.99999*double(i)/double(nx);
+   double dx(x[1]-x[0]);
+   //Test 1 : The integral yields good results
+   std::cout<<"1..."<<std::endl;
+   for(int j=0;j!=100;j++)
+   {
+      double val(10);
+      double check;
+      //generate a random set of values
+       l1=(rand() % 10);
+       l2=(rand() % 10);
+       l3=( rand() % 10);
+       m1=( rand() % (l1+1));
+       m2=( rand() % (l2+1));
+       m3=( rand() % (l3+1));
+
+       //Send the parameters for computing the special cases
+       val=J_int_m2(l1,l2,l3,m1,m2,m3); 
+
+          //Compute the renormalization constant using independent functions
+          check=0;
+          for(int i=0;i!=nx;i++)
+             check+=dx*gsl_sf_legendre_Plm(l1,m1,x[i])*gsl_sf_legendre_Plm(l2,m2,x[i])*gsl_sf_legendre_Plm(l3,m3,x[i])/sqrt(1-x[i]*x[i]);
+
+       //Check if the normalization constant is correct
+
+       if( fabs(val - check) / (check + bool(check <= thresh)) <=thresh)
+          test1*=1;
+       else
+       {
+          std::cout<<l1<<","<<l2<<","<<l3<<" - "<<m1<<","<<m2<<","<<m3<<"+++++"<<val<<" ----- ";
+          std::cout<<check<<std::endl;
+          test1*=0;
+       }
+   }
+   if(test1)
+   {
+      std::cout<<"...passed"<<std::endl;
+      return 1;
+   }
+   else
+   {
+      std::cout<<"...FAILED...";
+      if(!test1)
+         std::cout<<"Error 1...";
+      std::cout<<std::endl;
+      return 0;
+   }
+}
+
+//////////////////////////////////////////
+//
+//
+//////////////////////////////////////////
+bool test_J_int_m1()
+{
+   bool test1(1);
+   double thresh(1e-5);
+   std::cout<<"Testing J_int_m1"<<std::endl;
+   int l1,l2,l3,m1,m2,m3;
+
+   //Initialize random variable generation
+   srand (time(0));
+
+   //set up vector tor epresent function
+   int nx=1000000;
+   double*x=new double[nx];
+   for(int i=0;i!=nx;i++)
+      x[i]=-1.+2.*double(i)/double(nx);
+   double dx(x[1]-x[0]);
+   //Test 1 : The integral yields good results
+   std::cout<<"1..."<<std::endl;
+   for(int i=0;i!=100;i++)
+   {
+      double val(10);
+      double check;
+      //generate a random set of values
+       l1=(rand() % 10);
+       l2=(rand() % 10);
+       l3=( rand() % 10);
+       m1=( rand() % (l1+1));
+       m2=( rand() % (l2+1));
+       m3=( rand() % (l3+1));
+
+       //Send the parameters for computing the special cases
+       val=J_int_m1(l1,l2,l3,m1,m2,m3); 
+
+          //Compute the renormalization constant using independent functions
+          check=0;
+          for(int xx=0;xx!=nx;xx++)
+             check+=dx*gsl_sf_legendre_Plm(l1,m1,x[xx])*gsl_sf_legendre_Plm(l2,m2,x[xx])*gsl_sf_legendre_Plm(l3,m3,x[xx])*sqrt(1-x[xx]*x[xx]);
+
+       //Check if the normalization constant is correct
+
+       if( fabs(val - check) / (check + bool(check <= thresh)) <=thresh)
+          test1*=1;
+       else
+       {
+          std::cout<<l1<<","<<l2<<","<<l3<<" - "<<m1<<","<<m2<<","<<m3<<"+++++"<<val<<" ----- ";
+          std::cout<<check<<std::endl;
+          test1*=0;
+       }
+   }
+   if(test1)
+   {
+      std::cout<<"...passed"<<std::endl;
+      return 1;
+   }
+   else
+   {
+      std::cout<<"...FAILED...";
+      if(!test1)
+         std::cout<<"Error 1...";
+      std::cout<<std::endl;
+      return 0;
+   }
+}
+//////////////////////////////////////////
+//
+//
+//////////////////////////////////////////
+bool test_J_int_p1()
+{
+   bool test1(1);
+   double thresh(1e-5);
+   std::cout<<"Testing J_int_p1"<<std::endl;
+   int l1,l2,l3,m1,m2,m3;
+
+   //Initialize random variable generation
+   srand (time(0));
+
+   //set up vector tor epresent function
+   int nx=1000000;
+   double*x=new double[nx];
+   for(int i=0;i!=nx;i++)
+      x[i]=-1.+2.*double(i)/double(nx);
+   double dx(x[1]-x[0]);
+   //Test 1 : The integral yields good results
+   std::cout<<"1..."<<std::endl;
+   for(int i=0;i!=100;i++)
+   {
+      double val(10);
+      double check;
+      //generate a random set of values
+       l1=(rand() % 10);
+       l2=(rand() % 10);
+       l3=( rand() % 10);
+       m1=( rand() % (l1+1));
+       m2=( rand() % (l2+1));
+       m3=( rand() % (l3+1));
+
+       //Send the parameters for computing the special cases
+       val=J_int_p1(l1,l2,l3,m1,m2,m3); 
+
+          //Compute the renormalization constant using independent functions
+          check=0;
+          for(int xx=0;xx!=nx;xx++)
+             check+=dx*gsl_sf_legendre_Plm(l1,m1,x[xx])*gsl_sf_legendre_Plm(l2,m2,x[xx])*gsl_sf_legendre_Plm(l3,m3,x[xx])*x[xx];
+
+       //Check if the normalization constant is correct
+
+       if( fabs(val - check) / (check + bool(check <= thresh)) <=thresh)
+          test1*=1;
+       else
+       {
+          std::cout<<l1<<","<<l2<<","<<l3<<" - "<<m1<<","<<m2<<","<<m3<<"+++++"<<val<<" ----- ";
+          std::cout<<check<<std::endl;
+          test1*=0;
+       }
+   }
+   if(test1)
+   {
+      std::cout<<"...passed"<<std::endl;
+      return 1;
+   }
+   else
+   {
+      std::cout<<"...FAILED...";
+      if(!test1)
+         std::cout<<"Error 1...";
+      std::cout<<std::endl;
+      return 0;
+   }
+}
+//////////////////////////////////////////
+//
+//
+//////////////////////////////////////////
+bool test_J_int_m1_D()
+{
+   bool test1(1);
+   double thresh(1e-5);
+   std::cout<<"Testing J_int_m1_D"<<std::endl;
+   int l1,l2,l3,m1,m2,m3;
+   double P1,P2,P3;
+   double DP2,DP3;
+
+   //Initialize random variable generation
+   srand (time(0));
+
+   //set up vector tor epresent function
+   int nx=1000000;
+   double*x=new double[nx];
+   for(int i=0;i!=nx;i++)
+      x[i]=-.999999+1.999999*double(i)/double(nx);
+   double dx(x[1]-x[0]);
+   //Test 1 : The integral yields good results
+   std::cout<<"1..."<<std::endl;
+   for(int i=0;i!=100;i++)
+   {
+      double val(10);
+      double check;
+      //generate a random set of values
+       l1=(rand() % 5);
+       l2=(rand() % 5);
+       l3=( rand() % 5);
+       m1=( rand() % (l1+1));
+       m2=( rand() % (l2+1));
+       m3=( rand() % (l3+1));
+
+       //Send the parameters for computing the special cases
+       val=J_int_m1_D(l1,l2,l3,m1,m2,m3); 
+
+          //Compute the renormalization constant using independent functions
+          check=0;
+          for(int xx=0;xx!=nx;xx++)
+          {
+             P1=(gsl_sf_legendre_Plm(l1,m1,x[xx]));
+             P2=(gsl_sf_legendre_Plm(l2,m2,x[xx]));
+             P3=(gsl_sf_legendre_Plm(l3,m3,x[xx]));
+             if(l2==0)
+                DP2=0;
+             else if(l2>0 && m2==0)
+                DP2=gsl_sf_legendre_Plm(l2,1,x[xx]);
+             else if(l2==m2)
+                DP2=-0.5*((l2+m2)*(l2-m2+1)*gsl_sf_legendre_Plm(l2,m2-1,x[xx]));
+             if(l3==0)
+                DP3=0;
+             else if(l3>0 && m3==0)
+                DP3=gsl_sf_legendre_Plm(l3,1,x[xx]);
+             else if(l3==m3)
+                DP3=0.5*((l3+m3)*(l3-m3+1)*gsl_sf_legendre_Plm(l3,m3-1,x[xx]));
+             else
+                DP3=-0.5*((l3+m3)*(l3-m3+1)*gsl_sf_legendre_Plm(l3,m3-1,x[xx])-gsl_sf_legendre_Plm(l3,m3+1,x[xx]));
+
+             check+=dx*(P1*(DP2*P3+DP3*P2));
+          }
+
+       //Check if the normalization constant is correct
+
+       if( fabs(val - check) / (check + bool(check <= thresh)) <=thresh)
+          test1*=1;
+       else
+       {
+          std::cout<<l1<<","<<l2<<","<<l3<<" - "<<m1<<","<<m2<<","<<m3<<"+++++"<<val<<" ----- ";
+          std::cout<<check<<std::endl;
+          test1*=0;
+       }
+   }
+   if(test1)
+   {
+      std::cout<<"...passed"<<std::endl;
+      return 1;
+   }
+   else
+   {
+      std::cout<<"...FAILED...";
+      if(!test1)
+         std::cout<<"Error 1...";
+      std::cout<<std::endl;
+      return 0;
+   }
+}
+//////////////////////////////////////////
+//
+//
+//////////////////////////////////////////

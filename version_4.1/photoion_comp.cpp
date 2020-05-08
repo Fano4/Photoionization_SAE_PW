@@ -12,7 +12,6 @@ int main(int argc,char* argv[])
       std::cout << argv[0] << " Version " << PhotoICE_VERSION_MAJOR << "."
               << PhotoICE_VERSION_MINOR << std::endl;
 
-      std::cout<<azim_integ(1,2,1)<<std::endl;
       return 1;
    }
    //int photoion_comp(int argc, char* argv[]);

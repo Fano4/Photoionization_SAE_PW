@@ -3,33 +3,60 @@
 #include <gsl/gsl_sf.h>
 #include "prime.hpp"
 
-double azim_integ(int m1,int m2,int m3)
+double azim_integ(int m)
 {
-   using namespace std;
-   if(m1 ==0 && m2 ==0 && m3 ==0)
+   if( m != 0 )
+      return 0;
+   else
       return 2*acos(-1);
-   else if(m1<0 && m2<0 && m3<0)
-      return 0;
-   else if(m1<0 && m2<0 && m3>=0)
-      return 0.5*acos(-1)*(bool(fabs(m1)-fabs(m2)-fabs(m3)==0)-bool(fabs(m1)+fabs(m2)+fabs(m3)==0)+bool(fabs(m1)-fabs(m2)+fabs(m3)==0)-bool(fabs(m1)+fabs(m2)-fabs(m3)==0));
-   else if(m1<0 && m2>=0 && m3<0)
-      return 0.5*acos(-1)*(bool(fabs(m1)-fabs(m2)-fabs(m3)==0)-bool(fabs(m1)+fabs(m2)+fabs(m3)==0)-bool(fabs(m1)-fabs(m2)+fabs(m3)==0)+bool(fabs(m1)+fabs(m2)-fabs(m3)==0));
-   else if(m1<0 && m2>=0 && m3>=0)
-      return 0;
-   else if(m1>=0 && m2<0 && m3<0)
-      return 0.5*acos(-1)*(bool(fabs(m1)-fabs(m2)+fabs(m3)==0)+bool(fabs(m1)+fabs(m2)-fabs(m3)==0)-bool(fabs(m1)-fabs(m2)-fabs(m3)==0)-bool(fabs(m1)+fabs(m2)+fabs(m3)==0));
-   else if(m1>=0 && m2<0 && m3>=0)
-      return 0;
-   else if(m1>=0 && m2>=0 && m3<0)
+}
+double two_azim_integ(int m1,int m2)
+{
+   if( m1 == 0 && m2 == 0 )
+      return 2*acos(-1);
+
+   else if ( ( m1 == 0 && m2 != 0 ) || ( m1 != 0 && m2 == 0 ) )
+      return azim_integ(m1+m2);
+
+   else if( m1 == m2 )
+      return acos(-1);
+   
+   else if(m1 == -m2 )
       return 0;
 
-   else if(m1 >=0 && m2>=0 && m3 >=0)
-      return 0.5*acos(-1)*(bool(fabs(m1)+fabs(m2)+fabs(m3)==0)+bool(fabs(m1)-fabs(m2)-fabs(m3)==0)+bool(fabs(m1)-fabs(m2)+fabs(m3)==0)+bool(fabs(m1)+fabs(m2)-fabs(m3)==0));
+   else if( m1 > 0 && m2 > 0 )
+      return 0.5*(azim_integ(m1+m2)+azim_integ(abs(m1-m2)));
+
+   else if( m1 > 0 && m2 < 0 )
+      return 0.5*( azim_integ(-abs(m1+m2)) +pow(-1,bool(m1+m2<0))*azim_integ(-abs(m1-m2)));
+
+   else if( m1 < 0 && m2 > 0 )
+      return 0.5*( azim_integ(-abs(m1+m2)) + pow(-1,bool(m1+m2<0))*azim_integ(-abs(m1-m2)));
    else 
-   {
-      std::cout<<"ERROR AZIM INTEGRAL TYPE CANNOT BE DEFINED "<<m1<<","<<m2<<","<<m3<<std::endl;
-      exit(EXIT_SUCCESS);
-   }
+      return 0.5*( azim_integ(abs(m1-m2)) - azim_integ(abs(m1+m2))) ;
+}
+double three_azim_integ(int m1,int m2,int m3)
+{
+   if( m1 == 0 && m2 == 0 )
+      return azim_integ(m3);
+
+   else if (m3 == 0)
+      return two_azim_integ(m1,m2);
+
+   else if ( ( m1 == 0 && m2 != 0 ) || ( m1 != 0 && m2 == 0 ) )
+      return two_azim_integ(m1+m2,m3);
+
+   else if( m1 > 0 && m2 > 0 )
+      return 0.5*(two_azim_integ(m1+m2,m3)+two_azim_integ(abs(m1-m2),m3));
+
+   else if( m1 > 0 && m2 < 0 )
+      return -0.5*( pow(-1,bool(m1+m2<0))*two_azim_integ(-abs(m1+m2),m3) - pow(-1,bool(m1-m2<0))*two_azim_integ(-abs(m1-m2),m3));
+
+   else if( m1 < 0 && m2 > 0 )
+      return -0.5*( pow(-1,bool(m1+m2<0))*two_azim_integ(-abs(m1+m2),m3) + pow(-1,bool(m1-m2<0))*two_azim_integ(-abs(m1-m2),m3));
+
+   else 
+      return 0.5*( two_azim_integ(abs(m1-m2),m3) - two_azim_integ(abs(m1+m2),m3)) ;
 }
 void Jint_sort_indices(int* l1,int* l2,int* l3,int* m1,int* m2,int* m3)
 {
@@ -112,6 +139,23 @@ double Jint_signflip_renormalize(int l1,int l2,int l3,int* m1,int* m2,int* m3)
    return pow(-1,sgnm1**m1+sgnm2**m2+sgnm3**m3)*val;
 
 }
+double ALP_normalize(int l,int m)
+{
+   double temp;
+   double val(1);
+      
+   if(l==0)
+      return 1;
+
+   temp=1;
+   for (int tt=l-m+1;tt!=l+m+1;tt++)
+   {
+      temp*=double(tt);
+   }
+   val=sqrt(temp);
+
+   return val;
+}
 double Jint_normalize(int l1,int l2,int l3,int m1,int m2,int m3)
 {
    double temp;
@@ -144,7 +188,6 @@ double Jint_normalize(int l1,int l2,int l3,int m1,int m2,int m3)
 bool Jint_special_cases(int l1,int l2,int l3,int m1,int m2,int m3,double* result)
 {
    int delta(m2+(m1-m2)*bool(m2>=m1));
-   double temp;
    double prefactor(0);
 
    // Checking if any of the polynomials is zero
@@ -176,17 +219,7 @@ bool Jint_special_cases(int l1,int l2,int l3,int m1,int m2,int m3,double* result
    
    //Then check for special cases
 
-   if( l1 == 0 ) //Overlap integral of two ALPs
-   {
-      temp=1;
-      for (int tt = l2-m2+1;tt!=l2+m2+1;tt++)
-      {
-          temp*=double(tt);
-      }
-      *result = bool( l2 == l3) * 2 * temp / (2 * l2 + 1);
-      return 1;
-   }
-   else if(m1+m2==m3)
+   if(m1+m2==m3)
    {
       *result = 2. * pow(-1,m3) * prefactor * gsl_sf_coupling_3j(2*l1,2*l2,2*l3,0,0,0)* gsl_sf_coupling_3j(2*l1,2*l2,2*l3,2*m1,2*m2,-2*m3);
       return 1;
@@ -216,5 +249,377 @@ double ALP_integral(int l,int m)
          *std::tgamma(double(l)/2.)
          *std::tgamma(double(l+m+1)/2.)
          /(std::tgamma(double(l-m)/2.+1)*std::tgamma(double(l+3)/2.));
+   }
+}
+
+double two_ALP_integral(int l1,int l2,int m1,int m2) //integral over two ALP
+{
+   int m12(m1+m2);
+   double G12(0);
+   double sum(0);
+
+   double prefactor(0);
+
+   prefactor=ALP_normalize(l1,m1)*ALP_normalize(l2,m2);
+   sum=0;
+
+   for(int l12=abs(l1-l2);l12!=l1+l2+1;l12++)
+   {
+      if( (l1+l2+l12) % 2 != 0 || m12 > l12) //Here, the selection rules for Wigner 3J symbols apply on each term
+         continue;
+      else
+      {
+         G12=pow(-1.,m12)*(2.*l12+1.)*gsl_sf_coupling_3j(2*l1,2*l2,2*l12,0,0,0)*gsl_sf_coupling_3j(2*l1,2*l2,2*l12,2*m1,2*m2,-2*m12)/ALP_normalize(l12,m12);
+         sum+=G12*ALP_integral(l12,m12);
+      }
+   }
+   return sum*prefactor;
+}
+double three_ALP_J_integral(int l1,int l2,int l3,int m1,int m2,int m3)
+{
+   double temp;
+   double sum(0);
+   double G12(0);
+   double prefactor(1);
+
+   // Check for zero integrand and for special cases
+   if( Jint_special_cases(l1,l2,l3,m1,m2,m3,&temp) ) 
+      return temp;
+
+   // If the integrand is not special, compute the expansion of the Legendre polynomials product
+
+   // Sorting, sign flips and normalization
+   Jint_sort_indices(&l1,&l2,&l3,&m1,&m2,&m3); // rearrange to get l1 < l2 < l3
+   prefactor=Jint_signflip_renormalize(l1,l2,l3,&m1,&m2,&m3); // Flip the sign of negative m's and renormalize accordingly
+   prefactor*=ALP_normalize(l1,m1)*ALP_normalize(l2,m2);
+
+   //Declare intermediary m's   
+   int m12(m1+m2);
+
+   sum=0;
+   for(int l12=abs(l1-l2);l12!=l1+l2+1;l12++)
+   {
+      if( (l1+l2+l12) % 2 !=0 || m12 > l12) //Here, the selection rules for Wigner 3J symbols apply on each term
+         continue;
+      else
+      {
+
+         G12=pow(-1.,m12)*(2.*l12+1.)*gsl_sf_coupling_3j(2*l1,2*l2,2*l12,0,0,0)*gsl_sf_coupling_3j(2*l1,2*l2,2*l12,2*m1,2*m2,-2*m12)/ALP_normalize(l12,m12);
+
+         sum+=G12*two_ALP_integral(l12,l3,m12,m3);
+      }
+   }
+   return prefactor*sum;
+}
+double I_m1_integral(int m1,int m2,int m3)
+{
+
+//   return 0.5*(three_azim_integ(-m1-1,m2,m3)-three_azim_integ(-m1+1,m2,m3));
+
+   if(m1<0)
+      return 0.5*(three_azim_integ(fabs(1+m1),m2,m3)-three_azim_integ(fabs(1-m1),m2,m3));
+   else
+   {
+      if(m1 == 1)
+         return 0.5*(three_azim_integ(-2,m2,m3));
+      else
+         return 0.5*(three_azim_integ(-fabs(m1+1),m2,m3)+pow(-1,bool(1-m1<0))*three_azim_integ(-fabs(1-m1),m2,m3));
+   }
+
+}
+double I_p1_integral(int m1,int m2,int m3)
+{
+   if(m1<0)
+   {
+      if(fabs(m1) == 1)
+          return 0.5*(three_azim_integ(-2,m2,m3));
+      else
+          return 0.5*(three_azim_integ(-fabs(-m1+1),m2,m3)-pow(-1,bool(m1+1<0))*three_azim_integ(-fabs(m1+1),m2,m3));
+   }
+   else
+      return 0.5*(three_azim_integ(fabs(m1+1),m2,m3)+three_azim_integ(fabs(-m1+1),m2,m3));
+
+}
+double I_m1_D_integral(int m1,int m2,int m3)
+{
+   return -m2*I_m1_integral(m1,-m2,m3)-m3*I_m1_integral(m1,m2,-m3);
+}
+double I_p1_D_integral(int m1,int m2,int m3)
+{
+   return -m2*I_m1_integral(m1,-m2,m3)-m3*I_m1_integral(m1,m2,-m3);
+}
+double J_int_m2(int l1,int l2,int l3,int m1,int m2,int m3)
+{
+   // CHECKED ON MARCH 2 2020
+   double sum(0);
+
+
+   if(l1==0 && l2 == 0 && l3 == 0 && m1 == 0 && m2 == 0 && m3 == 0 )
+      return (acos(-1));
+
+   else if(l1<0 || l2<0 || l3<0 || m1>l1 || m2>l2 || m3>l3)
+      return 0;
+
+   else if(l1>0)
+   {
+      if(l1 == m1)
+         return -((2*l1-1)*three_ALP_J_integral(l1-1,l2,l3,m1-1,m2,m3));
+
+      else if(l1 == m1+1 && l1>=2)
+         return -((2*m1+1)*three_ALP_J_integral(m1,l2,l3,m1-1,m2,m3));
+
+      else if(l1==1 && m1==0)
+      {
+         return ((1./(2.*l2+1.))*((l2-m2+1)*J_int_m2(0,l2+1,l3,0,m2,m3)+(l2+m2)*J_int_m2(0,l2-1,l3,0,m2,m3)));
+      }
+      if(l1>=m1+2)
+         return ((1./(double(l1-m1)*double(l1-m1-1)))*(double(2*l1-1)*three_ALP_J_integral(l1-1,l2,l3,m1+1,m2,m3)
+               +double(l1+m1)*(l1+m1-1)*J_int_m2(l1-2,l2,l3,m1,m2,m3)));
+   }
+   else if(l2>0)
+   {
+      if(l2 == m2)
+         return -(2*l2-1)*three_ALP_J_integral(l1,l2-1,l3,m1,m2-1,m3);
+      else if(l2 == m2+1 && l2>=2)
+         return -(2*m2+1)*three_ALP_J_integral(l1,m2,l3,m1,m2-1,m3);
+      else if(l2==1 && m2==0)
+      {
+         return (1./(2.*l3+1.))*((l3-m3+1)*J_int_m2(0,0,l3+1,0,0,m3)+(l3+m3)*J_int_m2(0,0,l3-1,0,0,m3));
+      }
+
+      if(l2>=m2+2)
+         return ((1./(double(l2-m2)*double(l2-m2-1)))*(double(2*l2-1)*three_ALP_J_integral(l1,l2-1,l3,m1,m2+1,m3)
+               +double(l2+m2)*(l2+m2-1)*J_int_m2(l1,l2-2,l3,m1,m2,m3)));
+   }
+   else
+   {
+      if(l3 == m3)
+         return - (2*l3-1)*three_ALP_J_integral(l1,l2,l3-1,m1,m2,m3-1);
+      else if(l3 == m3+1 && l3>=2)
+         return - (2*m3+1)*three_ALP_J_integral(l1,l2,m3,m1,m2,m3-1);
+      else if(l3==1 && m3==0)
+         return 0;
+
+      if(l3>=m3+2)
+         return  ((1./(double(l3-m3)*double(l3-m3-1)))*(double(2*l3-1)*three_ALP_J_integral(l1,l2,l3-1,m1,m2,m3+1)
+               +double(l3+m3)*(l3+m3-1)*J_int_m2(l1,l2,l3-2,m1,m2,m3)));
+   }
+   std::cout<<"REACHED THE DEAD END OF J_INT_M2 FUNCTION. CASE IS"<<l1<<","<<m1<<";"<<l2<<","<<m2<<";"<<l3<<","<<m3<<std::endl;
+   exit(EXIT_SUCCESS);
+   return sum;
+}
+double J_int_m1(int l1,int l2,int l3,int m1,int m2,int m3)
+{
+   //CHECKED ON MARCH 2 2020
+   if(l1<0 || l2<0 || l3<0 || m1>l1 || m2>l2 || m3>l3)
+      return 0;
+   if(l1==0 || l1-1 < m1+1)
+   {
+      return -((1./(2.*l1+1))*three_ALP_J_integral(l1+1,l2,l3,m1+1,m2,m3));
+   }
+   else
+   {
+      return ((1./(2.*l1+1))*(three_ALP_J_integral(l1-1,l2,l3,m1+1,m2,m3)-three_ALP_J_integral(l1+1,l2,l3,m1+1,m2,m3)));
+   }
+}
+double J_int_p1(int l1,int l2,int l3,int m1,int m2,int m3)
+{
+   //CHECKED ON MARCH 2 2020
+   if(l1<0 || l2<0 || l3<0 || m1>l1 || m2>l2 || m3>l3)
+      return 0;
+   if(l1==0 || l1-1 < m1)
+   {
+      return ((1./(2.*l1+1.))*(double(l1-m1+1.)*three_ALP_J_integral(l1+1,l2,l3,m1,m2,m3)));
+   }
+   else
+   {
+      return ((1./(2.*l1+1.))*(double(l1-m1+1.)*three_ALP_J_integral(l1+1,l2,l3,m1,m2,m3)+double(l1+m1)*three_ALP_J_integral(l1-1,l2,l3,m1,m2,m3)));
+   }
+}
+double J_int_m1_D(int l1,int l2,int l3,int m1,int m2,int m3)
+{
+   //CHECKED ON MARCH 10 2020
+   //This computes D_thet P_l^m(cos(thet))=-(1-x**2)**0.5 * D_xP_l^m(x)
+   double prefactor;
+   double DP2,DP3;
+   if((l1+m1+l2+m2+l3+m3)%2==0) //If the integrand is odd
+      return 0;
+   else
+   {
+
+      prefactor=Jint_signflip_renormalize(l1,l2,l3,&m1,&m2,&m3); // Flip the sign of negative m's and renormalize accordingly
+
+      if(l1<0 || l2<0 || l3<0 || m1>l1 || m2>l2 || m3>l3)
+         return 0;
+
+      else if( l2 == 0 && l3 == 0  )
+         return 0;
+      else
+      {
+             if(l2==0)
+                DP2=0;
+             else if(l2>0 && m2==0)
+                DP2=prefactor*three_ALP_J_integral(l1,l2,l3,m1,1,m3);
+             else if(l2==m2)
+                DP2=-0.5*((l2+m2)*(l2-m2+1)*prefactor*three_ALP_J_integral(l1,l2,l3,m1,m2-1,m3));
+             if(l3==0)
+                DP3=0;
+             else if(l3>0 && m3==0)
+                DP3=prefactor*three_ALP_J_integral(l1,l2,l3,m1,m2,1);
+             else if(l3==m3)
+                DP3=0.5*((l3+m3)*(l3-m3+1)*prefactor*three_ALP_J_integral(l1,l2,l3,m1,m2,m3-1));
+             else
+                DP3=-0.5*((l3+m3)*(l3-m3+1)*prefactor*three_ALP_J_integral(l1,l2,l3,m1,m2,m3-1)-prefactor*three_ALP_J_integral(l1,l2,l3,m1,m2,m3+1));
+
+             return (DP2+DP3);
+      }
+   }
+      /*
+      else if(l3 ==0)
+      {
+         if(m2==0)
+            return prefactor*three_ALP_J_integral(l1,l2,0,m1,1,0);
+         else if(l2==m2)
+            return prefactor*0.5*((l2+m2)*(l2-m2+1)*three_ALP_J_integral(l1,l2,l3,m1,m2-1,m3));
+         else
+            return -prefactor*0.5*((l2+m2)*(l2-m2+1)*three_ALP_J_integral(l1,l2,l3,m1,m2-1,m3)-three_ALP_J_integral(l1,l2,l3,m1,m2+1,m3));
+      }
+      else if(l2==0)
+      {
+         if(m3==0)
+            return prefactor*three_ALP_J_integral(l1,0,l3,m1,0,1);
+         else if(l3==m3)
+            return prefactor*0.5*((l3+m3)*(l3-m3+1)*three_ALP_J_integral(l1,l2,l3,m1,m2,m3-1));
+         else
+            return -prefactor*0.5*((l3+m3)*(l3-m3+1)*three_ALP_J_integral(l1,l2,l3,m1,m2,m3-1)-three_ALP_J_integral(l1,l2,l3,m1,m2,m3+1));
+      }
+      else
+      {
+         if(m2==0 && m3==0)
+            return prefactor*(three_ALP_J_integral(l1,l2,l3,m1,1,m3)+three_ALP_J_integral(l1,l2,l3,m1,m2,1));
+         else if(m2==0 && l3 == m3)
+            return prefactor*(three_ALP_J_integral(l1,l2,l3,m1,1,m3)
+                  -0.5*((l3+m3)*(l3-m3+1)*three_ALP_J_integral(l1,l2,l3,m1,m2,m3-1)));
+         else if(m2==0)
+            return prefactor*(three_ALP_J_integral(l1,l2,l3,m1,1,m3)
+                  -0.5*((l3+m3)*(l3-m3+1)*three_ALP_J_integral(l1,l2,l3,m1,m2,m3-1)-three_ALP_J_integral(l1,l2,l3,m1,m2,m3+1)));
+         else if(m3==0 && l2==m2)
+            return prefactor*(three_ALP_J_integral(l1,l2,l3,m1,m2,1)
+                  -0.5*((l2+m2)*(l2-m2+1)*three_ALP_J_integral(l1,l2,l3,m1,m2-1,m3)));
+         else if(m3==0 )
+            return prefactor*(three_ALP_J_integral(l1,l2,l3,m1,m2,1)
+                  -0.5*((l2+m2)*(l2-m2+1)*three_ALP_J_integral(l1,l2,l3,m1,m2-1,m3)-three_ALP_J_integral(l1,l2,l3,m1,m2+1,m3)));
+         else if(l3==m3 && l2==m2)
+            return -0.5*((l2+m2)*(l2-m2+1)*three_ALP_J_integral(l1,l2,l3,m1,m2-1,m3))-0.5*((l3+m3)*(l3-m3+1)*three_ALP_J_integral(l1,l2,l3,m1,m2,m3-1));
+         else if(l2==m2)
+            return -0.5*((l2+m2)*(l2-m2+1)*three_ALP_J_integral(l1,l2,l3,m1,m2-1,m3))
+                  -0.5*((l3+m3)*(l3-m3+1)*three_ALP_J_integral(l1,l2,l3,m1,m2,m3-1)-three_ALP_J_integral(l1,l2,l3,m1,m2,m3+1));
+         else if(l3==m3)
+            return -0.5*((l2+m2)*(l2-m2+1)*three_ALP_J_integral(l1,l2,l3,m1,m2-1,m3)-three_ALP_J_integral(l1,l2,l3,m1,m2+1,m3))
+                  -0.5*((l3+m3)*(l3-m3+1)*three_ALP_J_integral(l1,l2,l3,m1,m2,m3-1));
+         else
+            return -0.5*((l2+m2)*(l2-m2+1)*three_ALP_J_integral(l1,l2,l3,m1,m2-1,m3)-three_ALP_J_integral(l1,l2,l3,m1,m2+1,m3))
+                  -0.5*((l3+m3)*(l3-m3+1)*three_ALP_J_integral(l1,l2,l3,m1,m2,m3-1)-three_ALP_J_integral(l1,l2,l3,m1,m2,m3+1));
+      }
+      
+   }*/
+}
+double J_int_p1_D(int l1,int l2,int l3,int m1,int m2,int m3)
+{
+   //CHECKED ON MARCH 10 2020
+   if((l1+m1+l2+m2+l3+m3+1)%2 == 0)
+      return 0;
+   double sign(1);
+
+   if(m1<0)
+   {
+      sign*=pow(-1,m1);
+      m1=-m1;
+   }
+   if(m2<0)
+   {
+      sign*=pow(-1,m2);
+      m2=-m2;
+   }
+   if(m3<0)
+   {
+      sign*=pow(-1,m3);
+      m3=-m3;
+   }
+   if((l2 == 0 && l3 == 0))
+      return 0;
+
+   else if(l3 == 0)
+   {
+      return sign*((double(l2+m2)/double(2*l2-1))*(double(l2-m2)*J_int_m2(l1,l2,l3,m1,m2,m3)+double(l2+m2-1)*J_int_m2(l1,l2-2,l3,m1,m2,m3))
+      -(double(l2)/double(2*l2+1))*(
+            (double(l2-m2+1)/double(2*l2+3))*(double(l2-m2+2)*J_int_m2(l1,l2+2,l3,m1,m2,m3)+(l2+m2+1)*J_int_m2(l1,l2,l3,m1,m2,m3))
+            +(double(l2+m2)/(2*l2-1))*(double(l2-m2)*J_int_m2(l1,l2,l3,m1,m2,m3)+double(l2+m2-1)*J_int_m2(l1,l2-2,l3,m1,m2,m3))));
+      /*
+         return (1/(2.*l1+1))*(
+              (l1-m1+1)*(
+                 (l2/(l2+m2+1))*( 
+                    (l2-m2+1)*J_int_m2(l1+1,l2+1,l3,m1,m2,m3)
+                    -three_ALP_J_integral(l1+1,l2,l3,m1,m2+1,m3)) 
+                 -(l2+m2)*J_int_m2(l1+1,l2-1,l3,m1,m2,m3))
+             +(l1+m1)*(
+                 (l2/(l2+m2+1))*( 
+                    (l2-m2+1)*J_int_m2(l1-1,l2+1,l3,m1,m2,m3)
+                    -three_ALP_J_integral(l1-1,l2,l3,m1,m2+1,m3)) 
+                 -(l2+m2)*J_int_m2(l1-1,l2-1,l3,m1,m2,m3)));
+                 */
+   }
+   else if(l2 == 0)
+   {
+//      std::cout<<"l1+1 = "<<l1+1<<", l2 = "<<l2<<", l3+1 = "<<l3+1<<",m1 = "<<m1<<",m2 = "<<m2<<",m3 = "<<m3<<"====>"<<J_int_m2(l1+1,l2,l3+1,m1,m2,m3)<<std::endl;
+      return sign*((double(l3+m3)/double(2*l3-1))*(double(l3-m3)*J_int_m2(l1,l2,l3,m1,m2,m3)+double(l3+m3-1)*J_int_m2(l1,l2,l3-2,m1,m2,m3))
+      -(double(l3)/double(2*l3+1))*(
+            (double(l3-m3+1)/double(2*l3+3))*(double(l3-m3+2)*J_int_m2(l1,l2,l3+2,m1,m2,m3)+(l3+m3+1)*J_int_m2(l1,l2,l3,m1,m2,m3))
+            +(double(l3+m3)/(2*l3-1))*(double(l3-m3)*J_int_m2(l1,l2,l3,m1,m2,m3)+double(l3+m3-1)*J_int_m2(l1,l2,l3-2,m1,m2,m3))));
+/*         return (1./(2.*l1+1))*(
+              (l1-m1+1)*(
+                 (double(l3)/double(l3+m3+1))*double( 
+                    (l3-m3+1)*J_int_m2(l1+1,l2,l3+1,m1,m2,m3)
+                    -three_ALP_J_integral(l1+1,l2,l3,m1,m2,m3+1)) 
+                 -(l3+m3)*J_int_m2(l1+1,l2,l3-1,m1,m2,m3))
+             +(l1+m1)*(
+                 (double(l3)/double((l3+m3+1)))*( 
+                    (l3-m3+1)*J_int_m2(l1-1,l2,l3+1,m1,m2,m3)
+                    -three_ALP_J_integral(l1-1,l2,l3,m1,m2,m3+1)) 
+                 -(l3+m3)*J_int_m2(l1-1,l2,l3-1,m1,m2,m3)));
+                 */
+   }
+   else
+   {
+      return sign*((double(l2+m2)/double(2*l2-1))*(double(l2-m2)*J_int_m2(l1,l2,l3,m1,m2,m3)+double(l2+m2-1)*J_int_m2(l1,l2-2,l3,m1,m2,m3))
+      -(double(l2)/double(2*l2+1))*(
+            (double(l2-m2+1)/double(2*l2+3))*(double(l2-m2+2)*J_int_m2(l1,l2+2,l3,m1,m2,m3)+(l2+m2+1)*J_int_m2(l1,l2,l3,m1,m2,m3))
+            +(double(l2+m2)/(2*l2-1))*(double(l2-m2)*J_int_m2(l1,l2,l3,m1,m2,m3)+double(l2+m2-1)*J_int_m2(l1,l2-2,l3,m1,m2,m3)))
+      + (double(l3+m3)/double(2*l3-1))*(double(l3-m3)*J_int_m2(l1,l2,l3,m1,m2,m3)+double(l3+m3-1)*J_int_m2(l1,l2,l3-2,m1,m2,m3))
+      -(double(l3)/double(2*l3+1))*(
+            (double(l3-m3+1)/double(2*l3+3))*(double(l3-m3+2)*J_int_m2(l1,l2,l3+2,m1,m2,m3)+(l3+m3+1)*J_int_m2(l1,l2,l3,m1,m2,m3))
+            +(double(l3+m3)/(2*l3-1))*(double(l3-m3)*J_int_m2(l1,l2,l3,m1,m2,m3)+double(l3+m3-1)*J_int_m2(l1,l2,l3-2,m1,m2,m3))));
+    /*     return (1./(2.*l1+1))*(
+              (l1-m1+1)*(
+                 (double(l3)/double(l3+m3+1))*( 
+                    (l3-m3+1)*J_int_m2(l1+1,l2,l3+1,m1,m2,m3)
+                    -three_ALP_J_integral(l1+1,l2,l3,m1,m2,m3+1)) 
+                 -(l3+m3)*J_int_m2(l1+1,l2,l3-1,m1,m2,m3))
+             +(l1+m1)*(
+                 (double(l3)/double(l3+m3+1))*( 
+                    (l3-m3+1)*J_int_m2(l1-1,l2,l3+1,m1,m2,m3)
+                    -three_ALP_J_integral(l1-1,l2,l3,m1,m2,m3+1)) 
+                 -(l3+m3)*J_int_m2(l1-1,l2,l3-1,m1,m2,m3))
+              +(l1-m1+1)*(
+                 (double(l2)/double(l2+m2+1))*( 
+                    (l2-m2+1)*J_int_m2(l1+1,l2+1,l3,m1,m2,m3)
+                    -three_ALP_J_integral(l1+1,l2,l3,m1,m2+1,m3)) 
+                 -(l2+m2)*J_int_m2(l1+1,l2-1,l3,m1,m2,m3))
+             +(l1+m1)*(
+                 (double(l2)/double(l2+m2+1))*( 
+                    (l2-m2+1)*J_int_m2(l1-1,l2+1,l3,m1,m2,m3)
+                    -three_ALP_J_integral(l1-1,l2,l3,m1,m2+1,m3)) 
+                 -(l2+m2)*J_int_m2(l1-1,l2-1,l3,m1,m2,m3)));
+                 */
    }
 }
