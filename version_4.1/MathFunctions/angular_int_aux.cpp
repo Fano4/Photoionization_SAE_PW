@@ -462,6 +462,8 @@ double J_int_m1_D(int l1,int l2,int l3,int m1,int m2,int m3)
                 DP2=prefactor*three_ALP_J_integral(l1,l2,l3,m1,1,m3);
              else if(l2==m2)
                 DP2=-0.5*((l2+m2)*(l2-m2+1)*prefactor*three_ALP_J_integral(l1,l2,l3,m1,m2-1,m3));
+             else
+                DP2=-0.5*((l2+m2)*(l2-m2+1)*prefactor*three_ALP_J_integral(l1,l2,l3,m1,m2-1,m3)-prefactor*three_ALP_J_integral(l1,l2,l3,m1,m2+1,m3));
              if(l3==0)
                 DP3=0;
              else if(l3>0 && m3==0)
@@ -474,152 +476,24 @@ double J_int_m1_D(int l1,int l2,int l3,int m1,int m2,int m3)
              return (DP2+DP3);
       }
    }
-      /*
-      else if(l3 ==0)
-      {
-         if(m2==0)
-            return prefactor*three_ALP_J_integral(l1,l2,0,m1,1,0);
-         else if(l2==m2)
-            return prefactor*0.5*((l2+m2)*(l2-m2+1)*three_ALP_J_integral(l1,l2,l3,m1,m2-1,m3));
-         else
-            return -prefactor*0.5*((l2+m2)*(l2-m2+1)*three_ALP_J_integral(l1,l2,l3,m1,m2-1,m3)-three_ALP_J_integral(l1,l2,l3,m1,m2+1,m3));
-      }
-      else if(l2==0)
-      {
-         if(m3==0)
-            return prefactor*three_ALP_J_integral(l1,0,l3,m1,0,1);
-         else if(l3==m3)
-            return prefactor*0.5*((l3+m3)*(l3-m3+1)*three_ALP_J_integral(l1,l2,l3,m1,m2,m3-1));
-         else
-            return -prefactor*0.5*((l3+m3)*(l3-m3+1)*three_ALP_J_integral(l1,l2,l3,m1,m2,m3-1)-three_ALP_J_integral(l1,l2,l3,m1,m2,m3+1));
-      }
-      else
-      {
-         if(m2==0 && m3==0)
-            return prefactor*(three_ALP_J_integral(l1,l2,l3,m1,1,m3)+three_ALP_J_integral(l1,l2,l3,m1,m2,1));
-         else if(m2==0 && l3 == m3)
-            return prefactor*(three_ALP_J_integral(l1,l2,l3,m1,1,m3)
-                  -0.5*((l3+m3)*(l3-m3+1)*three_ALP_J_integral(l1,l2,l3,m1,m2,m3-1)));
-         else if(m2==0)
-            return prefactor*(three_ALP_J_integral(l1,l2,l3,m1,1,m3)
-                  -0.5*((l3+m3)*(l3-m3+1)*three_ALP_J_integral(l1,l2,l3,m1,m2,m3-1)-three_ALP_J_integral(l1,l2,l3,m1,m2,m3+1)));
-         else if(m3==0 && l2==m2)
-            return prefactor*(three_ALP_J_integral(l1,l2,l3,m1,m2,1)
-                  -0.5*((l2+m2)*(l2-m2+1)*three_ALP_J_integral(l1,l2,l3,m1,m2-1,m3)));
-         else if(m3==0 )
-            return prefactor*(three_ALP_J_integral(l1,l2,l3,m1,m2,1)
-                  -0.5*((l2+m2)*(l2-m2+1)*three_ALP_J_integral(l1,l2,l3,m1,m2-1,m3)-three_ALP_J_integral(l1,l2,l3,m1,m2+1,m3)));
-         else if(l3==m3 && l2==m2)
-            return -0.5*((l2+m2)*(l2-m2+1)*three_ALP_J_integral(l1,l2,l3,m1,m2-1,m3))-0.5*((l3+m3)*(l3-m3+1)*three_ALP_J_integral(l1,l2,l3,m1,m2,m3-1));
-         else if(l2==m2)
-            return -0.5*((l2+m2)*(l2-m2+1)*three_ALP_J_integral(l1,l2,l3,m1,m2-1,m3))
-                  -0.5*((l3+m3)*(l3-m3+1)*three_ALP_J_integral(l1,l2,l3,m1,m2,m3-1)-three_ALP_J_integral(l1,l2,l3,m1,m2,m3+1));
-         else if(l3==m3)
-            return -0.5*((l2+m2)*(l2-m2+1)*three_ALP_J_integral(l1,l2,l3,m1,m2-1,m3)-three_ALP_J_integral(l1,l2,l3,m1,m2+1,m3))
-                  -0.5*((l3+m3)*(l3-m3+1)*three_ALP_J_integral(l1,l2,l3,m1,m2,m3-1));
-         else
-            return -0.5*((l2+m2)*(l2-m2+1)*three_ALP_J_integral(l1,l2,l3,m1,m2-1,m3)-three_ALP_J_integral(l1,l2,l3,m1,m2+1,m3))
-                  -0.5*((l3+m3)*(l3-m3+1)*three_ALP_J_integral(l1,l2,l3,m1,m2,m3-1)-three_ALP_J_integral(l1,l2,l3,m1,m2,m3+1));
-      }
-      
-   }*/
 }
 double J_int_p1_D(int l1,int l2,int l3,int m1,int m2,int m3)
 {
    //CHECKED ON MARCH 10 2020
    if((l1+m1+l2+m2+l3+m3+1)%2 == 0)
       return 0;
-   double sign(1);
-
-   if(m1<0)
-   {
-      sign*=pow(-1,m1);
-      m1=-m1;
-   }
-   if(m2<0)
-   {
-      sign*=pow(-1,m2);
-      m2=-m2;
-   }
-   if(m3<0)
-   {
-      sign*=pow(-1,m3);
-      m3=-m3;
-   }
-   if((l2 == 0 && l3 == 0))
+   else if((l2 == 0 && l3 == 0))
       return 0;
-
-   else if(l3 == 0)
-   {
-      return sign*((double(l2+m2)/double(2*l2-1))*(double(l2-m2)*J_int_m2(l1,l2,l3,m1,m2,m3)+double(l2+m2-1)*J_int_m2(l1,l2-2,l3,m1,m2,m3))
-      -(double(l2)/double(2*l2+1))*(
-            (double(l2-m2+1)/double(2*l2+3))*(double(l2-m2+2)*J_int_m2(l1,l2+2,l3,m1,m2,m3)+(l2+m2+1)*J_int_m2(l1,l2,l3,m1,m2,m3))
-            +(double(l2+m2)/(2*l2-1))*(double(l2-m2)*J_int_m2(l1,l2,l3,m1,m2,m3)+double(l2+m2-1)*J_int_m2(l1,l2-2,l3,m1,m2,m3))));
-      /*
-         return (1/(2.*l1+1))*(
-              (l1-m1+1)*(
-                 (l2/(l2+m2+1))*( 
-                    (l2-m2+1)*J_int_m2(l1+1,l2+1,l3,m1,m2,m3)
-                    -three_ALP_J_integral(l1+1,l2,l3,m1,m2+1,m3)) 
-                 -(l2+m2)*J_int_m2(l1+1,l2-1,l3,m1,m2,m3))
-             +(l1+m1)*(
-                 (l2/(l2+m2+1))*( 
-                    (l2-m2+1)*J_int_m2(l1-1,l2+1,l3,m1,m2,m3)
-                    -three_ALP_J_integral(l1-1,l2,l3,m1,m2+1,m3)) 
-                 -(l2+m2)*J_int_m2(l1-1,l2-1,l3,m1,m2,m3)));
-                 */
-   }
-   else if(l2 == 0)
-   {
-//      std::cout<<"l1+1 = "<<l1+1<<", l2 = "<<l2<<", l3+1 = "<<l3+1<<",m1 = "<<m1<<",m2 = "<<m2<<",m3 = "<<m3<<"====>"<<J_int_m2(l1+1,l2,l3+1,m1,m2,m3)<<std::endl;
-      return sign*((double(l3+m3)/double(2*l3-1))*(double(l3-m3)*J_int_m2(l1,l2,l3,m1,m2,m3)+double(l3+m3-1)*J_int_m2(l1,l2,l3-2,m1,m2,m3))
-      -(double(l3)/double(2*l3+1))*(
-            (double(l3-m3+1)/double(2*l3+3))*(double(l3-m3+2)*J_int_m2(l1,l2,l3+2,m1,m2,m3)+(l3+m3+1)*J_int_m2(l1,l2,l3,m1,m2,m3))
-            +(double(l3+m3)/(2*l3-1))*(double(l3-m3)*J_int_m2(l1,l2,l3,m1,m2,m3)+double(l3+m3-1)*J_int_m2(l1,l2,l3-2,m1,m2,m3))));
-/*         return (1./(2.*l1+1))*(
-              (l1-m1+1)*(
-                 (double(l3)/double(l3+m3+1))*double( 
-                    (l3-m3+1)*J_int_m2(l1+1,l2,l3+1,m1,m2,m3)
-                    -three_ALP_J_integral(l1+1,l2,l3,m1,m2,m3+1)) 
-                 -(l3+m3)*J_int_m2(l1+1,l2,l3-1,m1,m2,m3))
-             +(l1+m1)*(
-                 (double(l3)/double((l3+m3+1)))*( 
-                    (l3-m3+1)*J_int_m2(l1-1,l2,l3+1,m1,m2,m3)
-                    -three_ALP_J_integral(l1-1,l2,l3,m1,m2,m3+1)) 
-                 -(l3+m3)*J_int_m2(l1-1,l2,l3-1,m1,m2,m3)));
-                 */
-   }
    else
    {
-      return sign*((double(l2+m2)/double(2*l2-1))*(double(l2-m2)*J_int_m2(l1,l2,l3,m1,m2,m3)+double(l2+m2-1)*J_int_m2(l1,l2-2,l3,m1,m2,m3))
-      -(double(l2)/double(2*l2+1))*(
-            (double(l2-m2+1)/double(2*l2+3))*(double(l2-m2+2)*J_int_m2(l1,l2+2,l3,m1,m2,m3)+(l2+m2+1)*J_int_m2(l1,l2,l3,m1,m2,m3))
-            +(double(l2+m2)/(2*l2-1))*(double(l2-m2)*J_int_m2(l1,l2,l3,m1,m2,m3)+double(l2+m2-1)*J_int_m2(l1,l2-2,l3,m1,m2,m3)))
-      + (double(l3+m3)/double(2*l3-1))*(double(l3-m3)*J_int_m2(l1,l2,l3,m1,m2,m3)+double(l3+m3-1)*J_int_m2(l1,l2,l3-2,m1,m2,m3))
-      -(double(l3)/double(2*l3+1))*(
-            (double(l3-m3+1)/double(2*l3+3))*(double(l3-m3+2)*J_int_m2(l1,l2,l3+2,m1,m2,m3)+(l3+m3+1)*J_int_m2(l1,l2,l3,m1,m2,m3))
-            +(double(l3+m3)/(2*l3-1))*(double(l3-m3)*J_int_m2(l1,l2,l3,m1,m2,m3)+double(l3+m3-1)*J_int_m2(l1,l2,l3-2,m1,m2,m3))));
-    /*     return (1./(2.*l1+1))*(
-              (l1-m1+1)*(
-                 (double(l3)/double(l3+m3+1))*( 
-                    (l3-m3+1)*J_int_m2(l1+1,l2,l3+1,m1,m2,m3)
-                    -three_ALP_J_integral(l1+1,l2,l3,m1,m2,m3+1)) 
-                 -(l3+m3)*J_int_m2(l1+1,l2,l3-1,m1,m2,m3))
-             +(l1+m1)*(
-                 (double(l3)/double(l3+m3+1))*( 
-                    (l3-m3+1)*J_int_m2(l1-1,l2,l3+1,m1,m2,m3)
-                    -three_ALP_J_integral(l1-1,l2,l3,m1,m2,m3+1)) 
-                 -(l3+m3)*J_int_m2(l1-1,l2,l3-1,m1,m2,m3))
-              +(l1-m1+1)*(
-                 (double(l2)/double(l2+m2+1))*( 
-                    (l2-m2+1)*J_int_m2(l1+1,l2+1,l3,m1,m2,m3)
-                    -three_ALP_J_integral(l1+1,l2,l3,m1,m2+1,m3)) 
-                 -(l2+m2)*J_int_m2(l1+1,l2-1,l3,m1,m2,m3))
-             +(l1+m1)*(
-                 (double(l2)/double(l2+m2+1))*( 
-                    (l2-m2+1)*J_int_m2(l1-1,l2+1,l3,m1,m2,m3)
-                    -three_ALP_J_integral(l1-1,l2,l3,m1,m2+1,m3)) 
-                 -(l2+m2)*J_int_m2(l1-1,l2-1,l3,m1,m2,m3)));
-                 */
+      if(l1==0 || l1-1 < m1)
+      {
+         return ((1./(2.*l1+1.))*(double(l1-m1+1.)*J_int_m1_D(l1+1,l2,l3,m1,m2,m3)));
+      }
+      else
+      {
+         return ((1./(2.*l1+1.))*(double(l1-m1+1.)*J_int_m1_D(l1+1,l2,l3,m1,m2,m3)+double(l1+m1)*J_int_m1_D(l1-1,l2,l3,m1,m2,m3)));
+      }
+
    }
 }

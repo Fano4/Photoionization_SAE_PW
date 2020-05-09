@@ -26,5 +26,6 @@ int main(int argc,char* argv[])
 //   test_J_int_m1();
 //   test_J_int_p1();
    test_J_int_m1_D();
+   test_J_int_p1_D();
    return 0;
 }

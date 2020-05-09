@@ -1248,6 +1248,8 @@ bool test_J_int_m1_D()
                 DP2=gsl_sf_legendre_Plm(l2,1,x[xx]);
              else if(l2==m2)
                 DP2=-0.5*((l2+m2)*(l2-m2+1)*gsl_sf_legendre_Plm(l2,m2-1,x[xx]));
+             else
+                DP2=-0.5*((l2+m2)*(l2-m2+1)*gsl_sf_legendre_Plm(l2,m2-1,x[xx])-gsl_sf_legendre_Plm(l2,m2+1,x[xx]));
              if(l3==0)
                 DP3=0;
              else if(l3>0 && m3==0)
@@ -1289,3 +1291,90 @@ bool test_J_int_m1_D()
 //
 //
 //////////////////////////////////////////
+bool test_J_int_p1_D()
+{
+   bool test1(1);
+   double thresh(1e-5);
+   std::cout<<"Testing J_int_p1_D"<<std::endl;
+   int l1,l2,l3,m1,m2,m3;
+   double P1,P2,P3;
+   double DP2,DP3;
+
+   //Initialize random variable generation
+   srand (time(0));
+
+   //set up vector tor epresent function
+   int nx=5000000;
+   double*x=new double[nx];
+   for(int i=0;i!=nx;i++)
+      x[i]=-1.+2.*double(i)/double(nx);
+   double dx(x[1]-x[0]);
+   //Test 1 : The integral yields good results
+   std::cout<<"1..."<<std::endl;
+   for(int i=0;i!=150;i++)
+   {
+      double val(10);
+      double check;
+      //generate a random set of values
+       l1=(rand() % 5);
+       l2=(rand() % 5);
+       l3=( rand() % 5);
+       m1=( rand() % (l1+1));
+       m2=( rand() % (l2+1));
+       m3=( rand() % (l3+1));
+
+       //Send the parameters for computing the special cases
+       val=J_int_p1_D(l1,l2,l3,m1,m2,m3); 
+
+          //Compute the renormalization constant using independent functions
+          check=0;
+          for(int xx=0;xx!=nx;xx++)
+          {
+             P1=(gsl_sf_legendre_Plm(l1,m1,x[xx]));
+             P2=(gsl_sf_legendre_Plm(l2,m2,x[xx]));
+             P3=(gsl_sf_legendre_Plm(l3,m3,x[xx]));
+             if(l2==0)
+                DP2=0;
+             else if(l2>0 && m2==0)
+                DP2=gsl_sf_legendre_Plm(l2,1,x[xx]);
+             else if(l2==m2)
+                DP2=-0.5*((l2+m2)*(l2-m2+1)*gsl_sf_legendre_Plm(l2,m2-1,x[xx]));
+             else
+                DP2=-0.5*((l2+m2)*(l2-m2+1)*gsl_sf_legendre_Plm(l2,m2-1,x[xx])-gsl_sf_legendre_Plm(l2,m2+1,x[xx]));
+             if(l3==0)
+                DP3=0;
+             else if(l3>0 && m3==0)
+                DP3=gsl_sf_legendre_Plm(l3,1,x[xx]);
+             else if(l3==m3)
+                DP3=0.5*((l3+m3)*(l3-m3+1)*gsl_sf_legendre_Plm(l3,m3-1,x[xx]));
+             else
+                DP3=-0.5*((l3+m3)*(l3-m3+1)*gsl_sf_legendre_Plm(l3,m3-1,x[xx])-gsl_sf_legendre_Plm(l3,m3+1,x[xx]));
+
+             check+=x[xx]*dx*(P1*(DP2*P3+DP3*P2));
+          }
+
+       //Check if the normalization constant is correct
+
+       if( fabs(val - check) / (check + bool(check <= thresh)) <=thresh)
+          test1*=1;
+       else
+       {
+          std::cout<<l1<<","<<l2<<","<<l3<<" - "<<m1<<","<<m2<<","<<m3<<"+++++"<<val<<" ----- ";
+          std::cout<<check<<std::endl;
+          test1*=0;
+       }
+   }
+   if(test1)
+   {
+      std::cout<<"...passed"<<std::endl;
+      return 1;
+   }
+   else
+   {
+      std::cout<<"...FAILED...";
+      if(!test1)
+         std::cout<<"Error 1...";
+      std::cout<<std::endl;
+      return 0;
+   }
+}
