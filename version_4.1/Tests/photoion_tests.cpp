@@ -25,7 +25,13 @@ int main(int argc,char* argv[])
 //   test_J_int_m2();
 //   test_J_int_m1();
 //   test_J_int_p1();
-   test_J_int_m1_D();
-   test_J_int_p1_D();
+//   test_J_int_m1_D();
+//   test_J_int_p1_D();
+//   test_search();
+   test_molp_sym_parser();
+   test_molp_method_parser();
+   test_molp_wf_parser();
+   test_molp_cas_reader();
+   
    return 0;
 }

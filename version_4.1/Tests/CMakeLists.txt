@@ -7,13 +7,14 @@ set_property(TARGET gslcblas PROPERTY IMPORTED_LOCATION $ENV{GSL_ROOT}/lib/libgs
 # add the executables
 add_executable(PhotoICE_test photoion_tests.cpp)
 
-target_link_libraries(PhotoICE_test PUBLIC MathFunctions)
+target_link_libraries(PhotoICE_test PUBLIC MathFunctions FilesUtils Utilities)
 #link the directories to the target
 target_include_directories(PhotoICE_test PUBLIC
                               "${PROJECT_BINARY_DIR}"
                               "${PROJECT_SOURCE_DIR}/MathFunctions"
+                              "${PROJECT_SOURCE_DIR}/FilesUtils"
+                              "${PROJECT_SOURCE_DIR}/Utilities"
                               "${PROJECT_SOURCE_DIR}/Tests"
                               "$ENV{GSL_ROOT}/include")
 
-target_link_libraries(PhotoICE_test PRIVATE gsl)
-target_link_libraries(PhotoICE_test PRIVATE gslcblas)
+target_link_libraries(PhotoICE_test PRIVATE gsl gslcblas)

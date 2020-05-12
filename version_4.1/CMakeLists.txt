@@ -23,7 +23,10 @@ configure_file(photoion_header.h.in photoion_header.h)
 
 # add the MathFunctions library directory
 add_subdirectory(MathFunctions)
+add_subdirectory(FilesUtils)
+add_subdirectory(Utilities)
 add_subdirectory(Tests)
+
 
 add_library(GSL STATIC IMPORTED)
 set_property(TARGET GSL PROPERTY IMPORTED_LOCATION $ENV{GSL_ROOT}/lib/libgsl.so)
@@ -36,9 +39,11 @@ add_executable(PhotoICE photoion_comp.cpp)
 # Add the binary folder to the include research path
 target_include_directories(PhotoICE PUBLIC
                               "${PROJECT_BINARY_DIR}"
-                              "${PROJECT_SOURCE_DIR}/MathFunctions")
+                              "${PROJECT_SOURCE_DIR}/MathFunctions"
+                              "${PROJECT_SOURCE_DIR}/FilesUtils"
+                              "${PROJECT_SOURCE_DIR}/Utilities")
 
-target_link_libraries(PhotoICE PUBLIC MathFunctions)
+target_link_libraries(PhotoICE PUBLIC MathFunctions FilesUtils Utilities)
 
 install(TARGETS PhotoICE DESTINATION bin)
 install(FILES "${PROJECT_BINARY_DIR}/Photoion_header.h"
