@@ -150,3 +150,52 @@ bool test_molp_cas_reader()
       return 0;
    }
 }
+bool test_molp_basis_parser()
+{
+   bool test1(0);
+   std::cout<<"Testing molp_basis_parser"<<std::endl;
+   std::string input_file="/home/users/stephan/Photoionization_SAE_PW/version_4.1/Tests/LiH_6.325.out";
+
+   int tot_basis_size;
+   std::vector<int> basis_size;
+   std::vector<int> cont_num;
+   std::vector<int> nuc_bas_func;
+   std::vector<int> l_val;
+   std::vector<int> m_val;
+   std::vector<double> cont_zeta;
+   std::vector<double> cont_coeff;
+
+   molp_basis_parser(&basis_size,&cont_num,&nuc_bas_func,&l_val,&m_val,&cont_zeta,&cont_coeff,input_file);
+
+   std::cout<<" Basis size: "<<basis_size[0]<<","<<basis_size[1]<<","<<basis_size[2]<<","<<basis_size[3]<<std::endl;
+   tot_basis_size=basis_size[0]+basis_size[1]+basis_size[2]+basis_size[3];
+   int count(0);
+
+   for(int i=0; i!=tot_basis_size;i++)
+   {
+      std::cout<<"Basis function "<<i<<" => "<<cont_num[i]<<" contractions. angular numbers ="<<l_val[i]<<","<<m_val[i]<<std::endl;
+      for(int j=0;j!=cont_num[i];j++)
+      {
+         std::cout<<"coeff "<<cont_coeff[count]<<" ; zeta "<<cont_zeta[count]<<std::endl;
+         count++;
+      }
+   }
+
+   test1=1;
+
+   if(test1)
+   {
+      std::cout<<"...passed"<<std::endl;
+      return 1;
+   }
+   else
+   {
+      std::cout<<"...FAILED...";
+      if(!test1)
+      {
+         std::cout<<"Error 1...";
+      }
+      std::cout<<std::endl;
+      return 0;
+   }
+}

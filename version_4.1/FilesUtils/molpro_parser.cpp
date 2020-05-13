@@ -524,63 +524,53 @@ bool molp_cas_reader(int method_index,std::vector<int>* n_occ,std::vector<int>* 
 
    return 0;
 }
-bool molp_basis_size_parser(int* basis_size,std::string file)
+bool molp_basis_size_parser(std::vector<int>* basis_size,std::string file)
 {
    using namespace std;
 
    int n_sym;
-   size_t pos;
    ifstream input;
    string tmp_str;
    string line;
+   vector<int> bas_pos;
+   vector<int> num_of_match;
 
    n_sym=molp_sym_parser(file);
+   if(!search(&bas_pos,&num_of_match,"NUMBER OF CONTRACTIONS:",file))
+      err_basis_not_found(file);
 
    input.open(file.c_str());
    if(!input.is_open())
       err_file_not_found(file);
 
-   while(!input.eof())
+   //save value to basis_size upon match
+   input.seekg(bas_pos[0]+23);
+   input>>tmp_str;
+   basis_size->push_back(atoi(tmp_str.c_str()));
+
+   if(n_sym>1)
    {
-      //extract line by line
-      getline(input,line);
+      basis_size->clear();
+      input>>tmp_str;
 
-      //save value to basis_size upon match
-      pos=line.find("NUMBER OF CONTRACTIONS:");
-      if(pos!=string::npos)
+      //If there is additional symmetry, save the size of the different IR to the basis size array
+      for(int i=0;i!=n_sym;i++)
       {
-
-         input.seekg(pos+23);
-         input>>basis_size[0];
-
-         if(n_sym>1)
-         {
-            input>>tmp_str;
-
-            //If there is additional symmetry, save the size of the different IR to the basis size array
-            for(int i=0;i!=n_sym;i++)
-            {
-               input>>tmp_str;
-               basis_size[i]=atoi(separateThem(tmp_str).c_str());
-               std::cout<<"sym "<<i+1<<" = "<<basis_size[i]<<std::endl;
-               input>>tmp_str;
-            }
-
-         }
+         input>>tmp_str;
+         basis_size->push_back(atoi(separateThem(tmp_str).c_str()));
+         std::cout<<"sym "<<i+1<<" = "<<basis_size->at(i)<<std::endl;
+         input>>tmp_str;
       }
-      
+
    }
    input.close();
    return 0;
 }
-bool molp_basis_parser(int* basis_size,std::vector<int>* cont_num,std::vector<int>* nuc_bas_func,std::vector<int>* l_val,std::vector<int>* m_val,std::vector<double>* cont_zeta,std::vector<double>* cont_coeff,std::string file)
+bool molp_basis_parser(std::vector<int>* basis_size,std::vector<int>* cont_num,std::vector<int>* nuc_bas_func,std::vector<int>* l_val,std::vector<int>* m_val,std::vector<double>* cont_zeta,std::vector<double>* cont_coeff,std::string file)
 {
    using namespace std;
 
-
    ifstream input;
-
-
 
    // Find the basis data part and read the number of contractions for each basis function. 
    // The molpro file sorts the basis functions by symmetry and gives the contraction coefficients and zeta for all the basis fucntions.
@@ -589,11 +579,14 @@ bool molp_basis_parser(int* basis_size,std::vector<int>* cont_num,std::vector<in
    vector<int> basis_position;
    vector<int> num_of_match;
    unsigned int count;
+   unsigned int iter;
    int cur_line_pos;
    int prev_line_pos;
    int bas_func_index;
    int n_sym;
+   int tmp_int;
    size_t pos;
+   size_t form_pos;
    string teststring;
    string tmp_str;
    string line;
@@ -611,7 +604,7 @@ bool molp_basis_parser(int* basis_size,std::vector<int>* cont_num,std::vector<in
       err_too_many_basis_data(file);
 
    //If the basis data is OK, then proceed reading the basis set data.
-   else
+//   else
    {
       input.open(file);
       if(!input.is_open())
@@ -637,27 +630,27 @@ bool molp_basis_parser(int* basis_size,std::vector<int>* cont_num,std::vector<in
       for(int s=0;s!=n_sym;s++)
       {
          //for each IR, we know the number of basis functions 
-         for(int i=0;i!=basis_size[s];i++)
+         for(int i=0;i!=basis_size->at(s);i++)
          {
 
             //We read one basis function at a time. We don't know how many contractions there are for a single basis func. 
             //We stop when we reach the next basis function, whic is defined below
             sstream.str("");
-            if(i<basis_size[s]-1)
+            if(i<basis_size->at(s)-1)
             {
                sstream<<i+2<<"."<<s+1;
                teststring=sstream.str();
             }
 
             //If we reach the end of an IR block, we move on with the first ao on the next block
-            else if(i == basis_size[s]-1 && s<n_sym-1)
+            else if(i == basis_size->at(s)-1 && s<n_sym-1)
             {
                sstream<<"1."<<s+2;
                teststring=sstream.str();
             }
 
             //if we reach the last element of the last block, we stop at the next statement which is the keyword "NUCLEAR"
-            else if (i==basis_size[s]-1 && s == n_sym-1)
+            else if (i==basis_size->at(s)-1 && s == n_sym-1)
                teststring="NUCLEAR";
 
             //basis function label
@@ -669,18 +662,24 @@ bool molp_basis_parser(int* basis_size,std::vector<int>* cont_num,std::vector<in
             nuc_bas_func->push_back(atoi(tmp_str.c_str()));
             //angular numbers
             input>>tmp_str;
+            std::cout<<"=>"<<tmp_str.c_str()<<std::endl;
 
             l_val->push_back(l_number(tmp_str));
-//            m_val->push_back(ml_number(tmp_str,*l_val[bas_func_index]));
-            std::cout<<l_val->size()<<std::endl;
-            m_val->push_back(ml_number(tmp_str,0));
+            tmp_int=l_val->at(bas_func_index);
+            m_val->push_back(ml_number(tmp_str,tmp_int));
 
 
             count=0;
+            iter=0;
+            pos=input.tellg();
             while(tmp_str!=teststring)
             {
                input>>tmp_str;
-               if( !bool(count%2) && tmp_str!=teststring )
+               form_pos=pos;
+               pos=input.tellg();
+
+               std::cout<<tmp_str<<std::endl;
+               if( !bool(iter%2) && tmp_str!=teststring )
                {
                   cont_zeta->push_back(atof(tmp_str.c_str()));
                   count++;
@@ -692,8 +691,11 @@ bool molp_basis_parser(int* basis_size,std::vector<int>* cont_num,std::vector<in
                {
                   break;
                }
+               iter++;
             }
+            input.seekg(form_pos);
             cont_num->push_back(count);
+
             if(input.eof())
             {
                std::cout<<"UNEXPECTED EOF WHILE PARSING BASIS SET. EXIT"<<std::endl;
@@ -707,3 +709,94 @@ bool molp_basis_parser(int* basis_size,std::vector<int>* cont_num,std::vector<in
    
    return 0;
 }
+bool molp_lcao_parser(int method_index,std::vector<double>* lcao_coeff,std::string file)
+{
+   using namespace std;
+
+   ifstream input;
+
+   //This function parses the LCAO coefficients for the molpro input file. Several data are needed to parse the LCAO  coeff
+   //The LCAO are separated by IR blocks => need n_sym
+   //The size of the LCAO array is basis_size * n_occ
+   //need gprint = occ option in molpro input
+   // This only supports casscf ! 
+
+   vector<int> basis_size;
+   vector<int> lcao_pos;
+   vector<int> num_of_match;
+   vector<int> n_occ;
+   vector<int> n_closed;
+   vector<int> n_frozen;
+   vector<int> method_pos;
+   vector<int> start_pos;
+   vector<int> start_num;
+
+
+   int n_sym;
+   double tmp_dbl;
+   size_t pos;
+   string teststring;
+   string tmp_str;
+   string line;
+   stringstream ss,sstream;
+
+   //check that it is casscf. otherwise, the method is not supported yet
+   molp_method_parser(&method_pos,file);
+   if(method_pos[2*method_index]!=2)
+      err_lcao_method_not_supported(method_pos[0],method_pos[1],file);
+
+   //Asking the values of the variables necessary for getting the size of the LCAO array
+   n_sym=molp_sym_parser(file);
+   molp_basis_size_parser(&basis_size,file);
+   molp_cas_reader(method_index,&n_occ,&n_closed,&n_frozen,file);
+   
+   // Search for the LCAO coeff block in the input file
+   if(!search(&lcao_pos,&num_of_match,"NATURAL ORBITALS (state averaged)",file))
+      err_lcao_not_found(file);
+   //search for the first element of the LCAO coeff block. It should be the first occurrence of "1.1"
+
+   //Now that we have the LCAO block position, we can go on and readthe basis set by symmetry block.
+   //The number of MO to be read in one block is n_occ for the same block. The number of AO in each MO is 
+   //the basis size for this sym
+
+   //Several command blocks lead to multiple LCAO arrays. We choose the LCAO basis set that corresponds
+   //to the method index that is passed as an argument
+   pos=lcao_pos[method_index];
+   for(int s=0;s!=n_sym;s++)
+   {
+      ss.str("");
+      if(s<n_sym-1)
+         ss<<"1."<<s+1;
+      else
+         ss<<"Total charge:";
+
+      //Search the starting block ("1.1" for sym1, etc)
+      search(&start_pos,&start_num,ss.str().c_str(),file,pos);
+
+      //open the file and get to the starting block just found
+      input.open(file);
+      input.seekg(start_pos[0]);
+      for(int mo=0;mo!=n_occ[s];mo++)
+      {
+         //Skip the mo label, occupation and energy
+         input>>tmp_str;
+         input>>tmp_str;
+         input>>tmp_str;
+         //get the LCAO coefficients. 
+         for(int ao=0;ao!=basis_size[s];ao++)
+         {
+            input>>tmp_dbl;
+            lcao_coeff->push_back(tmp_dbl);
+         }
+   
+      }
+      //When all the LCAOs for a given symmetry have been read, we can search for the next symmetry.
+      //When all the symmetry blocks are read, we get out of the loop
+      input.close();
+   }
+
+   return 0;
+}
+bool molp_csf_parser();
+bool molp_ci_coeff_parser();
+bool molp_geom_parser();

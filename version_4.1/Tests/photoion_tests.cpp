@@ -32,6 +32,7 @@ int main(int argc,char* argv[])
    test_molp_method_parser();
    test_molp_wf_parser();
    test_molp_cas_reader();
+   test_molp_basis_parser();
    
    return 0;
 }
