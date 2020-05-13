@@ -797,6 +797,98 @@ bool molp_lcao_parser(int method_index,std::vector<double>* lcao_coeff,std::stri
 
    return 0;
 }
-bool molp_csf_parser();
-bool molp_ci_coeff_parser();
+bool molp_ci_parser(int method_index, std::vector<int>* csf_mo,std::vector<int>* csf_spin,std::vector<double>* ci_coeff,std::string file)
+{
+   using namespace std;
+
+   ifstream input;
+
+   bool test1;
+   vector<int> ci_pos;
+   vector<int> num_of_match;
+   vector<int> n_occ;
+   vector<int> n_closed;
+   vector<int> n_frozen;
+   vector<int> method_pos;
+   vector<int> start_pos;
+   vector<int> start_num;
+   vector<int> n_states;
+   vector<int> n_elec;
+   vector<int> sym;
+   vector<int> spin;
+   vector<int> charge;
+   vector<string> csf_string;
+   int n_sym;
+   size_t pos;
+   string teststring;
+   string tmp_str;
+   string line;
+   stringstream ss,sstream;
+
+   //check that it is casscf. otherwise, the method is not supported yet
+   molp_method_parser(&method_pos,file);
+   if(method_pos[2*method_index]!=2)
+      err_lcao_method_not_supported(method_pos[0],method_pos[1],file);
+
+   //Asking the values of the variables necessary for parsing the ci vectors
+   n_sym=molp_sym_parser(file);
+   molp_cas_reader(method_index,&n_occ,&n_closed,&n_frozen,file);
+   molp_wf_parser(method_index,&n_elec,&sym,&spin,&charge,&n_states,file);
+
+   //The CSF strings only include occupied,non closed and non frozen orbitals. All the symmetries may not be represented in the CSF. 
+   //Therefore, we have to determine the number of occupied RI
+   int n_sym_occ(0);
+   for(int i=0;i!=n_sym;i++)
+      n_sym_occ+=bool(n_occ[i]-n_closed[i]-n_frozen[i]!=0);
+   
+   // Search for the CI coeff block in the input file
+   if(!search(&ci_pos,&num_of_match,"CI vector",file))
+      err_civector_not_found(file);
+
+   //Open the input file, get to the beginning of the CI vector block corresponding to the current method.
+   //Here we have to be careful because there are as many "CI vector" statements as the number of symmetry for each block.
+
+   input.open(file);
+   input.seekg(ci_pos[n_sym*method_index]);
+
+
+
+   for(int s=0;s!=n_sym;s++)
+   {
+      getline(input,tmp_str);
+      getline(input,tmp_str);
+      //Now we start to read the CI coeff and CSF.
+      //We know that there are n_sym_occ strings and n_states[n_sym] CI coefficient for every CSF. 
+      //We don't know the number of CSF. We have to stop reading at the first occurence of a non-numerical character.
+      //In molpro, This could be either a "CI","TOTAL" or "***" 
+
+      test1=0;
+      while(!test1)
+      {
+         //get the strings of the CSF. THey have to be parsed in a wrapped routine
+         for(int sp=0;sp!=n_sym_occ;sp++)
+         {
+            input>>tmp_str;
+            csf_string.push_back(tmp_str);
+         }
+         for(int n=0;n!=n_states[s];n++)
+         {
+            input>>tmp_str;
+            ci_coeff->push_back(atof(tmp_str.c_str()));
+         }
+         //get the next string to check for alphabeti characters and record the position
+         pos=input.tellg();
+         getline(input,tmp_str);
+         input.seekg(pos);
+
+         if( (tmp_str.find("CI") != string::npos) || (tmp_str.find("TOTAL") != string::npos) || (tmp_str.find("***") != string::npos) )
+            test1=1;
+
+      }
+   }
+   //Now, call the csf_string_parser
+   csf_string_parser(n_sym_occ,csf_string.size()/n_sym_occ,n_occ,n_closed,n_frozen,csf_string,csf_mo,csf_spin);
+
+   return 0;
+}
 bool molp_geom_parser();

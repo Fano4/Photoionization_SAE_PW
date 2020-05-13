@@ -68,3 +68,15 @@ void err_lcao_not_found(std::string file)
    std::cout<<"ERROR. LCAO COEFFICIENT BLOCK NOT FOUND IN INPUT FILE "<<std::endl<<file.c_str()<<std::endl;
    exit(EXIT_SUCCESS);
 }
+void err_civector_not_found(std::string file)
+{
+   std::cout<<"ERROR. CI VECTOR BLOCK NOT FOUND IN INPUT FILE "<<std::endl<<file.c_str()<<std::endl;
+   exit(EXIT_SUCCESS);
+}
+void err_ci_not_rec_symbol(std::string csf_str,const char symbol)
+{
+   std::cout<<"ERROR. CSF SYMBOL NOT RECOGNIZED : "<<symbol<<std::endl;
+   std::cout<<" ENCOUTERED IN STRING "<<csf_str.c_str()<<std::endl;
+
+   exit(EXIT_SUCCESS);
+}
