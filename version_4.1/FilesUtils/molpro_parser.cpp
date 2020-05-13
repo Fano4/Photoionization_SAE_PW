@@ -891,4 +891,55 @@ bool molp_ci_parser(int method_index, std::vector<int>* csf_mo,std::vector<int>*
 
    return 0;
 }
-bool molp_geom_parser();
+bool molp_geom_parser(int* num_of_nucl,std::vector<int>* Z_nucl,std::vector<double>* xn,std::vector<double>* yn,std::vector<double>* zn,std::string file)
+{
+   using namespace std;
+
+   bool test1;
+   vector<int> match_loc;
+   vector<int> num_match;
+   int pos(0);
+   string tmp_str;
+
+   if(!search(&match_loc,&num_match,"ATOMIC COORDINATES",file))
+      err_geom_not_found(file);
+   else if(num_match[0]>1)
+      err_too_many_geom(file);
+
+   ifstream input;
+
+   input.open(file.c_str());
+   input.seekg(match_loc[0]);
+
+   for(int n=0;n!=4;n++)
+      getline(input,tmp_str);
+
+   test1=0;
+   while(!test1)
+   {
+      input>>tmp_str;
+      input>>tmp_str;
+         
+      input>>tmp_str;
+      Z_nucl->push_back(atoi(tmp_str.c_str()));
+
+      input>>tmp_str;
+      xn->push_back(atoi(tmp_str.c_str()));
+      input>>tmp_str;
+      yn->push_back(atoi(tmp_str.c_str()));
+      input>>tmp_str;
+      zn->push_back(atoi(tmp_str.c_str()));
+
+      pos=input.tellg();
+      input>>tmp_str;
+      input.seekg(pos);
+
+      if(tmp_str=="BASIS")
+          test1=1;
+   }
+
+   *num_of_nucl=Z_nucl->size();
+
+   return 0;
+}
+

@@ -80,3 +80,13 @@ void err_ci_not_rec_symbol(std::string csf_str,const char symbol)
 
    exit(EXIT_SUCCESS);
 }
+void err_geom_not_found(std::string file)
+{
+   std::cout<<"ERROR. ATOMIC COORDINATES BLOCK NOT FOUND IN INPUT FILE "<<std::endl<<file.c_str()<<std::endl;
+   exit(EXIT_SUCCESS);
+}
+void err_too_many_geom(std::string file)
+{
+   std::cout<<"WARNING: MULTIPLE ATOMIC COORDINATES BLOCKS IN INPUT FILE "<<std::endl<<file.c_str()<<std::endl;
+   std::cout<<"READING 1ST ATOMIC COORDINATES BLOCK"<<std::endl;
+}
