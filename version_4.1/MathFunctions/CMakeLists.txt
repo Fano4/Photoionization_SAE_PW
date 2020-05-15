@@ -4,7 +4,7 @@ set_property(TARGET gsl PROPERTY IMPORTED_LOCATION $ENV{GSL_ROOT}/lib/libgsl.so)
 add_library(gslcblas SHARED IMPORTED)
 set_property(TARGET gslcblas PROPERTY IMPORTED_LOCATION $ENV{GSL_ROOT}/lib/libgslcblas.so)
 
-add_library(MathFunctions angular_int_aux.cpp)
+add_library(MathFunctions angular_int_aux.cpp Molec_integrals.cpp spherical_harmonics.cpp)
 target_include_directories(MathFunctions       PRIVATE
                                  "$ENV{GSL_ROOT}/include")
 

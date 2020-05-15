@@ -497,3 +497,7 @@ double J_int_p1_D(int l1,int l2,int l3,int m1,int m2,int m3)
 
    }
 }
+double three_Ylm_integ(int l1,int l2,int l3,int m1,int m2,int m3)
+{
+   return sqrt( (2*l1+1) * ( 2*l2+1) * ( 2*l3+1 ) / ( 4 * acos(-1) ) ) * gsl_sf_coupling_3j(l1,l2,l3,0,0,0)* gsl_sf_coupling_3j(l1,l2,l3,m1,m2,m3);; 
+}

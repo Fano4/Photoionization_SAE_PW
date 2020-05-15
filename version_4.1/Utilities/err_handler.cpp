@@ -90,3 +90,8 @@ void err_too_many_geom(std::string file)
    std::cout<<"WARNING: MULTIPLE ATOMIC COORDINATES BLOCKS IN INPUT FILE "<<std::endl<<file.c_str()<<std::endl;
    std::cout<<"READING 1ST ATOMIC COORDINATES BLOCK"<<std::endl;
 }
+void err_oba_sai_invalid_parameter(int la,int lb)
+{
+   std::cout<<"ERROR. INVALID PARAMETER IN OBARA SAIKA RECURRENCE la = "<<la<<" , lb = "<<lb<<std::endl;
+   exit(EXIT_SUCCESS);
+}
