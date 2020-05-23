@@ -34,6 +34,8 @@ double prim_ovlp(std::vector<double> ra,std::vector<double> rb,double zeta_a,dou
 double ao_ovlp(std::vector<double> ra,std::vector<double> rb,std::vector<double> zet_a,std::vector<double> zet_b,std::vector<double> cont_coeff_a, std::vector<double> cont_coeff_b,unsigned int la,unsigned int lb,int ma,int mb);
 
 
+void transpose(double *A,double *B, int dim1, int dim2);
+void matrix_product(double *C,double *A,double *B,int dim1,int dim2,int dim3);
 double prefactor_rYlm(int l,int m);
 double rYlm (int l,int m,double thet,double phi);
 

@@ -75,104 +75,6 @@
 }*/
 
 
-/*double bessel_gaussian_poly_integral(unsigned int l1,unsigned int l2,double m,double r)
-//{
-   //Computes the indefinite integral of k**(2+l1)*exp(-p*k*k)*j_l2(k*r)
-
-//   std::cout<<"####"<<l1<<","<<l2<<","<<m<<","<<r<<std::endl;
-   
-   arb_t n;
-   arb_init(n);
-   arb_t a;
-   arb_init(a);
-   arb_t tmp;
-   arb_init(tmp);
-
-   arb_t thresh;
-   arb_init(thresh);
-   arb_set_d(thresh,1e-15);
-   slong prec(256);
-   
-   
-   arb_set_d(a,double(m/(r*r)));
-   arb_set_d(n,(l1+l2)/2.);
-   //using power series
-   arb_t t;
-   arb_init(t); 
-   arb_t tt;
-   arb_init(tt);
-   arb_t tmp2;
-   arb_init(tmp2);
-   arb_t temp_a;
-   arb_init(temp_a);
-   arb_t temp_b;
-   arb_init(temp_b);
-   arb_t sum;
-   arb_init(sum); 
-   arb_t S;
-   arb_init(S); 
-   arb_t prefac;
-   arb_init(prefac); 
-
-   arb_set_d(S,1.); // S=1
-   arb_set_d(tmp,1.); // S=1
-   arb_set_d(prefac,pow(r,-l1-3)*sqrt(acos(-1))/(pow(2,l2+2)*pow(arf_get_d(arb_midref(a),ARF_RND_NEAR),1.5+arf_get_d(arb_midref(n),ARF_RND_NEAR)))); // prefactor=pow(r,-l1-3)*sqrt(acos(-1))/(pow(2,l2+2)*pow(a,1.5+n))
-
-   arb_zero(sum); //sum=0
-   arb_zero(t); //t=0
-
-   std::cout<<std::endl<<"vvvv"<<std::endl;
-   arb_print(prefac);
-   std::cout<<std::endl;
-   arb_print(a);
-   std::cout<<std::endl;
-   arb_print(n);
-   std::cout<<std::endl;
-
-
-   while( arf_cmpabs(arb_midref(tmp),arb_midref(thresh)) >= 0 )
-   {
-      arb_set_d(temp_a,1.5);
-      arb_add(temp_a,temp_a,n,prec);
-      arb_add(temp_a,temp_a,t,prec);
-
-      arb_set_d(temp_b,1.5+l2);
-      arb_add(temp_b,temp_b,t,prec);
-      arb_set_d(S,1.-2*(int(arf_get_d(arb_midref(t),ARF_RND_NEAR))%2)); //pow(-1,t)
-      arb_gamma(tmp,temp_a,prec);
-      arb_mul(S,S,tmp,prec);
-      arb_gamma(tmp,temp_b,prec);
-      arb_div(S,S,tmp,prec);
-
-      arb_set_d(tmp2,2);
-      arb_mul(tmp,tmp2,t,prec);
-      arb_pow(tmp,tmp2,tmp,prec);
-      arb_div(S,S,tmp,prec);
-      arb_pow(tmp,a,t,prec);
-      arb_div(S,S,tmp,prec);
-      arb_mul(S,S,prefac,prec);
-      arb_set_d(tmp,1.);
-      arb_add(tmp,t,tmp,prec);
-      arb_gamma(tmp,tmp,prec);
-      arb_div(S,S,tmp,prec);
-      arb_add(sum,sum,S,prec);
-      arb_set_d(tmp2,1);
-      arb_add(t,t,tmp2,prec);
-
-      arb_div(tmp,S,sum,prec);
-      
-      std::cout<<arf_get_d(arb_midref(t),ARF_RND_NEAR)<<"=>"<<"+++"<<arf_get_d(arb_midref(S),ARF_RND_NEAR)<<std::endl;
-      if(arf_get_d(arb_midref(t),ARF_RND_NEAR) > 1000)
-      {
-         std::cout<<"No convergence for overlap integral. exit"<<std::endl;
-         break;
-      }
-
-   }
-
-   return arf_get_d(arb_midref(sum),ARF_RND_NEAR);
-   
-}*/
 double prim_radial_ovlp(unsigned int la,unsigned int lb,unsigned int l,double zet_a,double zet_b,double r)
 {
 
@@ -315,8 +217,6 @@ double prim_ovlp(std::vector<double> ra,std::vector<double> rb,double zeta_a,dou
       phi=(0);
    }
 
-   //std::cout<<std::defaultfloat;
-//   std::cout<<std::endl<<std::scientific<<"###"<<rab<<","<<thet<<","<<phi<<","<<zeta_a<<","<<zeta_b<<","<<la<<","<<lb<<","<<ma<<","<<mb<<std::endl<<"***";
    for(unsigned int l=abs(int(la-lb));l<=la+lb;l++)
    {
       if((l+la+lb)%2!=0)
@@ -345,7 +245,6 @@ double prim_ovlp(std::vector<double> ra,std::vector<double> rb,double zeta_a,dou
          }
       }
    }
-//   std::cout<<" ==> "<<result<<std::endl;
    return result;
 }
 
@@ -361,34 +260,72 @@ double ao_ovlp(std::vector<double> ra,std::vector<double> rb,std::vector<double>
    }
    return result;
 }
-/*
-double spherical_overlap_integral(double xa,double xb,double m,double p)
+void MO_ovlp(std::vector<double> S,std::vector<double> lcao_a,std::vector<double> lcao_b,std::vector<double>* MO_S)
 {
-   return sqrt(acos(-1)/p)*exp(-m*fabs(xb-xa));
+   double* Ca=lcao_a.data();
+   double* Cb=lcao_b.data();
+   double* O=S.data();
+   int basis_size(int(sqrt(S.size())));
+   int n_occ(int(lcao_a.size())/basis_size);
+   double* res=MO_S->data();
+   double* temp=new double [n_occ*basis_size];
+   double* temp2=new double [n_occ*basis_size];
+
+    transpose(Ca, temp2, n_occ, basis_size);
+    matrix_product(temp, O, temp2, basis_size, basis_size, n_occ); 
+    matrix_product(res, Cb, temp, n_occ, basis_size, n_occ);
+    transpose(res,res, n_occ, n_occ);
+
+
+
+    delete [] temp2;
+    delete [] temp;
 }
-double obara_saika_ovlp(double xa,double xb,double zeta_a,double zeta_b,int la,int lb)
+void matrix_product(double *C,double *A,double *B,int dim1,int dim2,int dim3)
 {
-
-   if(la<0 || lb<0)
-      return 0;
-
-   double p(zeta_a+zeta_b); 
-   double m(zeta_a*zeta_b/(zeta_a+zeta_b)); 
-   double xp((zeta_a*xa+zeta_b*xb)/p);
-
-   if(la==0 && lb==0)
-      return spherical_overlap_integral(xa,xb,m,p);
-
-   double xpa(xp-xa);
-   double xpb(xp-xb);
-   double Sam1b(obara_saika_ovlp(xa,xb,zeta_a,zeta_b,la-1,lb));
-   double Sabm1(obara_saika_ovlp(xa,xb,zeta_a,zeta_b,la,lb-1));
-   double Sam2b(obara_saika_ovlp(xa,xb,zeta_a,zeta_b,la-2,lb));
-   double Sabm2(obara_saika_ovlp(xa,xb,zeta_a,zeta_b,la,lb-2));
-
-   if(la >= lb)
-      return  xpa*Sam1b + (1/(2*p))*( (la-1) * Sam2b + (lb-1) * Sabm1 );
+   //C=A*B
+    double ntemp;
+    for (int i=0; i!=dim1; i++)
+    {
+        for (int j=0; j!=dim3; j++)
+        {
+            ntemp=0;
+            
+            for (int k=0; k!=dim2; k++)
+            {
+                ntemp+=A[i*dim2+k]*B[k*dim3+j];
+            }
+            C[i*dim3+j]=ntemp;
+        }
+    }
+    
+}
+void transpose(double *A,double *B, int dim1, int dim2)
+{
+    //B=trans(A)
+   if(A!=B)
+   {
+     for (int i=0; i!=dim1; i++)
+     {
+        for (int j=0; j!=dim2; j++)
+        {
+            B[j*dim1+i]=A[i*dim2+j];
+        }
+     }
+   }
    else
-      return  xpb*Sabm1 + (1/(2*p))*( (la-1) * Sam1b + (lb-1) * Sabm2 );
+   {
+      double* temp=new double[dim1*dim2];
+      for (int i=0; i!=dim1; i++)
+      {
+         for (int j=0; j!=dim2; j++)
+         {
+             temp[j*dim1+i]=A[i*dim2+j];
+         }
+      }
+      for(int i=0;i!=dim1*dim2;i++)
+         A[i]=temp[i];
+
+      delete [] temp;
+    }
 }
-*/
