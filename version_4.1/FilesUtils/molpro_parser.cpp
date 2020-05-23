@@ -1,12 +1,15 @@
 #include <cstdlib>
 #include <iostream>
+#include <iomanip>
 #include <string>
 #include <sstream>
 #include <fstream>
 #include <vector>
+#include <cmath>
 #include "utilities.h"
+#include "filesutils.h"
 
-bool search(std::vector<int>* match_loc,std::vector<int>* num_match,std::string find,std::string file_address,int start_pos=0,int stop_pos=0)
+bool search(std::vector<int>* match_loc,std::vector<int>* num_match,std::string find,std::string file_address,int start_pos,int stop_pos)
 {
    //The search algorithm open the file and put the buffer into a tring. The keyword is searched inside the string until eof.
    //Upon match, the location of the first charater of the matching result is stored in a vector
@@ -659,10 +662,9 @@ bool molp_basis_parser(std::vector<int>* basis_size,std::vector<int>* cont_num,s
             input>>tmp_str;
             //nuc_bas_func
             input>>tmp_str;
-            nuc_bas_func->push_back(atoi(tmp_str.c_str()));
+            nuc_bas_func->push_back(atoi(tmp_str.c_str())-1);
             //angular numbers
             input>>tmp_str;
-            std::cout<<"=>"<<tmp_str.c_str()<<std::endl;
 
             l_val->push_back(l_number(tmp_str));
             tmp_int=l_val->at(bas_func_index);
@@ -678,7 +680,6 @@ bool molp_basis_parser(std::vector<int>* basis_size,std::vector<int>* cont_num,s
                form_pos=pos;
                pos=input.tellg();
 
-               std::cout<<tmp_str<<std::endl;
                if( !bool(iter%2) && tmp_str!=teststring )
                {
                   cont_zeta->push_back(atof(tmp_str.c_str()));
@@ -706,7 +707,18 @@ bool molp_basis_parser(std::vector<int>* basis_size,std::vector<int>* cont_num,s
       }
       input.close();
    }
-   
+   count=0;
+   for(unsigned int i=0;i!=l_val->size();i++)
+   {
+      for(int j=0;j!=cont_num->at(i);j++)
+      {
+//         std::cout<<"primitive "<<i<<" before : "<<cont_coeff->at(count)<<std::endl;
+ //        std::cout<<" Normalization constant : "<<1./(sqrt(0.5*std::tgamma(l_val->at(i)+1)/pow(2*cont_zeta->at(count),l_val->at(i)+1.5)))<<std::endl;
+         cont_coeff->at(count)/=(sqrt(0.5*std::tgamma(l_val->at(i)+1.5)/pow(2*cont_zeta->at(count),l_val->at(i)+1.5)));
+//         std::cout<<"primitive "<<i<<" new val : "<<cont_coeff->at(count)<<std::endl;
+         count++;
+      }
+   }
    return 0;
 }
 bool molp_lcao_parser(int method_index,std::vector<double>* lcao_coeff,std::string file)
@@ -924,11 +936,11 @@ bool molp_geom_parser(int* num_of_nucl,std::vector<int>* Z_nucl,std::vector<doub
       Z_nucl->push_back(atoi(tmp_str.c_str()));
 
       input>>tmp_str;
-      xn->push_back(atoi(tmp_str.c_str()));
+      xn->push_back(atof(tmp_str.c_str()));
       input>>tmp_str;
-      yn->push_back(atoi(tmp_str.c_str()));
+      yn->push_back(atof(tmp_str.c_str()));
       input>>tmp_str;
-      zn->push_back(atoi(tmp_str.c_str()));
+      zn->push_back(atof(tmp_str.c_str()));
 
       pos=input.tellg();
       input>>tmp_str;
@@ -940,6 +952,15 @@ bool molp_geom_parser(int* num_of_nucl,std::vector<int>* Z_nucl,std::vector<doub
 
    *num_of_nucl=Z_nucl->size();
 
+   std::cout<<"GEOMETRY RECOGNIZED"<<std::endl;
+   for(unsigned int i=0;i!=Z_nucl->size();i++)
+   {
+      std::cout<<std::setw(15)<<std::scientific<<double(Z_nucl->at(i));
+      std::cout<<std::setw(15)<<std::scientific<<double(xn->at(i));
+      std::cout<<std::setw(15)<<std::scientific<<double(yn->at(i));
+      std::cout<<std::setw(15)<<std::scientific<<double(zn->at(i))<<std::endl;
+   }
+   std::cout<<std::defaultfloat<<"####"<<std::endl;
    return 0;
 }
 

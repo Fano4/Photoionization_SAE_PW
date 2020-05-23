@@ -112,31 +112,32 @@ double Jint_signflip_renormalize(int l1,int l2,int l3,int* m1,int* m2,int* m3)
    if(sgnm3)
       *m3=-*m3;
 
-   temp=1;
    if(sgnm1)
    {
+      temp=1;
       for (int tt=l1-*m1+1;tt!=l1+*m1+1;tt++)
          temp*=double(tt);
+      val/=temp;
    }
-   val/=temp;
 
-   temp=1;
    if(sgnm2)
    {
-         for (int tt=l2-*m2+1;tt!=l2+*m2+1;tt++)
-            temp*=double(tt);
+      temp=1;
+      for (int tt=l2-*m2+1;tt!=l2+*m2+1;tt++)
+         temp*=double(tt);
+      val/=temp;
    }
-   val/=temp;
 
-   temp=1;
    if(sgnm3)
    {
+      temp=1;
       for (int tt=l3-*m3+1;tt!=l3+*m3+1;tt++)
           temp*=double(tt);
+      val/=temp;
    }
-   val/=temp;
 
    return pow(-1,sgnm1**m1+sgnm2**m2+sgnm3**m3)*val;
+//     return val;
 
 }
 double ALP_normalize(int l,int m)

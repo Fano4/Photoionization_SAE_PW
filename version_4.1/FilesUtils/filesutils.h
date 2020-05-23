@@ -1,4 +1,3 @@
-
 bool search(std::vector<int>* match_loc,std::vector<int>* num_match,std::string find,std::string file_address,int start_pos=0,int stop_pos=0);
 int molp_sym_parser(std::string file);
 int molp_method_parser(std::vector<int>* method_pos,std::string file);

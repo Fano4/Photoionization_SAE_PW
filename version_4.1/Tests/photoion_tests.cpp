@@ -1,4 +1,7 @@
-#include "photoion_tests.h"
+#include "test_utils.cpp"
+#include "test_angular_int_aux.cpp"
+#include "test_files_utils.cpp"
+#include "test_molec_integ.cpp"
 #include <iostream>
 
 int main(int argc,char* argv[])
@@ -33,6 +36,10 @@ int main(int argc,char* argv[])
    test_molp_wf_parser();
    test_molp_cas_reader();
    test_molp_basis_parser();
+//   test_bessel_gaussian_poly_integral();
+//   test_prim_radial_ovlp();
+  // test_prim_ovlp();
+   test_ao_ovlp();
    
    return 0;
 }
