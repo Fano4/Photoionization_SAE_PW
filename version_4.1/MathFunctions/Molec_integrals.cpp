@@ -6,11 +6,14 @@
 #include <iomanip>
 #include <arb.h>
 #include <acb_hypgeom.h>
+#include <mkl.h>
+#include <omp.h>
 #include "mathfunctions.h"
 //#include <gsl/gsl_sf_hyperg.h>
 //#include <gsl/gsl_errno.h>
 
-/*bool dyson_mo_coeff_comp(int n_states_neut,int n_states_cat,int n_occ,int ci_size_neut,int ci_size_cat,int n_elec_neut,double **ci_vec_neut,double **ci_vec_cat,double *overlap,double *Dyson_MO_basis_coeff)
+/*
+bool dyson_mo_coeff_comp(int n_states_neut,int n_states_cat,int n_occ,int ci_size_neut,int ci_size_cat,int n_elec_neut,double **ci_vec_neut,double **ci_vec_cat,double *overlap,double *Dyson_MO_basis_coeff)
 {
    bool test(0);
    bool test2(0);
@@ -72,8 +75,8 @@
     delete [] temp;
 
     return 1;
-}*/
-
+}
+*/
 
 double prim_radial_ovlp(unsigned int la,unsigned int lb,unsigned int l,double zet_a,double zet_b,double r)
 {
@@ -230,7 +233,7 @@ double prim_ovlp(std::vector<double> ra,std::vector<double> rb,double zeta_a,dou
          result+=temp*rYlm(l,0,thet,phi)*prefactor_rYlm(la,ma)*prefactor_rYlm(lb,mb)*prefactor_rYlm(l,0)
                *three_azim_integ(ma,mb,0)*three_ALP_J_integral(la,lb,l,abs(ma),abs(mb),0);
 
-         //ass the other terms of the sum
+         //add the other terms of the sum
          for(int m=1;m<=int(l);m++)
          {
             if( (ma+mb+m)%2!=0 )
@@ -277,6 +280,25 @@ void MO_ovlp(std::vector<double> S,std::vector<double> lcao_a,std::vector<double
     transpose(res,res, n_occ, n_occ);
 
 
+
+    delete [] temp2;
+    delete [] temp;
+}
+void elec_states_ovlp(std::vector<double> S,std::vector<double> ci_vector_a,std::vector<double> civector_b,std::vector<double>* ES_S)
+{
+   double* Ca=ci_vector_a.data();
+   double* Cb=ci_vector_b.data();
+   double* O=S.data();
+   int ci_size(int(sqrt(S.size())));
+   int n_es(int(ci_vector_a.size())/basis_size);
+   double* res=ES_S->data();
+   double* temp=new double [n_es*ci_size];
+   double* temp2=new double [n_es*ci_size];
+
+    transpose(Ca, temp2, n_es, ci_size);
+    matrix_product(temp, O, temp2, ci_size, ci_size, n_es); 
+    matrix_product(res, Cb, temp, n_es, ci_size, n_es);
+    transpose(res,res, n_es, n_es);
 
     delete [] temp2;
     delete [] temp;
@@ -328,4 +350,32 @@ void transpose(double *A,double *B, int dim1, int dim2)
 
       delete [] temp;
     }
+}
+double determinant(double *A,int dim)
+{
+    double det_val(1);
+    short int sign(1);
+    double *B=new double[dim*dim];
+    int *ipiv=new int[dim];
+    int n(0);
+    for (int i=0; i!=dim; i++)
+    {
+        for (int j=0; j!=dim; j++)
+        {
+            B[i*dim+j]=A[i*dim+j];
+        }
+    }
+
+    LAPACKE_dgetrf(LAPACK_ROW_MAJOR,dim,dim,B,dim,ipiv);
+
+    for(int i=0;i!=dim;i++)
+    {
+       if(i+1!=ipiv[i])
+          sign*=-1;
+
+       det_val*=B[i*dim+i];
+    }
+    delete [] ipiv;
+    delete [] B;
+    return sign*det_val;
 }

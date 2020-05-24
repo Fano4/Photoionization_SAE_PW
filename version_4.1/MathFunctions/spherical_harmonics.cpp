@@ -1,6 +1,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <cmath>
+#include <gsl/gsl_sf_legendre.h>
 
 
 double prefactor_rYlm(int l,int m)
@@ -45,14 +46,16 @@ double rYlm (int l,int m,double thet,double phi)
 //   std::cout<<"Entering rYlm with parameters "<<l<<","<<m<<","<<thet<<","<<phi<<std::endl;
       if(m<0)
       {
-         return prefactor_rYlm(l,m)*std::assoc_legendre(l,-m,cos(thet))*sin(abs(m)*phi);
+         return prefactor_rYlm(l,m)*gsl_sf_legendre_Plm(l,-m,cos(thet))*sin(abs(m)*phi);
+         //*std::assoc_legendre(l,-m,cos(thet))*sin(abs(m)*phi);
       }
       else if(m>0)
       {
-         return prefactor_rYlm(l,m)*std::assoc_legendre(l,m,cos(thet))*cos(m*phi);
+         return prefactor_rYlm(l,m)*gsl_sf_legendre_Plm(l,m,cos(thet))*cos(m*phi);
+         //*std::assoc_legendre(l,m,cos(thet))*cos(m*phi);
       }
       else
       {
-         return prefactor_rYlm(l,m)*std::assoc_legendre(l,m,cos(thet));
+         return prefactor_rYlm(l,m);gsl_sf_legendre_Plm(l,m,cos(thet));//*std::assoc_legendre(l,m,cos(thet));
       }
 }

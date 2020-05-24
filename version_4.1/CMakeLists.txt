@@ -10,6 +10,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 # Compiler config
+set(CMAKE_CXX_COMPILER icpc)
 set (CMAKE_CXX_FLAGS " ${CMAKE_CXX_FLAGS} -v -g -Wall -Wextra -Wpedantic -Werror -Wno-int-in-bool-context")
 
 # require out-of-source builds

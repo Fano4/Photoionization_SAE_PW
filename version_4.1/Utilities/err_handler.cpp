@@ -95,3 +95,9 @@ void err_oba_sai_invalid_parameter(int la,int lb)
    std::cout<<"ERROR. INVALID PARAMETER IN OBARA SAIKA RECURRENCE la = "<<la<<" , lb = "<<lb<<std::endl;
    exit(EXIT_SUCCESS);
 }
+void err_diff_on_vec_size(int size1,int size2)
+{
+   std::cout<<"ERROR. OVERLAP CAN NOT BE COMPUTED BETWEEN CONFIGURATIONS OF DIFFERENT DIMENSIONS"<<std::endl;
+   std::cout<<size1<< " != "<<size2<<std::endl;
+   exit(EXIT_SUCCESS);
+}
