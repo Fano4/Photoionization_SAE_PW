@@ -10,12 +10,13 @@ void err_too_many_basis_data(std::string file);
 void err_input_end_not_found(std::string file);
 void err_lcao_method_not_supported(int method,int method_pos,std::string file);
 void err_lcao_too_many_method(std::string file);
-void err_lcao_not_found(std::string file);
+void err_lcao_not_found(std::string file,std::string str);
 void err_civector_not_found(std::string file);
 void err_ci_not_rec_symbol(std::string csf_str,const char symbol);
 void err_geom_not_found(std::string file);
 void err_too_many_geom(std::string file);
 void err_diff_on_vec_size(int size1,int size2);
+void err_end_of_file(std::string file,std::string method);
 
 //string_utils
 enum charTypeT{ other, alpha, digit};

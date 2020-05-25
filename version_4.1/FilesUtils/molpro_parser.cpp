@@ -439,10 +439,24 @@ bool molp_cas_reader(int method_index,std::vector<int>* n_occ,std::vector<int>* 
       //std::cout<<occ_str<<","<<closed_str<<","<<frozen_str<<std::endl;
 
    if(!occ_check)
+   {
          std::cout<<" Warning: n_occ not set in active space "<<std::endl<<"method index "<<method_index<<std::endl<<"file "<<file.c_str()<<endl;
+         for(int mm=0;mm<n_sym;mm++)
+            n_occ->push_back(0);
+   }
 
    if(!closed_check)
+   {
          std::cout<<" Warning: n_closed not set in active space "<<std::endl<<"method index "<<method_index<<std::endl<<"file "<<file.c_str()<<endl;
+         for(int mm=0;mm<n_sym;mm++)
+            n_closed->push_back(0);
+   }
+
+   if(!frozen_check)
+   {
+         for(int mm=0;mm<n_sym;mm++)
+            n_frozen->push_back(0);
+   }
    input.close();
 
    //Parse the strings for occ, closed and frozen. They should have a length = n_sym
@@ -764,7 +778,7 @@ bool molp_lcao_parser(int method_index,std::vector<double>* lcao_coeff,std::stri
    
    // Search for the LCAO coeff block in the input file
    if(!search(&lcao_pos,&num_of_match,"NATURAL ORBITALS (state averaged)",file))
-      err_lcao_not_found(file);
+      err_lcao_not_found(file,"NATURAL ORBITALS (state averaged)");
    //search for the first element of the LCAO coeff block. It should be the first occurrence of "1.1"
 
    //Now that we have the LCAO block position, we can go on and readthe basis set by symmetry block.
@@ -777,13 +791,16 @@ bool molp_lcao_parser(int method_index,std::vector<double>* lcao_coeff,std::stri
    for(int s=0;s!=n_sym;s++)
    {
       ss.str("");
-      if(s<n_sym-1)
+      if(s<n_sym)
          ss<<"1."<<s+1;
       else
          ss<<"Total charge:";
 
+      start_pos.clear();
+      start_num.clear();
       //Search the starting block ("1.1" for sym1, etc)
-      search(&start_pos,&start_num,ss.str().c_str(),file,pos);
+      if(!search(&start_pos,&start_num,ss.str().c_str(),file,pos))
+         err_lcao_not_found(file,ss.str());
 
       //open the file and get to the starting block just found
       input.open(file);
@@ -804,12 +821,13 @@ bool molp_lcao_parser(int method_index,std::vector<double>* lcao_coeff,std::stri
       }
       //When all the LCAOs for a given symmetry have been read, we can search for the next symmetry.
       //When all the symmetry blocks are read, we get out of the loop
+      pos=input.tellg();
       input.close();
    }
 
    return 0;
 }
-bool molp_ci_parser(int method_index, std::vector<int>* csf_mo,std::vector<int>* csf_spin,std::vector<double>* ci_coeff,std::string file)
+bool molp_ci_parser(int method_index, std::vector<int>* csf_mo,std::vector<int>* csf_spin,std::vector<double>* ci_coeff,std::vector<int>* ci_num,std::string file)
 {
    using namespace std;
 
@@ -839,8 +857,8 @@ bool molp_ci_parser(int method_index, std::vector<int>* csf_mo,std::vector<int>*
 
    //check that it is casscf. otherwise, the method is not supported yet
    molp_method_parser(&method_pos,file);
-   if(method_pos[2*method_index]!=2)
-      err_lcao_method_not_supported(method_pos[0],method_pos[1],file);
+   if(method_pos.at(2*method_index)!=2)
+      err_lcao_method_not_supported(method_pos.at(0),method_pos.at(1),file);
 
    //Asking the values of the variables necessary for parsing the ci vectors
    n_sym=molp_sym_parser(file);
@@ -850,8 +868,9 @@ bool molp_ci_parser(int method_index, std::vector<int>* csf_mo,std::vector<int>*
    //The CSF strings only include occupied,non closed and non frozen orbitals. All the symmetries may not be represented in the CSF. 
    //Therefore, we have to determine the number of occupied RI
    int n_sym_occ(0);
-   for(int i=0;i!=n_sym;i++)
-      n_sym_occ+=bool(n_occ[i]-n_closed[i]-n_frozen[i]!=0);
+
+   for(int i=0;i<n_sym;i++)
+      n_sym_occ+=bool(n_occ.at(i)-n_closed.at(i)-n_frozen.at(i)!=0);
    
    // Search for the CI coeff block in the input file
    if(!search(&ci_pos,&num_of_match,"CI vector",file))
@@ -860,13 +879,13 @@ bool molp_ci_parser(int method_index, std::vector<int>* csf_mo,std::vector<int>*
    //Open the input file, get to the beginning of the CI vector block corresponding to the current method.
    //Here we have to be careful because there are as many "CI vector" statements as the number of symmetry for each block.
 
+   
    input.open(file);
-   input.seekg(ci_pos[n_sym*method_index]);
-
-
+   input.seekg(ci_pos.at(n_sym*method_index));
 
    for(int s=0;s!=n_sym;s++)
    {
+      int count(0);
       getline(input,tmp_str);
       getline(input,tmp_str);
       //Now we start to read the CI coeff and CSF.
@@ -890,13 +909,21 @@ bool molp_ci_parser(int method_index, std::vector<int>* csf_mo,std::vector<int>*
          }
          //get the next string to check for alphabeti characters and record the position
          pos=input.tellg();
-         getline(input,tmp_str);
+         input>>tmp_str;
          input.seekg(pos);
 
          if( (tmp_str.find("CI") != string::npos) || (tmp_str.find("TOTAL") != string::npos) || (tmp_str.find("***") != string::npos) )
+         {
             test1=1;
+            getline(input,tmp_str);
+            getline(input,tmp_str);
+         }
+         else if(input.eof())
+            err_end_of_file(file,"CI PARSER");
 
+         count++;
       }
+      ci_num->push_back(count);
    }
    //Now, call the csf_string_parser
    csf_string_parser(n_sym_occ,csf_string.size()/n_sym_occ,n_occ,n_closed,n_frozen,csf_string,csf_mo,csf_spin);

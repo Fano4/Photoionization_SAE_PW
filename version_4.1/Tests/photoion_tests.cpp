@@ -36,6 +36,9 @@ int main(int argc,char* argv[])
    test_molp_wf_parser();
    test_molp_cas_reader();
    test_molp_basis_parser();
+   test_molp_lcao_parser();
+   test_molp_ci_parser();
+   exit(EXIT_SUCCESS);
 //   test_bessel_gaussian_poly_integral();
 //   test_prim_radial_ovlp();
   // test_prim_ovlp();

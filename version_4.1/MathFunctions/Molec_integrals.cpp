@@ -284,13 +284,13 @@ void MO_ovlp(std::vector<double> S,std::vector<double> lcao_a,std::vector<double
     delete [] temp2;
     delete [] temp;
 }
-void elec_states_ovlp(std::vector<double> S,std::vector<double> ci_vector_a,std::vector<double> civector_b,std::vector<double>* ES_S)
+void elec_states_ovlp(std::vector<double> S,std::vector<double> ci_vector_a,std::vector<double> ci_vector_b,std::vector<double>* ES_S)
 {
    double* Ca=ci_vector_a.data();
    double* Cb=ci_vector_b.data();
    double* O=S.data();
    int ci_size(int(sqrt(S.size())));
-   int n_es(int(ci_vector_a.size())/basis_size);
+   int n_es(int(ci_vector_a.size())/ci_size);
    double* res=ES_S->data();
    double* temp=new double [n_es*ci_size];
    double* temp2=new double [n_es*ci_size];

@@ -63,9 +63,10 @@ void err_lcao_method_not_supported(int method,int method_pos,std::string file)
    std::cout<<"HIT THE ERROR WHEN PARSING METHOD "<<method<<" AT POSITION "<<method_pos<<std::endl;
    exit(EXIT_SUCCESS);
 }
-void err_lcao_not_found(std::string file)
+void err_lcao_not_found(std::string file,std::string search)
 {
    std::cout<<"ERROR. LCAO COEFFICIENT BLOCK NOT FOUND IN INPUT FILE "<<std::endl<<file.c_str()<<std::endl;
+   std::cout<<" SEEKING FOR STRING "<<search<<std::endl;
    exit(EXIT_SUCCESS);
 }
 void err_civector_not_found(std::string file)
@@ -90,14 +91,15 @@ void err_too_many_geom(std::string file)
    std::cout<<"WARNING: MULTIPLE ATOMIC COORDINATES BLOCKS IN INPUT FILE "<<std::endl<<file.c_str()<<std::endl;
    std::cout<<"READING 1ST ATOMIC COORDINATES BLOCK"<<std::endl;
 }
-void err_oba_sai_invalid_parameter(int la,int lb)
-{
-   std::cout<<"ERROR. INVALID PARAMETER IN OBARA SAIKA RECURRENCE la = "<<la<<" , lb = "<<lb<<std::endl;
-   exit(EXIT_SUCCESS);
-}
 void err_diff_on_vec_size(int size1,int size2)
 {
    std::cout<<"ERROR. OVERLAP CAN NOT BE COMPUTED BETWEEN CONFIGURATIONS OF DIFFERENT DIMENSIONS"<<std::endl;
    std::cout<<size1<< " != "<<size2<<std::endl;
+   exit(EXIT_SUCCESS);
+}
+void err_end_of_file(std::string file,std::string method)
+{
+   std::cout<<"ERROR. UNEXPECTEDLY REACHED THE END OF INPUT FILE "<<file.c_str()<<std::endl;
+   std::cout<<"ERROR RAISED WHILE IN "<<method.c_str()<<std::endl;
    exit(EXIT_SUCCESS);
 }
