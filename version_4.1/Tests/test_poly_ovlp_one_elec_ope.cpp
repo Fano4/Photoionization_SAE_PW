@@ -90,26 +90,14 @@ bool test_slater_ovlp()
    std::cout<<"The MO S matrix contains "<<MO_S.size()<<" elements."<<std::endl;
 
    //Compute the overlap between the Slater determinants
+   std::vector<double> CSF_S;
+   slater_ovlp(n_elec.at(0),ci_num_tot,ci_num_tot,csf_mo,csf_mo,csf_spin,csf_spin,n_occ_tot,n_occ_tot,MO_S,&CSF_S);
 
    for(int i=0;i!=ci_num_tot;i++)
    {
-      vector<int> mo_a;
-      vector<int> spin_a;
-      for(int n=0;n!=n_elec.at(0);n++)
-      {
-         mo_a.push_back(csf_mo.at(i*n_elec.at(0)+n));
-         spin_a.push_back(csf_spin.at(i*n_elec.at(0)+n));
-      }
       for(int j=0;j!=ci_num_tot;j++)
       {
-         vector<int> mo_b;
-         vector<int> spin_b;
-         for(int n=0;n!=n_elec.at(0);n++)
-         {
-            mo_b.push_back(csf_mo.at(j*n_elec.at(0)+n));
-            spin_b.push_back(csf_spin.at(j*n_elec.at(0)+n));
-         }
-         std::cout<<i<<" - "<<j<<" : "<<slater_ovlp(mo_a,mo_b,spin_a,spin_b,MO_S)<<std::endl;
+         std::cout<<i<<" - "<<j<<" : "<<CSF_S.at(i*ci_num_tot+j)<<std::endl;
       }
    }
 

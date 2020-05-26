@@ -32,7 +32,9 @@ double prim_radial_ovlp(unsigned int la,unsigned int lb,unsigned int l,double ze
 double prim_ovlp(std::vector<double> ra,std::vector<double> rb,double zeta_a,double zeta_b,unsigned int la,unsigned int lb,int ma,int mb);
 void ao_ovlp(std::vector<double> ra,std::vector<double> rb,std::vector<int> nuc_bas_fun_a,std::vector<int> nuc_bas_fun_b,std::vector<int> cont_num_a,std::vector<int> cont_num_b,std::vector<double> zet_a,std::vector<double> zet_b,std::vector<double> cont_coeff_a, std::vector<double> cont_coeff_b,std::vector<unsigned int> la,std::vector<unsigned int> lb,std::vector<int> ma,std::vector<int> mb,std::vector<double>* S);
 void MO_ovlp(std::vector<double> S,std::vector<double> lcao_a,std::vector<double> lcao_b,std::vector<double>* MO_S);
-double slater_ovlp(std::vector<int> mo_a,std::vector<int> mo_b,std::vector<int> spin_a,std::vector<int> spin_b,std::vector<double> MO_S);
+//double slater_ovlp(std::vector<int> mo_a,std::vector<int> mo_b,std::vector<int> spin_a,std::vector<int> spin_b,std::vector<double> MO_S);
+void slater_ovlp(int n_elec,int n_csf_a,int n_csf_b,std::vector<int> csf_mo_a,std::vector<int> csf_mo_b,std::vector<int> csf_spin_a,std::vector<int> csf_spin_b,int n_occ_a,int n_occ_b,std::vector<double> MO_S,std::vector<double>* CSF_S);
+void ES_ovlp(std::vector<double> CSF_S,int n_csf_a,int n_csf_b,std::vector<double> ci_vector_a,std::vector<double> ci_vector_b,int n_states_a,int n_states_b,std::vector<double>* ES_S);
 
 
 double determinant(double *A,int dim);

@@ -44,6 +44,7 @@ int main(int argc,char* argv[])
    test_ao_ovlp();
    test_mo_ovlp();
    test_slater_ovlp();
+   test_es_ovlp();
    
    return 0;
 }

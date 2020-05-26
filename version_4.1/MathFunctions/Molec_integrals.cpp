@@ -344,24 +344,26 @@ void MO_ovlp(std::vector<double> S,std::vector<double> lcao_a,std::vector<double
     delete [] temp;
     delete [] res;
 }
-void elec_states_ovlp(std::vector<double> csf_S,std::vector<double> ci_vector_a,std::vector<double> ci_vector_b,std::vector<double>* ES_S)
+void ES_ovlp(std::vector<double> CSF_S,int n_csf_a,int n_csf_b,std::vector<double> ci_vector_a,std::vector<double> ci_vector_b,int n_states_a,int n_states_b,std::vector<double>* ES_S)
 {
    double* Ca=ci_vector_a.data();
    double* Cb=ci_vector_b.data();
-   double* O=csf_S.data();
-   int ci_size(int(sqrt(S.size())));
-   int n_es(int(ci_vector_a.size())/ci_size);
-   double* res=ES_S->data();
-   double* temp=new double [n_es*ci_size];
-   double* temp2=new double [n_es*ci_size];
+   double* O=CSF_S.data();
+   double* res=new double [n_states_a*n_states_b];
+   double* temp=new double [n_states_b*n_csf_b];
+   double* temp2=new double [n_states_a*n_csf_a];
 
-    transpose(Ca, temp2, n_es, ci_size);
-    matrix_product(temp, O, temp2, ci_size, ci_size, n_es); 
-    matrix_product(res, Cb, temp, n_es, ci_size, n_es);
-    transpose(res,res, n_es, n_es);
+    transpose(Cb, temp2,n_csf_a,n_states_a);
+    matrix_product(temp, O, Ca, n_csf_b, n_csf_a, n_states_a); 
+    matrix_product(res, temp2, temp, n_states_b, n_csf_b, n_states_a);
+    transpose(res,res, n_states_b, n_states_a);
+
+    for(int i=0;i!=n_states_a*n_states_b;i++)
+       ES_S->push_back(res[i]);
 
     delete [] temp2;
     delete [] temp;
+    delete [] res;
 }
 void matrix_product(double *C,double *A,double *B,int dim1,int dim2,int dim3)
 {
