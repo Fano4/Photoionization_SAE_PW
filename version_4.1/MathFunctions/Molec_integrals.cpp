@@ -254,6 +254,7 @@ double prim_ovlp(std::vector<double> ra,std::vector<double> rb,double zeta_a,dou
 
 void ao_ovlp(std::vector<double> ra,std::vector<double> rb,std::vector<int> nuc_bas_fun_a,std::vector<int> nuc_bas_fun_b,std::vector<int> cont_num_a,std::vector<int> cont_num_b,std::vector<double> zet_a,std::vector<double> zet_b,std::vector<double> cont_coeff_a, std::vector<double> cont_coeff_b,std::vector<unsigned int> la,std::vector<unsigned int> lb,std::vector<int> ma,std::vector<int> mb,std::vector<double>* S)
 {
+   S->clear();
    double result(0);
    int counta(0);
    int countb(0);
@@ -303,6 +304,7 @@ void ao_ovlp(std::vector<double> ra,std::vector<double> rb,std::vector<int> nuc_
 }
 void MO_ovlp(std::vector<double> S,std::vector<double> lcao_a,std::vector<double> lcao_b,std::vector<double>* MO_S)
 {
+   MO_S->clear();
    double* Ca=lcao_a.data();
    double* Cb=lcao_b.data();
    double* O=S.data();
@@ -346,6 +348,7 @@ void MO_ovlp(std::vector<double> S,std::vector<double> lcao_a,std::vector<double
 }
 void ES_ovlp(std::vector<double> CSF_S,int n_csf_a,int n_csf_b,std::vector<double> ci_vector_a,std::vector<double> ci_vector_b,int n_states_a,int n_states_b,std::vector<double>* ES_S)
 {
+   ES_S->clear();
    double* Ca=ci_vector_a.data();
    double* Cb=ci_vector_b.data();
    double* O=CSF_S.data();

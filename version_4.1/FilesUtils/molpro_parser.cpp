@@ -587,6 +587,14 @@ bool molp_basis_parser(std::vector<int>* basis_size,std::vector<int>* cont_num,s
 {
    using namespace std;
 
+   basis_size->clear();
+   cont_num->clear();
+   nuc_bas_func->clear();
+   l_val->clear();
+   m_val->clear();
+   cont_zeta->clear();
+   cont_coeff->clear();
+
    ifstream input;
 
    // Find the basis data part and read the number of contractions for each basis function. 
@@ -739,6 +747,7 @@ bool molp_lcao_parser(int method_index,std::vector<double>* lcao_coeff,std::stri
 {
    using namespace std;
 
+   lcao_coeff->clear();
    ifstream input;
 
    //This function parses the LCAO coefficients for the molpro input file. Several data are needed to parse the LCAO  coeff
@@ -832,6 +841,11 @@ bool molp_ci_parser(int method_index, std::vector<int>* csf_mo,std::vector<int>*
    using namespace std;
 
    ifstream input;
+
+   csf_mo->clear();
+   csf_spin->clear();
+   ci_coeff->clear();
+   ci_num->clear();
 
    bool test1;
    vector<int> ci_pos;
@@ -945,6 +959,11 @@ bool molp_geom_parser(int* num_of_nucl,std::vector<int>* Z_nucl,std::vector<doub
    else if(num_match[0]>1)
       err_too_many_geom(file);
 
+   Z_nucl->clear();
+   xn->clear();
+   yn->clear();
+   zn->clear();
+
    ifstream input;
 
    input.open(file.c_str());
@@ -973,13 +992,14 @@ bool molp_geom_parser(int* num_of_nucl,std::vector<int>* Z_nucl,std::vector<doub
       input>>tmp_str;
       input.seekg(pos);
 
-      if(tmp_str=="BASIS")
+      if(tmp_str=="BASIS" || tmp_str=="Bond")
           test1=1;
    }
 
    *num_of_nucl=Z_nucl->size();
 
    std::cout<<"GEOMETRY RECOGNIZED"<<std::endl;
+   std::cout<<Z_nucl->size()<<" NUCLEI"<<std::endl;
    for(unsigned int i=0;i!=Z_nucl->size();i++)
    {
       std::cout<<std::setw(15)<<std::scientific<<double(Z_nucl->at(i));
