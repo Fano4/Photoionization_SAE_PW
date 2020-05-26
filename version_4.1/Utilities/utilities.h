@@ -23,6 +23,8 @@ enum charTypeT{ other, alpha, digit};
 std::string separateThem(std::string inString);
 charTypeT charType(char c);
 bool csf_string_parser(int n_sym_occ,int ci_size,std::vector<int> n_occ,std::vector<int> n_closed,std::vector<int> n_frozen, std::vector<std::string> csf_string,std::vector<int>* csf_mo,std::vector<int>* csf_spin);
-
 int l_number(std::string bas_func_type);
 int ml_number(std::string bas_func_type,int l);
+
+//array_utils
+void sym_to_nosym_mat_trans(int n_sym,std::vector<int> dim_1_sym,std::vector<int> dim_2_sym,std::vector<double> mat_sym_rep,int* dim1,int* dim2,std::vector<double>* mat_nosym_rep);

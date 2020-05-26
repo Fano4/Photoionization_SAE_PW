@@ -161,7 +161,7 @@ bool test_molp_basis_parser()
    std::vector<int> basis_size;
    std::vector<int> cont_num;
    std::vector<int> nuc_bas_func;
-   std::vector<int> l_val;
+   std::vector<unsigned int> l_val;
    std::vector<int> m_val;
    std::vector<double> cont_zeta;
    std::vector<double> cont_coeff;
@@ -216,7 +216,7 @@ bool test_molp_lcao_parser()
    std::vector<int> basis_size;
    std::vector<int> cont_num;
    std::vector<int> nuc_bas_func;
-   std::vector<int> l_val;
+   std::vector<unsigned int> l_val;
    std::vector<int> m_val;
    std::vector<double> cont_zeta;
    std::vector<double> cont_coeff;

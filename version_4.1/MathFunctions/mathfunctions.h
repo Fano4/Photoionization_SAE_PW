@@ -12,7 +12,6 @@ double ALP_integral(int l,int m);
 double two_ALP_integral(int l1,int l2,int m1,int m2);
 double three_ALP_J_integral(int l1,int l2,int l3,int m1,int m2,int m3);
 double three_Ylm_integ(int l1,int l2,int l3,int m1,int m2,int m3);
-double ao_ovlp(std::vector<double> ra,std::vector<double> rb,std::vector<double> zet_a,std::vector<double> zet_b,std::vector<double> cont_coeff_a, std::vector<double> cont_coeff_b,unsigned int la,unsigned int lb,int ma,int mb);
 
 
 double J_int_m2(int l1,int l2,int l3,int m1,int m2,int m3);
@@ -31,7 +30,9 @@ double I_p1_D_integral(int m1,int m2,int m3);
 //double bessel_gaussian_poly_integral(unsigned int l1,unsigned int l2,double m,double r);
 double prim_radial_ovlp(unsigned int la,unsigned int lb,unsigned int l,double zet_a,double zet_b,double r);
 double prim_ovlp(std::vector<double> ra,std::vector<double> rb,double zeta_a,double zeta_b,unsigned int la,unsigned int lb,int ma,int mb);
-double ao_ovlp(std::vector<double> ra,std::vector<double> rb,std::vector<double> zet_a,std::vector<double> zet_b,std::vector<double> cont_coeff_a, std::vector<double> cont_coeff_b,unsigned int la,unsigned int lb,int ma,int mb);
+void ao_ovlp(std::vector<double> ra,std::vector<double> rb,std::vector<int> nuc_bas_fun_a,std::vector<int> nuc_bas_fun_b,std::vector<int> cont_num_a,std::vector<int> cont_num_b,std::vector<double> zet_a,std::vector<double> zet_b,std::vector<double> cont_coeff_a, std::vector<double> cont_coeff_b,std::vector<unsigned int> la,std::vector<unsigned int> lb,std::vector<int> ma,std::vector<int> mb,std::vector<double>* S);
+void MO_ovlp(std::vector<double> S,std::vector<double> lcao_a,std::vector<double> lcao_b,std::vector<double>* MO_S);
+double slater_ovlp(std::vector<int> mo_a,std::vector<int> mo_b,std::vector<int> spin_a,std::vector<int> spin_b,std::vector<double> MO_S);
 
 
 double determinant(double *A,int dim);

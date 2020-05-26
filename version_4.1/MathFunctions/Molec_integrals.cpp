@@ -4,8 +4,9 @@
 #include <cmath>
 #include <vector>
 #include <iomanip>
+#include <complex>
 #include <arb.h>
-#include <acb_hypgeom.h>
+#include <arb_hypgeom.h>
 #include <mkl.h>
 #include <omp.h>
 #include "mathfunctions.h"
@@ -82,14 +83,13 @@ double prim_radial_ovlp(unsigned int la,unsigned int lb,unsigned int l,double ze
 {
 
    //Special case if la+lb==l
-/*   if(la+lb==l)
+   if(la+lb==l)
    {
       double m(zet_a*zet_b/(zet_a+zet_b));
-      double a(1./(4.*m));
-      return sqrt(acos(-1))*exp(-r*r/(4.*a))*pow(r,l)/(pow(2.,l+2)*pow(a,1.5+l)*pow(zet_a,1.5+la)*pow(zet_b,1.5+lb)); 
-   }*/
+      return sqrt(acos(-1))*exp(-m*r*r)*pow(r,l)*pow(m,1.5+l)*pow(2.,l+1)/(pow(2*zet_a,1.5+la)*pow(2*zet_b,1.5+lb)); 
+   }
 
-   slong prec(128);
+   slong prec(256);
 
    arb_t ala,alb,al,azeta,azetb,ar; // Variables from input
    arb_init(ala);
@@ -127,7 +127,7 @@ double prim_radial_ovlp(unsigned int la,unsigned int lb,unsigned int l,double ze
    arb_div(tmp,tmp,tmp2,prec); // tmp= (la+l-lb)/2
    arb_pow(tmp,azetb,tmp,prec); // tmp= pow(zet_b,(la+l-lb)/2)
 
-   arb_mul(prefac,prefac,tmp,prec); //prefac= pow(zet_a,(lb+l-la)/2) * pow(zet_b,(lb+l-la)/2)
+   arb_mul(prefac,prefac,tmp,prec); //prefac= pow(zet_a,(la+l-lb)/2) * pow(zet_b,(la+l-lb)/2)
 
    arb_add(tmp,ala,al,prec); // tmp= la+l
    arb_add(tmp,tmp,alb,prec); // tmp= la+l+lb
@@ -138,7 +138,7 @@ double prim_radial_ovlp(unsigned int la,unsigned int lb,unsigned int l,double ze
    arb_add(tmp2,azeta,azetb,prec);
    arb_pow(tmp,tmp2,tmp,prec); // tmp= pow(zet_a+zet_b,(la+l+lb+3)/2)
 
-   arb_div(prefac,prefac,tmp,prec); // prefac= pow(zet_a,(lb+l-la)/2) * pow(zet_b,(lb+l-la)/2) / pow(zet_a+zet_b,(la+l+lb+3)/2)
+   arb_div(prefac,prefac,tmp,prec); // prefac= pow(zet_a,(la+l-lb)/2) * pow(zet_b,(la+l-lb)/2) / pow(zet_a+zet_b,(la+l+lb+3)/2)
 
    arb_set_d(tmp,sqrt(acos(-1))/4);
 
@@ -179,6 +179,8 @@ double prim_radial_ovlp(unsigned int la,unsigned int lb,unsigned int l,double ze
    arb_mul(tmp4,ar,ar,prec); //tmp4=r**2
    arb_mul(tmp3,tmp3,tmp4,prec); // tmp3= - r**2 *zet_a*zet_b / (zet_a+zet_b)
 
+   arb_hypgeom_m(ares,tmp,tmp2,tmp3,1,prec);
+   /*
    acb_t ctmp,ctmp2,ctmp3,cres;
    acb_init(ctmp);
    acb_init(ctmp2);
@@ -191,6 +193,7 @@ double prim_radial_ovlp(unsigned int la,unsigned int lb,unsigned int l,double ze
    acb_hypgeom_m(cres,ctmp,ctmp2,ctmp3,1,prec);
 
    acb_get_real(ares,cres);
+   */
 
    arb_mul(ares,ares,prefac,prec);
 
@@ -216,8 +219,7 @@ double prim_ovlp(std::vector<double> ra,std::vector<double> rb,double zeta_a,dou
    }
    else
    {
-      thet=(0);
-      phi=(0);
+      return 0.5*tgamma(1.5+la)/(pow(zeta_a+zeta_b,1.5+la))*bool(la==lb)*bool(ma==mb); 
    }
 
    for(unsigned int l=abs(int(la-lb));l<=la+lb;l++)
@@ -227,7 +229,7 @@ double prim_ovlp(std::vector<double> ra,std::vector<double> rb,double zeta_a,dou
       else
       {
          // compute the factor independent of m
-         temp=4*acos(-1)*pow(-1,(lb-la+l)/2)*prim_radial_ovlp(la,lb,l,zeta_a,zeta_b,rab);
+         temp=4*acos(-1)*std::real(pow(std::complex<double>(0,-1),(la-lb-l)))*prim_radial_ovlp(la,lb,l,zeta_a,zeta_b,rab);
 
          //Add the m=0 term
          result+=temp*rYlm(l,0,thet,phi)*prefactor_rYlm(la,ma)*prefactor_rYlm(lb,mb)*prefactor_rYlm(l,0)
@@ -239,10 +241,9 @@ double prim_ovlp(std::vector<double> ra,std::vector<double> rb,double zeta_a,dou
             if( (ma+mb+m)%2!=0 )
                continue;
             else
-               result+=2*temp*(rYlm(l,m,thet,phi)
-               *prefactor_rYlm(la,ma)*prefactor_rYlm(lb,mb)*prefactor_rYlm(l,m)
-               *three_azim_integ(ma,mb,m)
-               *three_ALP_J_integral(la,lb,l,abs(ma),abs(mb),m)
+               result+=2*temp*(
+               rYlm(l,m,thet,phi)*prefactor_rYlm(la,ma)*prefactor_rYlm(lb,mb)*prefactor_rYlm(l,m)
+               *three_azim_integ(ma,mb,m)*three_ALP_J_integral(la,lb,l,abs(ma),abs(mb),m)
                +rYlm(l,-m,thet,phi)*prefactor_rYlm(la,ma)*prefactor_rYlm(lb,mb)*prefactor_rYlm(l,-m)
                *three_azim_integ(ma,mb,-m)*three_ALP_J_integral(la,lb,l,abs(ma),abs(mb),-m));//*three_Ylm_integ(la,lb,l,ma,mb,m);
          }
@@ -251,17 +252,54 @@ double prim_ovlp(std::vector<double> ra,std::vector<double> rb,double zeta_a,dou
    return result;
 }
 
-double ao_ovlp(std::vector<double> ra,std::vector<double> rb,std::vector<double> zet_a,std::vector<double> zet_b,std::vector<double> cont_coeff_a, std::vector<double> cont_coeff_b,unsigned int la,unsigned int lb,int ma,int mb)
+void ao_ovlp(std::vector<double> ra,std::vector<double> rb,std::vector<int> nuc_bas_fun_a,std::vector<int> nuc_bas_fun_b,std::vector<int> cont_num_a,std::vector<int> cont_num_b,std::vector<double> zet_a,std::vector<double> zet_b,std::vector<double> cont_coeff_a, std::vector<double> cont_coeff_b,std::vector<unsigned int> la,std::vector<unsigned int> lb,std::vector<int> ma,std::vector<int> mb,std::vector<double>* S)
 {
    double result(0);
-   for(unsigned int a=0;a!=cont_coeff_a.size();a++)
+   int counta(0);
+   int countb(0);
+   int mema(0);
+   int memb(0);
+   std::vector<double> rao1;
+   std::vector<double> rao2;
+   for(unsigned int ao1=0;ao1<cont_num_a.size();ao1++)
    {
-      for(unsigned int b=0;b!=cont_coeff_b.size();b++)
+
+      rao1.clear();
+      rao1.push_back(ra.at(3*nuc_bas_fun_a.at(ao1)));
+      rao1.push_back(ra.at(3*nuc_bas_fun_a.at(ao1)+1));
+      rao1.push_back(ra.at(3*nuc_bas_fun_a.at(ao1)+2));
+
+      countb=0;
+      memb=0;
+      for(unsigned int ao2=0;ao2<cont_num_b.size();ao2++)
       {
-         result+=cont_coeff_a.at(a)*cont_coeff_b.at(b)*prim_ovlp(ra,rb,zet_a.at(a),zet_b.at(b),la,lb,ma,mb);
+
+         rao2.clear();
+         rao2.push_back(rb.at(3*nuc_bas_fun_b.at(ao2)));
+         rao2.push_back(rb.at(3*nuc_bas_fun_b.at(ao2)+1));
+         rao2.push_back(rb.at(3*nuc_bas_fun_b.at(ao2)+2));
+         //std::cout<<"AO1 "<<ao1<<" => nucleus "<<nuc_bas_fun_a.at(ao1)<<std::endl;
+         //std::cout<<rao1.at(0)<<" , "<<rao1.at(1)<<" , "<<rao1.at(2)<<std::endl<<"+++"<<std::endl;
+         //std::cout<<"AO2 "<<ao2<<" => nucleus "<<nuc_bas_fun_b.at(ao2)<<std::endl;
+         //std::cout<<rao2.at(0)<<" , "<<rao2.at(1)<<" , "<<rao2.at(2)<<std::endl<<"+++"<<std::endl;
+
+         result=0;
+         counta=mema;
+         for(unsigned int a=0;a<cont_num_a.at(ao1);a++)
+         {
+            countb=memb;
+            for(unsigned int b=0;b<cont_num_b.at(ao2);b++)
+            {
+               result+=cont_coeff_a.at(counta)*cont_coeff_b.at(countb)*prim_ovlp(rao1,rao2,zet_a.at(counta),zet_b.at(countb),la.at(ao1),lb.at(ao2),ma.at(ao1),mb.at(ao2));
+               countb++;
+            }
+            counta++;
+         }
+         memb=countb;
+         S->push_back(result);
       }
+      mema=counta;
    }
-   return result;
 }
 void MO_ovlp(std::vector<double> S,std::vector<double> lcao_a,std::vector<double> lcao_b,std::vector<double>* MO_S)
 {
@@ -270,25 +308,47 @@ void MO_ovlp(std::vector<double> S,std::vector<double> lcao_a,std::vector<double
    double* O=S.data();
    int basis_size(int(sqrt(S.size())));
    int n_occ(int(lcao_a.size())/basis_size);
-   double* res=MO_S->data();
+   double* res=new double [n_occ*n_occ];
    double* temp=new double [n_occ*basis_size];
    double* temp2=new double [n_occ*basis_size];
+//   double temp(0);
+
+/*
+   for(int i=0;i!=n_occ;i++)
+   {
+      for(int j=0;j!=n_occ;j++)
+      {
+         temp=0;
+         for(int r=0;r!=basis_size;r++)
+         {
+            for(int s=0;s!=basis_size;s++)
+            {
+               temp+=S.at(r*basis_size+s)*lcao_a.at(i*basis_size+r)*lcao_b.at(j*basis_size+s);
+            }
+         }
+         MO_S->push_back(temp);
+      }
+   }*/
+//   std::cout<<"+++"<<lcao_a.size()<<" / "<<basis_size<<" = "<<n_occ<<std::endl;
+
 
     transpose(Ca, temp2, n_occ, basis_size);
     matrix_product(temp, O, temp2, basis_size, basis_size, n_occ); 
-    matrix_product(res, Cb, temp, n_occ, basis_size, n_occ);
+    matrix_product(res, Cb, temp, n_occ,basis_size,n_occ);
     transpose(res,res, n_occ, n_occ);
 
-
+    for(int i=0;i!=n_occ*n_occ;i++)
+       MO_S->push_back(res[i]);
 
     delete [] temp2;
     delete [] temp;
+    delete [] res;
 }
-void elec_states_ovlp(std::vector<double> S,std::vector<double> ci_vector_a,std::vector<double> ci_vector_b,std::vector<double>* ES_S)
+void elec_states_ovlp(std::vector<double> csf_S,std::vector<double> ci_vector_a,std::vector<double> ci_vector_b,std::vector<double>* ES_S)
 {
    double* Ca=ci_vector_a.data();
    double* Cb=ci_vector_b.data();
-   double* O=S.data();
+   double* O=csf_S.data();
    int ci_size(int(sqrt(S.size())));
    int n_es(int(ci_vector_a.size())/ci_size);
    double* res=ES_S->data();

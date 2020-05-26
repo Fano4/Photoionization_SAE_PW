@@ -56,6 +56,6 @@ double rYlm (int l,int m,double thet,double phi)
       }
       else
       {
-         return prefactor_rYlm(l,m);gsl_sf_legendre_Plm(l,m,cos(thet));//*std::assoc_legendre(l,m,cos(thet));
+         return prefactor_rYlm(l,m)*gsl_sf_legendre_Plm(l,m,cos(thet));//*std::assoc_legendre(l,m,cos(thet));
       }
 }

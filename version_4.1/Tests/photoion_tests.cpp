@@ -2,6 +2,7 @@
 #include "test_angular_int_aux.cpp"
 #include "test_files_utils.cpp"
 #include "test_molec_integ.cpp"
+#include "test_poly_ovlp_one_elec_ope.cpp"
 #include <iostream>
 
 int main(int argc,char* argv[])
@@ -31,6 +32,7 @@ int main(int argc,char* argv[])
 //   test_J_int_m1_D();
 //   test_J_int_p1_D();
 //   test_search();
+   test_prim_ovlp();
    test_molp_sym_parser();
    test_molp_method_parser();
    test_molp_wf_parser();
@@ -38,11 +40,10 @@ int main(int argc,char* argv[])
    test_molp_basis_parser();
    test_molp_lcao_parser();
    test_molp_ci_parser();
-   exit(EXIT_SUCCESS);
-//   test_bessel_gaussian_poly_integral();
-//   test_prim_radial_ovlp();
-  // test_prim_ovlp();
+   test_prim_radial_ovlp();
    test_ao_ovlp();
+   test_mo_ovlp();
+   test_slater_ovlp();
    
    return 0;
 }

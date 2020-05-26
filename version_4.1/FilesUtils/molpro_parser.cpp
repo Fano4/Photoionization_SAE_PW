@@ -575,7 +575,7 @@ bool molp_basis_size_parser(std::vector<int>* basis_size,std::string file)
       {
          input>>tmp_str;
          basis_size->push_back(atoi(separateThem(tmp_str).c_str()));
-         std::cout<<"sym "<<i+1<<" = "<<basis_size->at(i)<<std::endl;
+//         std::cout<<"sym "<<i+1<<" = "<<basis_size->at(i)<<std::endl;
          input>>tmp_str;
       }
 
@@ -583,7 +583,7 @@ bool molp_basis_size_parser(std::vector<int>* basis_size,std::string file)
    input.close();
    return 0;
 }
-bool molp_basis_parser(std::vector<int>* basis_size,std::vector<int>* cont_num,std::vector<int>* nuc_bas_func,std::vector<int>* l_val,std::vector<int>* m_val,std::vector<double>* cont_zeta,std::vector<double>* cont_coeff,std::string file)
+bool molp_basis_parser(std::vector<int>* basis_size,std::vector<int>* cont_num,std::vector<int>* nuc_bas_func,std::vector<unsigned int>* l_val,std::vector<int>* m_val,std::vector<double>* cont_zeta,std::vector<double>* cont_coeff,std::string file)
 {
    using namespace std;
 
