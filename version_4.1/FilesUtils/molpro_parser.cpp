@@ -238,6 +238,8 @@ bool molp_wf_parser(const int method_index,std::vector<int>* n_elec,std::vector<
    size_t pos;
 
 
+   std::cout<<"Parsing wf cards for method "<<method_index+1<<"...";
+
    //Recall metho parser to get the actual position of the command block we want to parse
    molp_method_parser(&method_pos,file);
 
@@ -369,6 +371,21 @@ bool molp_wf_parser(const int method_index,std::vector<int>* n_elec,std::vector<
       }
 
    }
+   int n_sym(molp_sym_parser(file));
+   
+   if(n_elec->size()<n_sym)
+   {
+      for(int i=n_elec->size()-1;i!=n_sym;i++)
+      {
+         n_elec->push_back(n_elec->at(i));
+         sym->push_back(sym->at(i)+1);
+         spin->push_back(spin->at(i));
+         charge->push_back(charge->at(i));
+         n_states->push_back(0);
+      }
+   }
+
+   std::cout<<"Done"<<std::endl;
 
    return 0;
 }
@@ -389,6 +406,7 @@ bool molp_cas_reader(int method_index,std::vector<int>* n_occ,std::vector<int>* 
    unsigned int n_sym;
 
 
+   std::cout<<"Getting cas detail for method number"<<method_index+1<<"...";
    //Recall metho parser to get the actual position of the command block we want to parse
    molp_method_parser(&method_pos,file);
    n_sym=molp_sym_parser(file);
@@ -538,6 +556,7 @@ bool molp_cas_reader(int method_index,std::vector<int>* n_occ,std::vector<int>* 
 
    }
    
+   std::cout<<"Done"<<std::endl;
 
    return 0;
 }
@@ -869,6 +888,7 @@ bool molp_ci_parser(int method_index, std::vector<int>* csf_mo,std::vector<int>*
    string line;
    stringstream ss,sstream;
 
+   std::cout<<"Parsing CI vectors for method "<<method_index+1<<"...";
    //check that it is casscf. otherwise, the method is not supported yet
    molp_method_parser(&method_pos,file);
    if(method_pos.at(2*method_index)!=2)
@@ -899,6 +919,12 @@ bool molp_ci_parser(int method_index, std::vector<int>* csf_mo,std::vector<int>*
 
    for(int s=0;s!=n_sym;s++)
    {
+      if(n_states.at(s)==0)
+      {
+         ci_num->push_back(0);
+         continue;
+      }
+
       int count(0);
       getline(input,tmp_str);
       getline(input,tmp_str);
@@ -924,16 +950,18 @@ bool molp_ci_parser(int method_index, std::vector<int>* csf_mo,std::vector<int>*
          //get the next string to check for alphabeti characters and record the position
          pos=input.tellg();
          input>>tmp_str;
-         input.seekg(pos);
 
          if( (tmp_str.find("CI") != string::npos) || (tmp_str.find("TOTAL") != string::npos) || (tmp_str.find("***") != string::npos) )
          {
+            input.seekg(pos);
             test1=1;
             getline(input,tmp_str);
             getline(input,tmp_str);
          }
          else if(input.eof())
             err_end_of_file(file,"CI PARSER");
+         else
+            input.seekg(pos);
 
          count++;
       }
@@ -941,6 +969,8 @@ bool molp_ci_parser(int method_index, std::vector<int>* csf_mo,std::vector<int>*
    }
    //Now, call the csf_string_parser
    csf_string_parser(n_sym_occ,csf_string.size()/n_sym_occ,n_occ,n_closed,n_frozen,csf_string,csf_mo,csf_spin);
+
+   std::cout<<"Done"<<std::endl;
 
    return 0;
 }

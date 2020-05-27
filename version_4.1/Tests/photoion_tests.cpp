@@ -61,7 +61,7 @@ int main(int argc,char* argv[])
 void two_file_overlap()
 {
 
-   std::string out_file("/home/users/stephan/wavepack_int_input/neut_es_ovlp.txt");
+   std::string out_file("/home/users/stephan/wavepack_int_input/cat_es_ovlp.txt");
    std::string coord_file("/home/users/stephan/wavepack_int_input/coordinates.input");
    std::string fileroot("/home/users/stephan/LiH_gridtest_+++custom/LiH_");
    std::stringstream sstr;
@@ -69,7 +69,7 @@ void two_file_overlap()
    std::ifstream coord_istr;
    std::vector<std::string> x;
 
-   int n_states(19);
+   int n_states(6);
    std::vector<double> ES_MO;
 
    coord_istr.open(coord_file.c_str());

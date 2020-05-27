@@ -471,7 +471,7 @@ bool test_es_ovlp_twogeoms(std::string input_file_a,std::string input_file_b,std
 
    //set up the environment to compute the overlap. Computing the slater overlap requires the following data
 
-   int method_index(0);
+   int method_index(1);
    int num_of_nucl;
    int n_sym;
    vector<double> cart_r_a;
@@ -523,6 +523,7 @@ bool test_es_ovlp_twogeoms(std::string input_file_a,std::string input_file_b,std
    molp_ci_parser(method_index,&csf_mo_a,&csf_spin_a,&ci_coeff_sym_a,&ci_num_sym_a,input_file_a);
    molp_ci_parser(method_index,&csf_mo_b,&csf_spin_b,&ci_coeff_sym_b,&ci_num_sym_b,input_file_b);
 
+   std::cout<<"Input files read"<<std::endl;
 
    //Transform geometry data to a single vector
    std::cout<<xn_a.size()<<","<<xn_b.size()<<std::endl;
@@ -549,12 +550,14 @@ bool test_es_ovlp_twogeoms(std::string input_file_a,std::string input_file_b,std
    vector<double> ci_coeff_a;
    vector<double> ci_coeff_b;
 
+   std::cout<<"Transforming symmetry adapted matrices into single block matrices"<<std::endl;
    //Transform lcao coeff matrix and ci vector in single block
    sym_to_nosym_mat_trans(n_sym,n_occ,basis_size,lcao_coeff_sym_a,&n_occ_tot,&basis_size_tot,&lcao_coeff_a);
    sym_to_nosym_mat_trans(n_sym,ci_num_sym_a,n_states,ci_coeff_sym_a,&ci_num_tot_a,&n_states_tot,&ci_coeff_a);
    sym_to_nosym_mat_trans(n_sym,n_occ,basis_size,lcao_coeff_sym_b,&n_occ_tot,&basis_size_tot,&lcao_coeff_b);
    sym_to_nosym_mat_trans(n_sym,ci_num_sym_b,n_states,ci_coeff_sym_b,&ci_num_tot_b,&n_states_tot,&ci_coeff_b);
 
+   std::cout<<"Computing overlap matrices"<<std::endl;
    //Compute ao overlap matrix
    vector<double> S;
    ao_ovlp(cart_r_a,cart_r_b,nuc_bas_func,nuc_bas_func,cont_num,cont_num,cont_zeta,cont_zeta,cont_coeff,cont_coeff,l,l,ml,ml,&S);
