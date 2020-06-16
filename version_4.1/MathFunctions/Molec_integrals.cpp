@@ -279,10 +279,6 @@ void ao_ovlp(std::vector<double> ra,std::vector<double> rb,std::vector<int> nuc_
          rao2.push_back(rb.at(3*nuc_bas_fun_b.at(ao2)));
          rao2.push_back(rb.at(3*nuc_bas_fun_b.at(ao2)+1));
          rao2.push_back(rb.at(3*nuc_bas_fun_b.at(ao2)+2));
-         //std::cout<<"AO1 "<<ao1<<" => nucleus "<<nuc_bas_fun_a.at(ao1)<<std::endl;
-         //std::cout<<rao1.at(0)<<" , "<<rao1.at(1)<<" , "<<rao1.at(2)<<std::endl<<"+++"<<std::endl;
-         //std::cout<<"AO2 "<<ao2<<" => nucleus "<<nuc_bas_fun_b.at(ao2)<<std::endl;
-         //std::cout<<rao2.at(0)<<" , "<<rao2.at(1)<<" , "<<rao2.at(2)<<std::endl<<"+++"<<std::endl;
 
          result=0;
          counta=mema;
@@ -313,26 +309,6 @@ void MO_ovlp(std::vector<double> S,std::vector<double> lcao_a,std::vector<double
    double* res=new double [n_occ*n_occ];
    double* temp=new double [n_occ*basis_size];
    double* temp2=new double [n_occ*basis_size];
-//   double temp(0);
-
-/*
-   for(int i=0;i!=n_occ;i++)
-   {
-      for(int j=0;j!=n_occ;j++)
-      {
-         temp=0;
-         for(int r=0;r!=basis_size;r++)
-         {
-            for(int s=0;s!=basis_size;s++)
-            {
-               temp+=S.at(r*basis_size+s)*lcao_a.at(i*basis_size+r)*lcao_b.at(j*basis_size+s);
-            }
-         }
-         MO_S->push_back(temp);
-      }
-   }*/
-//   std::cout<<"+++"<<lcao_a.size()<<" / "<<basis_size<<" = "<<n_occ<<std::endl;
-
 
     transpose(Ca, temp2, n_occ, basis_size);
     matrix_product(temp, O, temp2, basis_size, basis_size, n_occ); 
@@ -348,37 +324,50 @@ void MO_ovlp(std::vector<double> S,std::vector<double> lcao_a,std::vector<double
 }
 void ES_ovlp(std::vector<double> CSF_S,int n_csf_a,int n_csf_b,std::vector<double> ci_vector_a,std::vector<double> ci_vector_b,int n_states_a,int n_states_b,std::vector<double>* ES_S)
 {
+   std::cout<<"Entering ES overlap routine with "<<n_csf_a<<" * "<<n_csf_b<<" = "<<CSF_S.size()<<" CSFs"<<std::endl;
+   std::cout<<"There are "<<n_states_a<<" * "<<n_states_b<<" = "<<n_states_a*n_states_b<<" elements to compute"<<std::endl;
    ES_S->clear();
    double* Ca=ci_vector_a.data();
    double* Cb=ci_vector_b.data();
    double* O=CSF_S.data();
-   double* res=new double [n_states_a*n_states_b];
-   double* temp=new double [n_states_b*n_csf_b];
-   double* temp2=new double [n_states_a*n_csf_a];
+   double res[n_states_a*n_states_b];
+   double temp[n_states_b*n_csf_a];
+   double temp2[n_states_a*n_csf_a];
 
-    transpose(Cb, temp2,n_csf_a,n_states_a);
-    matrix_product(temp, O, Ca, n_csf_b, n_csf_a, n_states_a); 
-    matrix_product(res, temp2, temp, n_states_b, n_csf_b, n_states_a);
-    transpose(res,res, n_states_b, n_states_a);
+
+   std::cout<<"probe1"<<std::endl;
+   cblas_dgemm(CblasRowMajor,CblasNoTrans,CblasNoTrans,n_csf_a,n_states_b,n_csf_b,1,O,n_csf_b,Cb,n_states_b,0,&temp[0],n_states_b);
+   std::cout<<"probe2"<<std::endl;
+   cblas_dgemm(CblasRowMajor,CblasTrans,CblasNoTrans,n_states_a,n_states_b,n_csf_a,1,Ca,n_states_a,&temp[0],n_states_b,0,&res[0],n_states_b);
+//   std::cout<<"probe 1"<<std::endl;
+//    transpose(Ca, &temp2[0],n_csf_a,n_states_a);
+//   std::cout<<"probe 2 n_csf_a = "<<n_csf_a<<std::endl;
+//   int tmp(n_csf_a);
+//    matrix_product(&temp[0], O, Cb, n_csf_a, n_csf_b, n_states_b); 
+//   std::cout<<"probe 3 n_csf_a = "<<n_csf_a<<std::endl;
+//    matrix_product(&res[0], &temp2[0], &temp[0], n_states_a, tmp, n_states_b);
+//   std::cout<<"probe 4"<<std::endl;
+//    transpose(res,res, n_states_b, n_states_a);
 
     for(int i=0;i!=n_states_a*n_states_b;i++)
        ES_S->push_back(res[i]);
+   std::cout<<"probe 5"<<std::endl;
 
-    delete [] temp2;
-    delete [] temp;
-    delete [] res;
+    std::cout<<" Exiting ES overlap routine"<<std::endl;
+    return;
 }
-void matrix_product(double *C,double *A,double *B,int dim1,int dim2,int dim3)
+void matrix_product(double *C,double *A,double *B,const int dim1,const int dim2,const int dim3)
 {
    //C=A*B
+   std::cout<<" In matrix product with dimensions "<<dim1<<","<<dim2<<","<<dim3<<std::endl;
     double ntemp;
-    for (int i=0; i!=dim1; i++)
+    for (int i=0; i<dim1; i++)
     {
-        for (int j=0; j!=dim3; j++)
+        for (int j=0; j<dim3; j++)
         {
             ntemp=0;
             
-            for (int k=0; k!=dim2; k++)
+            for (int k=0; k<dim2; k++)
             {
                 ntemp+=A[i*dim2+k]*B[k*dim3+j];
             }
@@ -444,3 +433,62 @@ double determinant(double *A,int dim)
     delete [] B;
     return sign*det_val;
 }
+/*
+double prim_trdip(std::vector<double> ra,std::vector<double> rb,double zeta_a,double zeta_b,unsigned int la,unsigned int lb,int ma,int mb)
+{
+
+   double result(0);
+   double thet;
+   double phi;
+   double temp(0);
+
+
+   double rab(sqrt(pow((ra.at(0)-rb.at(0)),2.)+pow((ra.at(1)-rb.at(1)),2.)+pow((ra.at(2)-rb.at(2)),2.)));
+   
+   if(rab!=0)
+   {
+      thet=( acos( (rb.at(2)-ra.at(2)) / rab ) );
+      if( (rb.at(0)-ra.at(0)) != 0)
+         phi=(atan2( rb.at(1)-ra.at(1),rb.at(0)-ra.at(0) ) );
+      else
+         phi=0;
+   }
+   else
+   {
+      //Is there a rule if the two centers are located at the same place?
+      return 0.5*tgamma(1.5+la)/(pow(zeta_a+zeta_b,1.5+la))*bool(la==lb)*bool(ma==mb); 
+   }
+
+   for(unsigned int l=abs(int(la-lb-1))*bool(la-lb-1>=0);l<=la+lb+1;l++)
+   {
+      if((l+la+lb+1)%2!=0)
+         continue;
+      else
+      {
+         // compute the factor independent of m
+         temp=4*acos(-1)*std::real(pow(std::complex<double>(0,-1),(la-lb-l)))*prim_radial_ovlp(la,lb,l,zeta_a,zeta_b,rab);
+
+         //Add the m=0 term
+         result+=temp*rYlm(l,0,thet,phi)*prefactor_rYlm(la,ma)*prefactor_rYlm(lb,mb)*prefactor_rYlm(l,0)
+               *three_azim_integ(ma,mb,0)*three_ALP_J_integral(la,lb,l,abs(ma),abs(mb),0);
+
+         //add the other terms of the sum
+         for(int m=1;m<=int(l);m++)
+         {
+            if( (ma+mb+m)%2!=0 )
+               continue;
+            else
+         }
+      }
+   }
+   return result;
+}
+
+double dipole_B_coeff(int i,unsigned int l,int m1,int m2)
+{
+   return pow(3./(4*acos(-1))*(2*l+1)/(2*(l+i)+1),0.5)*clebsch_gordan_coeff(l,1,l+i,m1,m2,m1+m2)*clebsch_gordan_coeff(l,1,l+i,0,0,0);
+}
+double clebsch_gordan_coeff(unsigned int l1,unsigned int l2,unsigned int l3,int m1,int m2,int m3)
+{
+   return pow(-1,l1-l2+m3)*sqrt(2*l3+1)*gsl_sf_coupling_3j(2*l1,2*l2,2*l3,2*m1,2*m2,-2*m3);
+}*/

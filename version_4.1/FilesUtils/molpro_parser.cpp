@@ -106,7 +106,7 @@ int molp_sym_parser(std::string file)
 
       data_str=line.substr(9); //remove "symmetry," 
    }
-   else if(search(&position,&match_num,"sym",file,0,stop_pos[0]))
+   else if(search(&position,&match_num,"sym",file,0,stop_pos[0]) || search(&position,&match_num,"symmetry",file,0,stop_pos[0]))
    {
       //If we match for sym, then we extract the first matching line 
       input.open(file.c_str());
@@ -126,6 +126,7 @@ int molp_sym_parser(std::string file)
    else
       err_sym_not_found(file);
 
+   //std::cout<<"Symmetry card found : "<<data_str.c_str()<<std::endl;
    //Seek for nosym keyword. This correspond to 1 IR
    if(data_str.find("nosym") != string::npos)
       return 1;
@@ -193,7 +194,7 @@ int molp_method_parser(std::vector<int>* method_pos,std::string file)
    }
    match_num.clear();
    //casscf = 2
-   if(search(&position,&match_num,"casscf",file,0,stop_pos[0])) 
+   if(search(&position,&match_num,"casscf",file,0,stop_pos[0]) || search(&position,&match_num,"multi",file,0,stop_pos[0])) 
    {
       for(int i=0;i!=match_num[0];i++)
          method.push_back(2);
@@ -313,6 +314,11 @@ bool molp_wf_parser(const int method_index,std::vector<int>* n_elec,std::vector<
          temp=wf_cards[i].substr(0,pos);
          wf_cards[i]=temp;
       }
+      else //if no states card found, print some warning message and set the n_states val to 1
+      {
+         std::cout<<"Warning: No states card found in the wf card line. Setting num of states to 1."<<std::endl;
+         n_states->push_back(1);
+      }
 
       //Browse the content of the wf vector
       ss.str(wf_cards[i]);
@@ -370,6 +376,7 @@ bool molp_wf_parser(const int method_index,std::vector<int>* n_elec,std::vector<
          count++;
       }
 
+      std::cout<<"wf card identified as "<<n_elec->at(i)<<","<<sym->at(i)<<","<<spin->at(i)<<std::endl;
    }
    int n_sym(molp_sym_parser(file));
    
@@ -805,8 +812,8 @@ bool molp_lcao_parser(int method_index,std::vector<double>* lcao_coeff,std::stri
    molp_cas_reader(method_index,&n_occ,&n_closed,&n_frozen,file);
    
    // Search for the LCAO coeff block in the input file
-   if(!search(&lcao_pos,&num_of_match,"NATURAL ORBITALS (state averaged)",file))
-      err_lcao_not_found(file,"NATURAL ORBITALS (state averaged)");
+   if(!search(&lcao_pos,&num_of_match,"NATURAL ORBITALS",file))
+      err_lcao_not_found(file,"NATURAL ORBITALS");
    //search for the first element of the LCAO coeff block. It should be the first occurrence of "1.1"
 
    //Now that we have the LCAO block position, we can go on and readthe basis set by symmetry block.
@@ -896,6 +903,7 @@ bool molp_ci_parser(int method_index, std::vector<int>* csf_mo,std::vector<int>*
 
    //Asking the values of the variables necessary for parsing the ci vectors
    n_sym=molp_sym_parser(file);
+   std::cout<<"number of symmetries : "<<n_sym<<std::endl;
    molp_cas_reader(method_index,&n_occ,&n_closed,&n_frozen,file);
    molp_wf_parser(method_index,&n_elec,&sym,&spin,&charge,&n_states,file);
 

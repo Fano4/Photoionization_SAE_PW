@@ -39,7 +39,7 @@ void ES_ovlp(std::vector<double> CSF_S,int n_csf_a,int n_csf_b,std::vector<doubl
 
 double determinant(double *A,int dim);
 void transpose(double *A,double *B, int dim1, int dim2);
-void matrix_product(double *C,double *A,double *B,int dim1,int dim2,int dim3);
+void matrix_product(double *C,double *A,double *B,const int dim1,const int dim2,const int dim3);
 double prefactor_rYlm(int l,int m);
 double rYlm (int l,int m,double thet,double phi);
 

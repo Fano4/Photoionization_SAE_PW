@@ -3,6 +3,7 @@
 #include <iostream>
 #include <vector>
 #include <iomanip>
+#include <fstream>
 #include <gsl/gsl_sf_bessel.h>
 //#include "filesutils.h"
 #include "utilities.h"
@@ -471,7 +472,7 @@ bool test_es_ovlp_twogeoms(std::string input_file_a,std::string input_file_b,std
 
    //set up the environment to compute the overlap. Computing the slater overlap requires the following data
 
-   int method_index(1);
+   int method_index(0);
    int num_of_nucl;
    int n_sym;
    vector<double> cart_r_a;
@@ -537,14 +538,36 @@ bool test_es_ovlp_twogeoms(std::string input_file_a,std::string input_file_b,std
       cart_r_b.push_back(zn_b.at(i));
    }
 
+   /*
+   std::cout<<"cart_ra vector"<<std::endl;
+   std::cout<<std::fixed<<std::setprecision(8);
+   for(int i=0;i!=xn_a.size();i++)
+   {
+      std::cout<<std::setw(12);
+      std::cout<<Z_nucl.at(i)<<" ";
+      std::cout<<xn_a.at(i)<<" ";
+      std::cout<<yn_a.at(i)<<" ";
+      std::cout<<zn_a.at(i)<<std::endl;
+   }
+   std::cout<<"cart_rb vector"<<std::endl;
+   std::cout<<std::fixed<<std::setprecision(8);
+   for(int i=0;i!=xn_b.size();i++)
+   {
+      std::cout<<std::setw(12);
+      std::cout<<Z_nucl.at(i)<<" ";
+      std::cout<<xn_b.at(i)<<" ";
+      std::cout<<yn_b.at(i)<<" ";
+      std::cout<<zn_b.at(i)<<std::endl;
+   }
+   */
 
 
    //Initiate the lcao_coeff array in single block
-   int basis_size_tot;
-   int n_occ_tot;
-   int n_states_tot;
-   int ci_num_tot_a;
-   int ci_num_tot_b;
+   int basis_size_tot(0);
+   int n_occ_tot(0);
+   int n_states_tot(0);
+   int ci_num_tot_a(0);
+   int ci_num_tot_b(0);
    vector<double> lcao_coeff_a;
    vector<double> lcao_coeff_b;
    vector<double> ci_coeff_a;
@@ -562,19 +585,51 @@ bool test_es_ovlp_twogeoms(std::string input_file_a,std::string input_file_b,std
    vector<double> S;
    ao_ovlp(cart_r_a,cart_r_b,nuc_bas_func,nuc_bas_func,cont_num,cont_num,cont_zeta,cont_zeta,cont_coeff,cont_coeff,l,l,ml,ml,&S);
    std::cout<<"The S matrix contains "<<S.size()<<" elements."<<std::endl;
+
+   /*ofstream out_Smat;
+   out_Smat.open("/home/users/stephan/test_AO_S.txt",ios_base::trunc);
+   out_Smat<<std::fixed<<std::setprecision(8);
+   for(int i=0;i!=int(sqrt(S.size()));i++)
+   {
+      for(int j=0;j!=int(sqrt(S.size()));j++)
+         out_Smat<<std::setw(12)<<S.at(i*sqrt(S.size())+j);
+      out_Smat<<std::endl;
+   }
+   out_Smat.close();*/
    
    //Compute mo_overlap matrix
    vector<double> MO_S;
    MO_ovlp(S,lcao_coeff_a,lcao_coeff_b,&MO_S);
    std::cout<<"The MO S matrix contains "<<MO_S.size()<<" elements."<<std::endl;
 
+   /*out_Smat.open("/home/users/stephan/test_MO_S.txt",ios_base::trunc);
+   out_Smat<<std::fixed<<std::setprecision(8);
+   for(int i=0;i!=int(sqrt(MO_S.size()));i++)
+   {
+      for(int j=0;j!=int(sqrt(MO_S.size()));j++)
+         out_Smat<<std::setw(12)<<MO_S.at(i*sqrt(MO_S.size())+j);
+      out_Smat<<std::endl;
+   }
+   out_Smat.close();*/
+
    //Compute the overlap between the Slater determinants
    vector<double> CSF_S;
    slater_ovlp(n_elec.at(0),ci_num_tot_a,ci_num_tot_b,csf_mo_a,csf_mo_b,csf_spin_a,csf_spin_b,n_occ_tot,n_occ_tot,MO_S,&CSF_S);
+   std::cout<<"The CSF S Matrix contains "<<CSF_S.size()<<" elements."<<std::endl;
+   std::cout<<"corresponding to "<<ci_num_tot_a<<" * "<<ci_num_tot_b<<" elements."<<std::endl;
 
+   /*out_Smat.open("/home/users/stephan/test_CSF_S.txt",ios_base::trunc);
+   out_Smat<<std::fixed<<std::setprecision(8);
+   for(int i=0;i!=ci_num_tot_a;i++)
+   {
+      for(int j=0;j!=ci_num_tot_b;j++)
+         out_Smat<<std::setw(12)<<CSF_S.at(i*ci_num_tot_b+j);
+      out_Smat<<std::endl;
+   }
+   out_Smat.close();*/
    //Compute the overlap between electronic states
    ES_ovlp(CSF_S,ci_num_tot_a,ci_num_tot_b,ci_coeff_a,ci_coeff_b,n_states_tot,n_states_tot,ES_S);
-
+   std::cout<<"The ES S Matrix contains "<<ES_S->size()<<" elements."<<std::endl;
 
    test1=1;
 

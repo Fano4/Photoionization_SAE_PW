@@ -10,11 +10,13 @@
 #include <string>
 #include <sstream>
 #include <vector>
+#include <omp.h>
 
 void two_file_overlap();
 
 int main(int argc,char* argv[])
 {
+   omp_set_num_threads(8);
    if(argc<2)
    {
       // report version
@@ -61,15 +63,15 @@ int main(int argc,char* argv[])
 void two_file_overlap()
 {
 
-   std::string out_file("/home/users/stephan/wavepack_int_input/cat_es_ovlp.txt");
-   std::string coord_file("/home/users/stephan/wavepack_int_input/coordinates.input");
-   std::string fileroot("/home/users/stephan/LiH_gridtest_+++custom/LiH_");
+   std::string out_file("/home/users/stephan/cayo_inputs/neut_es_ovlp.txt");
+   std::string coord_file("/home/users/stephan/cayo_inputs/ch4_path_file.out");
+   std::string fileroot("");
    std::stringstream sstr;
 
    std::ifstream coord_istr;
    std::vector<std::string> x;
 
-   int n_states(6);
+   int n_states(1);
    std::vector<double> ES_MO;
 
    coord_istr.open(coord_file.c_str());
@@ -77,7 +79,6 @@ void two_file_overlap()
    if(!coord_istr.is_open())
    {
       std::cout<<"could not open coord file"<<std::endl;
-      exit(EXIT_SUCCESS);
    }
    std::string tmp_str;
    while(!coord_istr.eof())
@@ -86,27 +87,36 @@ void two_file_overlap()
       x.push_back(tmp_str);
    }
    coord_istr.close();
-
-   int N_geom(x.size());
+   int N_geom(x.size()-1);
   
+   std::cout<<"Starting overlap between different geometries. There are "<<N_geom<<" geometries to compare"<<std::endl;
+   std::cout<<"We have to evaluate "<<N_geom-1<<"overlaps"<<std::endl;
+
    std::ofstream output;
    output.open(out_file.c_str(),std::ios_base::trunc);
+   //add the first point to obtain the original grid dimensionality
+   output<<std::fixed<<std::setprecision(8);//<<x[0];
+   for(int i=0;i!=n_states;i++)
+      output<<std::setw(12)<<1<<" ";
+   output<<std::endl;
    for(int i=0;i!=N_geom-1;i++)
    {
-      sstr.str("");
-      sstr<<fileroot<<x[i]<<".out";
+      std::cout<<"Now reading file "<<x[i]<<" and "<<x[i+1]<<std::endl;
+      sstr.str(x[i].c_str());
+//      sstr<<fileroot<<x[i]<<".out";
       std::string file1_loc(sstr.str());
-      sstr.str("");
-      sstr<<fileroot<<x[i+1]<<".out";
+      sstr.str(x[i+1].c_str());
+//      sstr<<fileroot<<x[i+1]<<".out";
       std::string file2_loc(sstr.str());
 
 
       test_es_ovlp_twogeoms(file1_loc,file2_loc,&ES_MO);
 
-      output<<std::fixed<<std::setprecision(8)<<x[i];
-      for(int i=0;i!=n_states;i++)
-         output<<std::setw(12)<<ES_MO.at(i*n_states+i);
+      output<<std::fixed<<std::setprecision(8);//<<x[i+1];
+      for(int j=0;j!=n_states;j++)
+         output<<std::setw(12)<<ES_MO.at(j*n_states+j)<<" ";
       output<<std::endl;
-   }output<<std::endl;
+   }
+
    output.close();
 }

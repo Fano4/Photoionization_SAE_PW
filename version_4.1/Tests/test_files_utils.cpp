@@ -268,62 +268,125 @@ bool test_molp_ci_parser()
 {
    using namespace std;
    bool test1(0);
+   bool test2(0);
    std::cout<<"Testing molp_ci_parser"<<std::endl;
-   std::string input_file="/home/users/stephan/Photoionization_SAE_PW/version_4.1/Tests/LiH_6.325.out";
-   int count(0);
-   int countes(0);
-   int n_sym;
-   int method_index(0);
-   std::vector<int> csf_mo;
-   std::vector<int> csf_spin;
-   std::vector<int> ci_num;
-   std::vector<double> ci_coeff;
-   std::vector<int> n_occ;
-   std::vector<int> n_closed;
-   std::vector<int> n_frozen;
-   std::vector<int> n_elec;
-   std::vector<int> sym;
-   std::vector<int> spin;
-   std::vector<int> charge;
-   std::vector<int> n_states;
 
 
-   molp_ci_parser(method_index,&csf_mo,&csf_spin,&ci_coeff,&ci_num,input_file);
-
-   molp_cas_reader(method_index,&n_occ,&n_closed,&n_frozen,input_file); 
-   n_sym=molp_sym_parser(input_file);
-   molp_wf_parser(method_index,&n_elec,&sym,&spin,&charge,&n_states,input_file);
-
-   std::cout<<"CI size : "<<ci_coeff.size()<<std::endl;
-
-    std::cout<<"which means there are "<<std::endl;
-   for(int s=0;s!=n_sym;s++)
    {
-      std::cout<<ci_num.at(s)<<" CI vectors in symmetry "<<s+1<<std::endl;
-   }
+      std::string input_file="/home/users/stephan/Photoionization_SAE_PW/version_4.1/Tests/LiH_6.325.out";
+      int count(0);
+      int countes(0);
+      int n_sym;
+      int method_index(0);
+      std::vector<int> csf_mo;
+      std::vector<int> csf_spin;
+      std::vector<int> ci_num;
+      std::vector<double> ci_coeff;
+      std::vector<int> n_occ;
+      std::vector<int> n_closed;
+      std::vector<int> n_frozen;
+      std::vector<int> n_elec;
+      std::vector<int> sym;
+      std::vector<int> spin;
+      std::vector<int> charge;
+      std::vector<int> n_states;
 
-   for(int s=0; s!=n_sym;s++)
-   {
-      std::cout<<"CONFIGURATIONS OF SYMMETRY "<<s+1<<std::endl<<std::endl;
-      //loop over the CIs in symmetry s
-      for(int ci=0;ci<ci_num.at(s);ci++)
+
+      molp_ci_parser(method_index,&csf_mo,&csf_spin,&ci_coeff,&ci_num,input_file);
+
+      molp_cas_reader(method_index,&n_occ,&n_closed,&n_frozen,input_file); 
+      n_sym=molp_sym_parser(input_file);
+      molp_wf_parser(method_index,&n_elec,&sym,&spin,&charge,&n_states,input_file);
+
+      std::cout<<"CI size : "<<ci_coeff.size()<<std::endl;
+
+      std::cout<<"which means there are "<<std::endl;
+      for(int s=0;s!=n_sym;s++)
       {
-         std::cout<<"CI "<<ci<<std::endl;
-         //first display the configuration
-         for(int m=0;m!=n_elec.at(s);m++)
-            std::cout<<"( "<<csf_mo.at((ci+count)*n_elec.at(s)+m)<<" , "<<csf_spin.at((ci+count)*n_elec.at(s)+m)<<" ) ";
-         for(int es=0;es!=n_states.at(s);es++)
+         std::cout<<ci_num.at(s)<<" CI vectors in symmetry "<<s+1<<std::endl;
+      }
+
+      for(int s=0; s!=n_sym;s++)
+      {
+         std::cout<<"CONFIGURATIONS OF SYMMETRY "<<s+1<<std::endl<<std::endl;
+         //loop over the CIs in symmetry s
+         for(int ci=0;ci<ci_num.at(s);ci++)
          {
-            if(es%8 == 0 && es != 0)
-               cout<<endl;
-            std::cout<<std::scientific<<std::setw(14)<<ci_coeff.at(countes+ci*n_states.at(s)+es);
+            std::cout<<"CI "<<ci<<std::endl;
+            //first display the configuration
+            for(int m=0;m!=n_elec.at(s);m++)
+               std::cout<<"( "<<csf_mo.at((ci+count)*n_elec.at(s)+m)<<" , "<<csf_spin.at((ci+count)*n_elec.at(s)+m)<<" ) ";
+            for(int es=0;es!=n_states.at(s);es++)
+            {
+               if(es%8 == 0 && es != 0)
+                  cout<<endl;
+               std::cout<<std::scientific<<std::setw(14)<<ci_coeff.at(countes+ci*n_states.at(s)+es);
+            }std::cout<<std::endl;
          }std::cout<<std::endl;
-      }std::cout<<std::endl;
-      count+=ci_num.at(s);
-      countes+=ci_num.at(s)*n_states.at(s);
-   }
+         count+=ci_num.at(s);
+         countes+=ci_num.at(s)*n_states.at(s);
+      }
 
    test1=1;
+   }//test1
+
+   {
+      std::string input_file="/home/users/stephan/Photoionization_SAE_PW/version_4.1/Tests/fort.11020089.out";
+      int count(0);
+      int countes(0);
+      int n_sym;
+      int method_index(1);
+      std::vector<int> csf_mo;
+      std::vector<int> csf_spin;
+      std::vector<int> ci_num;
+      std::vector<double> ci_coeff;
+      std::vector<int> n_occ;
+      std::vector<int> n_closed;
+      std::vector<int> n_frozen;
+      std::vector<int> n_elec;
+      std::vector<int> sym;
+      std::vector<int> spin;
+      std::vector<int> charge;
+      std::vector<int> n_states;
+
+
+      molp_ci_parser(method_index,&csf_mo,&csf_spin,&ci_coeff,&ci_num,input_file);
+
+      molp_cas_reader(method_index,&n_occ,&n_closed,&n_frozen,input_file); 
+      n_sym=molp_sym_parser(input_file);
+      molp_wf_parser(method_index,&n_elec,&sym,&spin,&charge,&n_states,input_file);
+
+      std::cout<<"CI size : "<<ci_coeff.size()<<std::endl;
+
+      std::cout<<"which means there are "<<std::endl;
+      for(int s=0;s!=n_sym;s++)
+      {
+         std::cout<<ci_num.at(s)<<" CI vectors in symmetry "<<s+1<<std::endl;
+      }
+
+      for(int s=0; s!=n_sym;s++)
+      {
+         std::cout<<"CONFIGURATIONS OF SYMMETRY "<<s+1<<std::endl<<std::endl;
+         //loop over the CIs in symmetry s
+         for(int ci=0;ci<ci_num.at(s);ci++)
+         {
+            std::cout<<"CI "<<ci<<std::endl;
+            //first display the configuration
+            for(int m=0;m!=n_elec.at(s);m++)
+               std::cout<<"( "<<csf_mo.at((ci+count)*n_elec.at(s)+m)<<" , "<<csf_spin.at((ci+count)*n_elec.at(s)+m)<<" ) ";
+            for(int es=0;es!=n_states.at(s);es++)
+            {
+               if(es%8 == 0 && es != 0)
+                  cout<<endl;
+               std::cout<<std::scientific<<std::setw(14)<<ci_coeff.at(countes+ci*n_states.at(s)+es);
+            }std::cout<<std::endl;
+         }std::cout<<std::endl;
+         count+=ci_num.at(s);
+         countes+=ci_num.at(s)*n_states.at(s);
+      }
+
+   test2=1;
+   }//test2
 
    if(test1)
    {
