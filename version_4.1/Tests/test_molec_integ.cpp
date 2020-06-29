@@ -18,7 +18,7 @@ bool test_prim_radial_ovlp()
 
    cout<<"testing prim_radial_ovlp...";
 
-   string input_file="/home/users/stephan/Photoionization_SAE_PW/version_4.1/Tests/LiH_6.325.out";
+//   string input_file="/home/users/stephan/Photoionization_SAE_PW/version_4.1/Tests/LiH_6.325.out";
 
    //set up the environment to compute the overlap. Computing the ao_basis overlap requires the geometry and the basis data
 
@@ -46,7 +46,7 @@ bool test_prim_radial_ovlp()
 
       la = (rand() % 6);
       lb = (rand() % 6);
-      l = abs(int(la-lb))+(rand() % (la+lb+1));
+      l = abs(int(la-lb))+(rand() % (la+lb+1-abs(int(la-lb))));
       if((la+lb+l)%2 != 0)
       {
          i--;
@@ -154,7 +154,8 @@ bool test_ao_ovlp()
 
    cout<<"testing ao_ovlp...";
 
-   string input_file="/home/users/stephan/Photoionization_SAE_PW/version_4.1/Tests/LiH_6.325.out";
+   //string input_file="/home/users/stephan/Photoionization_SAE_PW/version_4.1/Tests/LiH_6.325.out";
+   string input_file="/home/users/stephan/cayo_inputs/fort.11900020.out";
 
    //set up the environment to compute the overlap. Computing the ao_basis overlap requires the geometry and the basis data
 
@@ -210,7 +211,7 @@ bool test_ao_ovlp()
          {
             if(j%10 == 0 )
                cout<<endl;
-            cout<<std::scientific<<std::setw(14)<<S.at(counta*basis_size_tot+countb);
+            cout<<std::fixed<<std::setprecision(8)<<std::setw(14)<<S.at(counta*basis_size_tot+countb)/sqrt(S.at(counta*basis_size_tot+counta)*S.at(countb*basis_size_tot+countb));
             countb++;
          }cout<<endl;
          counta++;
@@ -246,7 +247,8 @@ bool test_mo_ovlp()
 
    cout<<"testing mo_ovlp...";
 
-   string input_file="/home/users/stephan/Photoionization_SAE_PW/version_4.1/Tests/LiH_6.325.out";
+   //string input_file="/home/users/stephan/Photoionization_SAE_PW/version_4.1/Tests/LiH_6.325.out";
+   string input_file="/home/users/stephan/cayo_inputs/fort.11900020.out";
 
    //set up the environment to compute the overlap. Computing the ao_basis overlap requires the geometry and the basis data
 
@@ -315,7 +317,7 @@ bool test_mo_ovlp()
          {
             if(j%10 == 0 )
                cout<<endl;
-            cout<<std::scientific<<std::setw(14)<<MO_S.at(counta*n_occ_tot+countb);
+            cout<<std::fixed<<std::setprecision(8)<<std::setw(14)<<MO_S.at(counta*n_occ_tot+countb);
             countb++;
          }cout<<endl;
          counta++;
@@ -350,11 +352,12 @@ bool test_es_ovlp()
 
    cout<<"testing es_ovlp...";
 
-   string input_file="/home/users/stephan/Photoionization_SAE_PW/version_4.1/Tests/LiH_6.325.out";
+//   string input_file="/home/users/stephan/Photoionization_SAE_PW/version_4.1/Tests/LiH_6.325.out";
+   string input_file="/home/users/stephan/cayo_inputs/fort.11480083.out";
 
    //set up the environment to compute the overlap. Computing the slater overlap requires the following data
 
-   int method_index(0);
+   int method_index(1);
    int num_of_nucl;
    int n_sym;
    vector<double> cart_r;
@@ -472,7 +475,7 @@ bool test_es_ovlp_twogeoms(std::string input_file_a,std::string input_file_b,std
 
    //set up the environment to compute the overlap. Computing the slater overlap requires the following data
 
-   int method_index(0);
+   int method_index(1);
    int num_of_nucl;
    int n_sym;
    vector<double> cart_r_a;
@@ -649,4 +652,86 @@ bool test_es_ovlp_twogeoms(std::string input_file_a,std::string input_file_b,std
       return 0;
    }
    
+}
+bool test_gen_I_integ()
+{
+
+   using namespace std; 
+
+   bool test1(1);
+   double thresh(1e-8);
+
+   //The integral that the function has to compute is of the form int_0^{inf} r^{2+l1}*exp(-d r^2)*j_{l2}(k R)
+   //The function for computing the integral allows to vary the indices by jump of 2
+   cout<<"testing gen_I_integ...";
+
+   //set up the environment to compute the overlap. Computing the ao_basis overlap requires the geometry and the basis data
+
+
+   double zeta;
+   unsigned int l1,l2;
+   double r;
+
+   //set up vector to represent function
+   int nx=1000000;
+   double*x=new double[nx];
+   for(int i=0;i!=nx;i++)
+      x[i]=20*double(i)/double(nx);
+   double dx(x[1]-x[0]);
+   //Test 1 : The integral yields good results
+   std::cout<<"1..."<<std::endl;
+   for(int i=0;i!=25;i++)
+   {
+      double val(10);
+      double a,b;
+      double check;
+
+      l1 = (rand() % 10);
+      l2 = (rand() % 10);
+      if( abs(int(l1-l2))%2 != 0 || l2 > l1)
+      {
+         i--;
+         continue;
+      }
+      zeta = 0.001 + 10. * double ( rand() % 1000 ) / 1000.;
+      r = 0.5 + 3. * double( rand() % 1000 ) / 1000.;
+      //Send the parameters for computing 
+      val=gen_I_integ(l1,l2,zeta,r);
+      //Compute using independent functions
+      check=0;
+      for(int xx=0;xx!=nx;xx++)
+         check+=dx*pow(x[xx],l1+2)*exp(-zeta*x[xx]*x[xx])*gsl_sf_bessel_jl(l2,x[xx]*r) ;
+
+       //Check if the normalization constant is correct
+
+       if( fabs(val - check) / (check + bool(check <= thresh)) <=thresh)
+       {
+          //std::cout<<l1<<","<<l2<<","<<zeta<<","<<r<<"+++++"<<val<<" ----- ";
+          //std::cout<<check<<"   PASSED"<<std::endl;
+          test1*=1;
+       }
+       else
+       {
+          std::cout<<l1<<","<<l2<<","<<zeta<<","<<r<<"+++++"<<val<<" ----- ";
+          std::cout<<check<<"   FAILED : relative error of "<<fabs(val - check) / (check + bool(check <= thresh))<<std::endl;
+          test1*=0;
+       }
+   }
+
+   if(test1)
+   {
+      std::cout<<"...passed"<<std::endl;
+      return 1;
+   }
+   else
+   {
+      std::cout<<"...FAILED...";
+      if(!test1)
+      {
+         std::cout<<"Error 1...";
+      }
+      std::cout<<std::endl;
+      return 0;
+   }
+
 }

@@ -24,28 +24,33 @@ int main(int argc,char* argv[])
 
    }
 
-   two_file_overlap();
-   exit(EXIT_SUCCESS);
-//   test_fact_prime_decomposer();
-//   two_azim_integ_test();
-//   three_azim_integ_test();
-//   test_I_m1_integral();
-//   test_I_p1_integral();
-//   test_I_m1_D_integral();
-//   test_Jint_sort_indices();
-//   test_Jint_signflip_renormalize();
-//   test_Jint_normalize();
-//   test_Jint_special_cases();
-//   test_ALP_integral();
-//   test_two_ALP_integral();
-//   test_three_ALP_J_integral();
-//   test_J_int_m2();
-//   test_J_int_m1();
-//   test_J_int_p1();
-//   test_J_int_m1_D();
-//   test_J_int_p1_D();
-//   test_search();
-   test_prim_ovlp();
+//   two_file_overlap();
+//   exit(EXIT_SUCCESS);
+//   testing angular integrals
+//   test_B_coeff();
+/*
+   test_fact_prime_decomposer();
+   two_azim_integ_test();
+   three_azim_integ_test();
+   test_I_m1_integral();
+   test_I_p1_integral();
+   test_I_m1_D_integral();
+   test_Jint_sort_indices();
+   test_Jint_signflip_renormalize();
+   test_Jint_normalize();
+   test_Jint_special_cases();
+   test_ALP_integral();
+   test_two_ALP_integral();
+   test_three_ALP_J_integral();
+   test_J_int_m2();
+   test_J_int_m1();
+   test_J_int_p1();
+   test_J_int_m1_D();
+   test_J_int_p1_D();
+   */
+   //Testing molpro parser
+   /*
+   test_search();
    test_molp_sym_parser();
    test_molp_method_parser();
    test_molp_wf_parser();
@@ -53,17 +58,23 @@ int main(int argc,char* argv[])
    test_molp_basis_parser();
    test_molp_lcao_parser();
    test_molp_ci_parser();
-   test_prim_radial_ovlp();
+   */
+   //testing molec integrals
+   
+   //test_gen_I_integ();
+   //test_prim_radial_ovlp();
+   //test_prim_ovlp();
    test_ao_ovlp();
    test_mo_ovlp();
-   test_slater_ovlp();
+  // test_slater_ovlp();
    test_es_ovlp(); 
+   
    return 0;
 }
 void two_file_overlap()
 {
 
-   std::string out_file("/home/users/stephan/cayo_inputs/neut_es_ovlp.txt");
+   std::string out_file("/home/users/stephan/cayo_inputs/newtest_cat_es_ovlp.txt");
    std::string coord_file("/home/users/stephan/cayo_inputs/ch4_path_file.out");
    std::string fileroot("");
    std::stringstream sstr;
@@ -71,7 +82,7 @@ void two_file_overlap()
    std::ifstream coord_istr;
    std::vector<std::string> x;
 
-   int n_states(1);
+   int n_states(3);
    std::vector<double> ES_MO;
 
    coord_istr.open(coord_file.c_str());

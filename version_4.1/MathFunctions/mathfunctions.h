@@ -44,3 +44,6 @@ double prefactor_rYlm(int l,int m);
 double rYlm (int l,int m,double thet,double phi);
 
 void compute_bessel_pice_mo(double*** pice_ortho_mo,double*** pice_ddx_mo,double*** pice_ddy_mo,double*** pice_ddz_mo,int jl_max,int n_occ,int basis_size,int nk,double kmax,double *MO_coeff_neutral,double **contraction_zeta,double **contraction_coeff,int * contraction_number,double** nucl_spher_pos,int *nucl_basis_func,int** angular_mom_numbers);
+double clebsch_gordan_coeff(unsigned int l1,unsigned int l2,unsigned int l3,int m1,int m2,int m3);
+void B_coeff(int l,int m1,int m2,std::vector<double> *B_val);
+double gen_I_integ(unsigned int l1,unsigned int l2,double zeta,double k);

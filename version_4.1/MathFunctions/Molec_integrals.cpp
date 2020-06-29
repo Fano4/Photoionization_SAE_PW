@@ -10,6 +10,7 @@
 #include <mkl.h>
 #include <omp.h>
 #include "mathfunctions.h"
+#include "utilities.h"
 //#include <gsl/gsl_sf_hyperg.h>
 //#include <gsl/gsl_errno.h>
 
@@ -81,123 +82,9 @@ bool dyson_mo_coeff_comp(int n_states_neut,int n_states_cat,int n_occ,int ci_siz
 
 double prim_radial_ovlp(unsigned int la,unsigned int lb,unsigned int l,double zet_a,double zet_b,double r)
 {
+   double m(zet_a*zet_b/(zet_a+zet_b));
 
-   //Special case if la+lb==l
-   if(la+lb==l)
-   {
-      double m(zet_a*zet_b/(zet_a+zet_b));
-      return sqrt(acos(-1))*exp(-m*r*r)*pow(r,l)*pow(m,1.5+l)*pow(2.,l+1)/(pow(2*zet_a,1.5+la)*pow(2*zet_b,1.5+lb)); 
-   }
-
-   slong prec(256);
-
-   arb_t ala,alb,al,azeta,azetb,ar; // Variables from input
-   arb_init(ala);
-   arb_init(alb);
-   arb_init(al);
-   arb_init(azeta);
-   arb_init(azetb);
-   arb_init(ar);
-   arb_set_d(ala,int(la));
-   arb_set_d(alb,int(lb));
-   arb_set_d(al,int(l));
-   arb_set_d(azeta,zet_a);
-   arb_set_d(azetb,zet_b);
-   arb_set_d(ar,r);
-
-   arb_t prefac,tmp,tmp2,tmp3,tmp4,ares; //computation variables
-   arb_init(prefac);
-   arb_init(tmp);
-   arb_init(tmp2);
-   arb_init(tmp3);
-   arb_init(tmp4);
-   arb_init(ares);
-
-
-   arb_add(tmp,alb,al,prec); // tmp= lb+l
-   arb_sub(tmp,tmp,ala,prec); // tmp= lb+l-la
-   arb_set_d(tmp2,2.);
-   arb_div(tmp,tmp,tmp2,prec); // tmp= (lb+l-la)/2
-
-   arb_pow(prefac,azeta,tmp,prec); // prefac= pow(zet_a,(lb+l-la)/2)
-
-   arb_add(tmp,ala,al,prec); // tmp= la+l
-   arb_sub(tmp,tmp,alb,prec); // tmp= la+l-lb
-   arb_set_d(tmp2,2.);
-   arb_div(tmp,tmp,tmp2,prec); // tmp= (la+l-lb)/2
-   arb_pow(tmp,azetb,tmp,prec); // tmp= pow(zet_b,(la+l-lb)/2)
-
-   arb_mul(prefac,prefac,tmp,prec); //prefac= pow(zet_a,(la+l-lb)/2) * pow(zet_b,(la+l-lb)/2)
-
-   arb_add(tmp,ala,al,prec); // tmp= la+l
-   arb_add(tmp,tmp,alb,prec); // tmp= la+l+lb
-   arb_set_d(tmp2,3.);
-   arb_add(tmp,tmp,tmp2,prec); // tmp= la+l+lb+3
-   arb_set_d(tmp2,2.);
-   arb_div(tmp,tmp,tmp2,prec); // tmp= (la+l+lb+3)/2
-   arb_add(tmp2,azeta,azetb,prec);
-   arb_pow(tmp,tmp2,tmp,prec); // tmp= pow(zet_a+zet_b,(la+l+lb+3)/2)
-
-   arb_div(prefac,prefac,tmp,prec); // prefac= pow(zet_a,(la+l-lb)/2) * pow(zet_b,(la+l-lb)/2) / pow(zet_a+zet_b,(la+l+lb+3)/2)
-
-   arb_set_d(tmp,sqrt(acos(-1))/4);
-
-   arb_mul(prefac,prefac,tmp,prec); // prefac= sqrt(pi)/4 * pow(zet_a,(lb+l-la)/2) * pow(zet_b,(lb+l-la)/2) / pow(zet_a+zet_b,(la+l+lb+3)/2)
-
-   arb_pow(tmp,ar,al,prec); //r**l
-
-   arb_mul(prefac,prefac,tmp,prec);
-
-
-   arb_add(tmp,ala,al,prec); // tmp= la+l
-   arb_add(tmp,tmp,alb,prec); // tmp= la+l+lb
-   arb_set_d(tmp2,3.);
-   arb_add(tmp,tmp,tmp2,prec); // tmp= la+l+lb+3
-   arb_set_d(tmp2,2.);
-   arb_div(tmp,tmp,tmp2,prec); // tmp= (la+l+lb+3)/2
-   arb_gamma(tmp,tmp,prec);
-
-   arb_mul(prefac,prefac,tmp,prec); //prefac*=gamma((la+l+lb+3)/2)
-
-   //Now setting up the hypergeometric
-
-   arb_add(tmp,ala,al,prec); // tmp= la+l
-   arb_add(tmp,tmp,alb,prec); // tmp= la+l+lb
-   arb_set_d(tmp2,3.);
-   arb_add(tmp,tmp,tmp2,prec); // tmp= la+l+lb+3
-   arb_set_d(tmp2,2.);
-   arb_div(tmp,tmp,tmp2,prec); // tmp= (la+l+lb+3)/2
-
-   arb_set_d(tmp2,1.5);
-   arb_add(tmp2,tmp2,al,prec); // tmp2=1.5+l
-
-   arb_add(tmp4,azeta,azetb,prec); // tmp4=zet_a+zet_b
-   arb_mul(tmp3,azeta,azetb,prec); //tmp3=zet_a*zet_b
-   arb_div(tmp3,tmp3,tmp4,prec); //tmp3=zet_a*zet_b / (zet_a+zet_b)
-   arb_set_d(tmp4,-1.); 
-   arb_mul(tmp3,tmp3,tmp4,prec); // tmp3=-zet_a*zet_b / (zet_a+zet_b)
-   arb_mul(tmp4,ar,ar,prec); //tmp4=r**2
-   arb_mul(tmp3,tmp3,tmp4,prec); // tmp3= - r**2 *zet_a*zet_b / (zet_a+zet_b)
-
-   arb_hypgeom_m(ares,tmp,tmp2,tmp3,1,prec);
-   /*
-   acb_t ctmp,ctmp2,ctmp3,cres;
-   acb_init(ctmp);
-   acb_init(ctmp2);
-   acb_init(ctmp3);
-   acb_init(cres);
-
-   acb_set_arb(ctmp,tmp);
-   acb_set_arb(ctmp2,tmp2);
-   acb_set_arb(ctmp3,tmp3);
-   acb_hypgeom_m(cres,ctmp,ctmp2,ctmp3,1,prec);
-
-   acb_get_real(ares,cres);
-   */
-
-   arb_mul(ares,ares,prefac,prec);
-
-   return arf_get_d(arb_midref(ares),ARF_RND_NEAR);
+   return gen_I_integ(la+lb,l,1./(4.*m),r)/(pow(2*zet_a,1.5+la)*pow(2*zet_b,1.5+lb));
 }
 double prim_ovlp(std::vector<double> ra,std::vector<double> rb,double zeta_a,double zeta_b,unsigned int la,unsigned int lb,int ma,int mb)
 {
@@ -206,6 +93,9 @@ double prim_ovlp(std::vector<double> ra,std::vector<double> rb,double zeta_a,dou
    double thet;
    double phi;
    double temp(0);
+
+   double norma(sqrt(.5*tgamma(1.5+la)/pow(2*zeta_a,1.5+la)));
+   double normb(sqrt(.5*tgamma(1.5+lb)/pow(2*zeta_b,1.5+lb)));
 
    double rab(sqrt(pow((ra.at(0)-rb.at(0)),2.)+pow((ra.at(1)-rb.at(1)),2.)+pow((ra.at(2)-rb.at(2)),2.)));
    
@@ -217,11 +107,13 @@ double prim_ovlp(std::vector<double> ra,std::vector<double> rb,double zeta_a,dou
       else
          phi=0;
    }
+   else if(zeta_a == zeta_b)
+      return bool(la==lb)*bool(ma==mb);
    else
    {
-      return 0.5*tgamma(1.5+la)/(pow(zeta_a+zeta_b,1.5+la))*bool(la==lb)*bool(ma==mb); 
+      return 0.5*tgamma(1.5+la)/(pow(zeta_a+zeta_b,1.5+la))*bool(la==lb)*bool(ma==mb)/(norma*normb); 
    }
-
+   result=0;
    for(unsigned int l=abs(int(la-lb));l<=la+lb;l++)
    {
       if((l+la+lb)%2!=0)
@@ -229,11 +121,14 @@ double prim_ovlp(std::vector<double> ra,std::vector<double> rb,double zeta_a,dou
       else
       {
          // compute the factor independent of m
-         temp=4*acos(-1)*std::real(pow(std::complex<double>(0,-1),(la-lb-l)))*prim_radial_ovlp(la,lb,l,zeta_a,zeta_b,rab);
+         temp=4*acos(-1)*std::real(pow(std::complex<double>(0,-1),(la-lb-l)))*prim_radial_ovlp(la,lb,l,zeta_a,zeta_b,rab)/(norma*normb);
 
          //Add the m=0 term
-         result+=temp*rYlm(l,0,thet,phi)*prefactor_rYlm(la,ma)*prefactor_rYlm(lb,mb)*prefactor_rYlm(l,0)
+         if( (ma+mb) % 2 == 0)
+         {
+            result+=temp*rYlm(l,0,thet,phi)*prefactor_rYlm(la,ma)*prefactor_rYlm(lb,mb)*prefactor_rYlm(l,0)
                *three_azim_integ(ma,mb,0)*three_ALP_J_integral(la,lb,l,abs(ma),abs(mb),0);
+         }
 
          //add the other terms of the sum
          for(int m=1;m<=int(l);m++)
@@ -241,11 +136,11 @@ double prim_ovlp(std::vector<double> ra,std::vector<double> rb,double zeta_a,dou
             if( (ma+mb+m)%2!=0 )
                continue;
             else
-               result+=2*temp*(
+               result+=temp*(
                rYlm(l,m,thet,phi)*prefactor_rYlm(la,ma)*prefactor_rYlm(lb,mb)*prefactor_rYlm(l,m)
                *three_azim_integ(ma,mb,m)*three_ALP_J_integral(la,lb,l,abs(ma),abs(mb),m)
                +rYlm(l,-m,thet,phi)*prefactor_rYlm(la,ma)*prefactor_rYlm(lb,mb)*prefactor_rYlm(l,-m)
-               *three_azim_integ(ma,mb,-m)*three_ALP_J_integral(la,lb,l,abs(ma),abs(mb),-m));//*three_Ylm_integ(la,lb,l,ma,mb,m);
+               *three_azim_integ(ma,mb,-m)*three_ALP_J_integral(la,lb,l,abs(ma),abs(mb),m));//*three_Ylm_integ(la,lb,l,ma,mb,m);
          }
       }
    }
@@ -260,6 +155,7 @@ void ao_ovlp(std::vector<double> ra,std::vector<double> rb,std::vector<int> nuc_
    int countb(0);
    int mema(0);
    int memb(0);
+   double temp(0);
    std::vector<double> rao1;
    std::vector<double> rao2;
    for(unsigned int ao1=0;ao1<cont_num_a.size();ao1++)
@@ -297,30 +193,52 @@ void ao_ovlp(std::vector<double> ra,std::vector<double> rb,std::vector<int> nuc_
       }
       mema=counta;
    }
+
 }
+/////////////////////////
+//
+//Computes the overlap between molecular orbitals by transforming the AO overlap matrix using the LCAO coefficients.
+//
+////////////////////////
 void MO_ovlp(std::vector<double> S,std::vector<double> lcao_a,std::vector<double> lcao_b,std::vector<double>* MO_S)
 {
    MO_S->clear();
    double* Ca=lcao_a.data();
    double* Cb=lcao_b.data();
-   double* O=S.data();
    int basis_size(int(sqrt(S.size())));
+   double* O=new double[basis_size*basis_size];
+
    int n_occ(int(lcao_a.size())/basis_size);
    double* res=new double [n_occ*n_occ];
    double* temp=new double [n_occ*basis_size];
    double* temp2=new double [n_occ*basis_size];
 
+   //The AO necessitate a renormalization because the contraction coefficients in front of some primitives do not guarantee normalization.
+   //This renormalization ensures the AO overlap matrix is the same as the one obtained in molpro.
+   //
+    for(int ao1=0;ao1!=basis_size;ao1++)
+    {
+       for(int ao2=0;ao2!=basis_size;ao2++)
+       {
+          O[ao1*basis_size+ao2]=S.at(ao1*basis_size+ao2)/sqrt(S.at(ao1*basis_size+ao1)*S.at(ao2*basis_size+ao2));
+       }
+    }
+
+    //Matrix transformation
     transpose(Ca, temp2, n_occ, basis_size);
     matrix_product(temp, O, temp2, basis_size, basis_size, n_occ); 
     matrix_product(res, Cb, temp, n_occ,basis_size,n_occ);
     transpose(res,res, n_occ, n_occ);
 
+
+    //record the result
     for(int i=0;i!=n_occ*n_occ;i++)
        MO_S->push_back(res[i]);
 
     delete [] temp2;
     delete [] temp;
     delete [] res;
+    delete [] O;
 }
 void ES_ovlp(std::vector<double> CSF_S,int n_csf_a,int n_csf_b,std::vector<double> ci_vector_a,std::vector<double> ci_vector_b,int n_states_a,int n_states_b,std::vector<double>* ES_S)
 {
@@ -433,6 +351,27 @@ double determinant(double *A,int dim)
     delete [] B;
     return sign*det_val;
 }
+double gen_I_integ(unsigned int l1,unsigned int l2,double zeta,double k)
+{
+   //This function compute the radial integral int_0^{inf} dr r^{2+l1}*exp(-d r^2)*j_{l2}(r * k)
+
+   //error handling
+   if(k*k/(4.*zeta) > 708.4)
+      std::cout<<"Warning ! Risk of underflow in evaluating exponential function. x = "<<-k*k/(4.*zeta)<<" for "<<zeta<<" and "<<k<<std::endl;
+
+   //computation 
+   if(l1==l2)
+      return sqrt(acos(-1)/2.)*pow(k,l1)*exp(-k*k/(4.*zeta))/pow(2*zeta,1.5+l1); 
+
+   else if( abs(int(l1-l2)) % 2 == 0 && l1 > l2)
+      return ((2*l2+3)/k)*gen_I_integ(l1-1,l2+1,zeta,k)-gen_I_integ(l1,l2+2,zeta,k);
+
+   else //if( abs(l1-l2) % 2 == 0 && l1 < l2)
+      err_bad_indices_gen_I_integ(l1,l2);
+
+   return 0;
+
+}
 /*
 double prim_trdip(std::vector<double> ra,std::vector<double> rb,double zeta_a,double zeta_b,unsigned int la,unsigned int lb,int ma,int mb)
 {
@@ -483,12 +422,4 @@ double prim_trdip(std::vector<double> ra,std::vector<double> rb,double zeta_a,do
    }
    return result;
 }
-
-double dipole_B_coeff(int i,unsigned int l,int m1,int m2)
-{
-   return pow(3./(4*acos(-1))*(2*l+1)/(2*(l+i)+1),0.5)*clebsch_gordan_coeff(l,1,l+i,m1,m2,m1+m2)*clebsch_gordan_coeff(l,1,l+i,0,0,0);
-}
-double clebsch_gordan_coeff(unsigned int l1,unsigned int l2,unsigned int l3,int m1,int m2,int m3)
-{
-   return pow(-1,l1-l2+m3)*sqrt(2*l3+1)*gsl_sf_coupling_3j(2*l1,2*l2,2*l3,2*m1,2*m2,-2*m3);
-}*/
+*/

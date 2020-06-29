@@ -103,3 +103,14 @@ void err_end_of_file(std::string file,std::string method)
    std::cout<<"ERROR RAISED WHILE IN "<<method.c_str()<<std::endl;
    exit(EXIT_SUCCESS);
 }
+void err_caution_after_geom(std::string file,int pos)
+{
+   std::cout<<"WARNING: CAUTION MESSAGE IN MOLPRO OUTPUT FILE AFTER GEOMETRY BLOCK. RISK OF UNDEFINED BEHAVIOUR IF THE MESSAGE IS SERIOUS"<<std::endl;
+   std::cout<<"ERROR RAISED WHILE IN "<<file.c_str()<<" AT POSITION "<<pos<<std::endl;
+}
+void err_bad_indices_gen_I_integ(int l1,int l2)
+{
+   std::cout<<"ERROR: BAD INDICES USED FOR COMPUTING GENERALIZED I INTEGRAL. EXITING"<<std::endl;
+   std::cout<<"THE INDICES ARE L1 = "<<l1<<" AND L2 = "<<l2<<std::endl;
+   exit(EXIT_SUCCESS);
+}

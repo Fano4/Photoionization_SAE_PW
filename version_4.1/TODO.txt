@@ -1,5 +1,6 @@
-1.Fix the bug related to the method index. The method index must correspond to a particular method to work correctly. for instance, if there is a HF followed by two MULTI, method[0] would for now be HF, and method[1] would be MULTI. We have to number the different methods independently. method[casscf[0]]= first multi and mathod[casscf[1]] = second multi. This ensures we read correctly.
+Fix the bug related to the method index. The method index must correspond to a particular method to work correctly. for instance, if there is a HF followed by two MULTI, method[0] would for now be HF, and method[1] would be MULTI. We have to number the different methods independently. method[casscf[0]]= first multi and mathod[casscf[1]] = second multi. This ensures we read correctly.
 
-2. Change the implementation of the radial overlap integral. The hypergeometric is really not accurate and quite unstable with respect to evaluatinggaussian functions. The hypergeometric can be written as a linear comnbination of gaussian functions * polynomials.
+Change the implementation of the radial overlap integral. The hypergeometric is really not accurate and quite unstable with respect to evaluatinggaussian functions. The hypergeometric can be written as a linear comnbination of gaussian functions * polynomials.
 
-3.Fix the bug related to the different ways of requiring multi-states in casscf. For now, the code is configured so that the wf statements and the state card are on the same single ling, separated by semi-columns. It is also possible that one write them on different lines. need to adapt for this
+Fix the bug related to the different ways of requiring multi-states in casscf. For now, the code is configured so that the wf statements and the state card are on the same single ling, separated by semi-columns. It is also possible that one write them on different lines. need to adapt for this
+

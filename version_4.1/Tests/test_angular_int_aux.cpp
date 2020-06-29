@@ -4,6 +4,8 @@
 //
 
 #include <iostream>
+#include <cstdlib>
+#include <complex>
 #include <cmath>
 #include <gsl/gsl_sf_legendre.h>
 #include "mathfunctions.h"
@@ -1361,6 +1363,80 @@ bool test_J_int_p1_D()
        {
           std::cout<<l1<<","<<l2<<","<<l3<<" - "<<m1<<","<<m2<<","<<m3<<"+++++"<<val<<" ----- ";
           std::cout<<check<<std::endl;
+          test1*=0;
+       }
+   }
+   if(test1)
+   {
+      std::cout<<"...passed"<<std::endl;
+      return 1;
+   }
+   else
+   {
+      std::cout<<"...FAILED...";
+      if(!test1)
+         std::cout<<"Error 1...";
+      std::cout<<std::endl;
+      return 0;
+   }
+}
+//////////////////////////////////////////
+//
+//
+//////////////////////////////////////////
+bool test_B_coeff()
+{
+   bool test1(1);
+   double thresh(1e-5);
+   std::cout<<"Testing B_coeff"<<std::endl;
+   int l1,m1,m2;
+   int m;
+   double thet,phi;
+   std::vector<double> B_val;
+   std::complex<double> val;
+
+   //Initialize random variable generation
+   srand (time(0));
+
+   //Test 1 : The integral yields good results
+   std::cout<<"1..."<<std::endl;
+   for(int j=0;j!=100;j++)
+   {
+      std::complex<double> check;
+      //generate a random set of values
+       l1=(rand() % 10);
+       m1=( rand() % ( 2 * l1 + 1 ) ) - l1;
+       m2=( rand() % 3 ) - 1;
+       thet=( rand() % (1000) * acos(-1) / 1000 );
+       phi=( rand() % (1000) * 2 * acos(-1) / 1000 );
+
+       //Send the parameters for computing the special cases
+       B_coeff(l1,m1,m2,&B_val); 
+
+      //Check for a definite relation using independent functions
+      check=pow(-1,m1*bool(m1<0))*exp(std::complex<double>(0,1)*m1*phi)*gsl_sf_legendre_sphPlm(l1,abs(m1),cos(thet))
+         *pow(-1,m2*bool(m2<0))*exp(std::complex<double>(0,1)*m2*phi)*gsl_sf_legendre_sphPlm(1,abs(m2),cos(thet));
+
+      m=m1+m2;
+      if((l1-1)>=abs(m) && l1 > 0)
+      {
+         val=B_val.at(0)*pow(-1,m*bool(m<0))*exp(std::complex<double>(0,1)*m*phi)*gsl_sf_legendre_sphPlm(l1-1,abs(m),cos(thet))
+            +B_val.at(1)*pow(-1,m*bool(m<0))*exp(std::complex<double>(0,1)*m*phi)*gsl_sf_legendre_sphPlm(l1+1,abs(m),cos(thet));
+      }
+
+      else
+         val=B_val.at(1)*pow(-1,m*bool(m<0))*exp(std::complex<double>(0,1)*m*phi)*gsl_sf_legendre_sphPlm(l1+1,abs(m),cos(thet));
+
+       //Check if the relation holds
+
+       if( abs(check-val)<=thresh)
+       {
+          test1*=1;
+       }
+       else
+       {
+          std::cout<<l1<<" - "<<m1<<","<<m2<<" ----- ";
+          std::cout<<check<<"====="<<val<<std::endl;
           test1*=0;
        }
    }

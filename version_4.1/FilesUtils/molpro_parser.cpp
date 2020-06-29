@@ -755,6 +755,7 @@ bool molp_basis_parser(std::vector<int>* basis_size,std::vector<int>* cont_num,s
       }
       input.close();
    }
+   /*
    count=0;
    for(unsigned int i=0;i!=l_val->size();i++)
    {
@@ -762,11 +763,12 @@ bool molp_basis_parser(std::vector<int>* basis_size,std::vector<int>* cont_num,s
       {
 //         std::cout<<"primitive "<<i<<" before : "<<cont_coeff->at(count)<<std::endl;
  //        std::cout<<" Normalization constant : "<<1./(sqrt(0.5*std::tgamma(l_val->at(i)+1)/pow(2*cont_zeta->at(count),l_val->at(i)+1.5)))<<std::endl;
-         cont_coeff->at(count)/=(sqrt(0.5*std::tgamma(l_val->at(i)+1.5)/pow(2*cont_zeta->at(count),l_val->at(i)+1.5)));
+         cont_coeff->at(count)/=(sqrt(0.5*std::tgamma(l_val->at(i)+1.5)/pow(2.*cont_zeta->at(count),l_val->at(i)+1.5)));
 //         std::cout<<"primitive "<<i<<" new val : "<<cont_coeff->at(count)<<std::endl;
          count++;
       }
    }
+   */
    return 0;
 }
 bool molp_lcao_parser(int method_index,std::vector<double>* lcao_coeff,std::string file)
@@ -913,6 +915,8 @@ bool molp_ci_parser(int method_index, std::vector<int>* csf_mo,std::vector<int>*
 
    for(int i=0;i<n_sym;i++)
       n_sym_occ+=bool(n_occ.at(i)-n_closed.at(i)-n_frozen.at(i)!=0);
+
+   std::cout<<"In CI vec parser, detected occupied MO's in "<<n_sym_occ<<" symmetries"<<std::endl;
    
    // Search for the CI coeff block in the input file
    if(!search(&ci_pos,&num_of_match,"CI vector",file))
@@ -936,6 +940,7 @@ bool molp_ci_parser(int method_index, std::vector<int>* csf_mo,std::vector<int>*
       int count(0);
       getline(input,tmp_str);
       getline(input,tmp_str);
+
       //Now we start to read the CI coeff and CSF.
       //We know that there are n_sym_occ strings and n_states[n_sym] CI coefficient for every CSF. 
       //We don't know the number of CSF. We have to stop reading at the first occurence of a non-numerical character.
@@ -945,7 +950,7 @@ bool molp_ci_parser(int method_index, std::vector<int>* csf_mo,std::vector<int>*
       while(!test1)
       {
          //get the strings of the CSF. THey have to be parsed in a wrapped routine
-         for(int sp=0;sp!=n_sym_occ;sp++)
+         for(int sp=0;sp<n_sym_occ;sp++)
          {
             input>>tmp_str;
             csf_string.push_back(tmp_str);
@@ -1032,6 +1037,11 @@ bool molp_geom_parser(int* num_of_nucl,std::vector<int>* Z_nucl,std::vector<doub
 
       if(tmp_str=="BASIS" || tmp_str=="Bond")
           test1=1;
+      else if(tmp_str=="CAUTION")
+      {
+         err_caution_after_geom(file,input.tellg());
+         test1=1;
+      }
    }
 
    *num_of_nucl=Z_nucl->size();

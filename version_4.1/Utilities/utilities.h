@@ -17,6 +17,8 @@ void err_geom_not_found(std::string file);
 void err_too_many_geom(std::string file);
 void err_diff_on_vec_size(int size1,int size2);
 void err_end_of_file(std::string file,std::string method);
+void err_caution_after_geom(std::string file,int pos);
+void err_bad_indices_gen_I_integ(int l1,int l2);
 
 //string_utils
 enum charTypeT{ other, alpha, digit};

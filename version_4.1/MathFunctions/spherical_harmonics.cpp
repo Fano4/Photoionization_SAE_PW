@@ -38,7 +38,7 @@ double prefactor_rYlm(int l,int m)
    }
    else 
    {
-      return pow(-1,m) * prefactor_rYlm(l,abs(m));
+      return prefactor_rYlm(l,abs(m));
    }
 }
 double rYlm (int l,int m,double thet,double phi)
