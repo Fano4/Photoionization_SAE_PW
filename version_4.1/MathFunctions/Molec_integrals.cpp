@@ -80,12 +80,24 @@ bool dyson_mo_coeff_comp(int n_states_neut,int n_states_cat,int n_occ,int ci_siz
 }
 */
 
+////////////////////////////////////////////////////////
+//
+//This computes the integrals denoted byt \mathcal{R} in the Latex document. It can be used for both computing overlap and dipole integrals
+//It basically computes the radial part of the overlap integral between primitives
+//
+///////////////////////////////////////////////////////
 double prim_radial_ovlp(unsigned int la,unsigned int lb,unsigned int l,double zet_a,double zet_b,double r)
 {
    double m(zet_a*zet_b/(zet_a+zet_b));
 
    return gen_I_integ(la+lb,l,1./(4.*m),r)/(pow(2*zet_a,1.5+la)*pow(2*zet_b,1.5+lb));
 }
+///////////////////////////////////////////////////////
+//
+//This computes the overlap between primitive GTOs. They include both the radial part and the angular parts and are the backend of
+//the AO overlap integral computation. 
+//
+//////////////////////////////////////////////////////
 double prim_ovlp(std::vector<double> ra,std::vector<double> rb,double zeta_a,double zeta_b,unsigned int la,unsigned int lb,int ma,int mb)
 {
 
@@ -94,8 +106,13 @@ double prim_ovlp(std::vector<double> ra,std::vector<double> rb,double zeta_a,dou
    double phi;
    double temp(0);
 
+   //The primitives are not normalized from their contraction coefficients. The normalization of each primitive is imposed here.
+
    double norma(sqrt(.5*tgamma(1.5+la)/pow(2*zeta_a,1.5+la)));
    double normb(sqrt(.5*tgamma(1.5+lb)/pow(2*zeta_b,1.5+lb)));
+
+   //First compute the distance between both center. Zero distance meand that the overlap is betweeen basis functions located on the samne atom,
+   //which leads to the simplest selection rule for the angular part
 
    double rab(sqrt(pow((ra.at(0)-rb.at(0)),2.)+pow((ra.at(1)-rb.at(1)),2.)+pow((ra.at(2)-rb.at(2)),2.)));
    
@@ -113,6 +130,10 @@ double prim_ovlp(std::vector<double> ra,std::vector<double> rb,double zeta_a,dou
    {
       return 0.5*tgamma(1.5+la)/(pow(zeta_a+zeta_b,1.5+la))*bool(la==lb)*bool(ma==mb)/(norma*normb); 
    }
+
+   //If the distance is not zero, then compute the integral in reciprocal space, by expanding the phase factor in the basis of 
+   //spherical harmonics. This leads to integrals over three spherical harmonics, and thus to selection rules.
+   //This is an analytic result that involves wigner 3j symbols and gamma functions, but  no other special function
    result=0;
    for(unsigned int l=abs(int(la-lb));l<=la+lb;l++)
    {
@@ -146,6 +167,12 @@ double prim_ovlp(std::vector<double> ra,std::vector<double> rb,double zeta_a,dou
    }
    return result;
 }
+///////////////////////////////////////////////////////
+//
+//This computes the overlap between atomic orbitals. The orbitals are GTOs written as contractions of primitives GTOs
+//
+//
+///////////////////////////////////////////////////////
 
 void ao_ovlp(std::vector<double> ra,std::vector<double> rb,std::vector<int> nuc_bas_fun_a,std::vector<int> nuc_bas_fun_b,std::vector<int> cont_num_a,std::vector<int> cont_num_b,std::vector<double> zet_a,std::vector<double> zet_b,std::vector<double> cont_coeff_a, std::vector<double> cont_coeff_b,std::vector<unsigned int> la,std::vector<unsigned int> lb,std::vector<int> ma,std::vector<int> mb,std::vector<double>* S)
 {
