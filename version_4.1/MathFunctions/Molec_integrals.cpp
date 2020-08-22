@@ -11,74 +11,6 @@
 #include <omp.h>
 #include "mathfunctions.h"
 #include "utilities.h"
-//#include <gsl/gsl_sf_hyperg.h>
-//#include <gsl/gsl_errno.h>
-
-/*
-bool dyson_mo_coeff_comp(int n_states_neut,int n_states_cat,int n_occ,int ci_size_neut,int ci_size_cat,int n_elec_neut,double **ci_vec_neut,double **ci_vec_cat,double *overlap,double *Dyson_MO_basis_coeff)
-{
-   bool test(0);
-   bool test2(0);
-   int p;
-   int q;
-
-   double *temp=new double[(n_elec_neut)*(n_elec_neut)];
-
-    for (int i=0; i!=n_states_neut; i++)//ELECTRONIC STATE N
-    {
-        for (int j=0; j!=n_states_cat; j++)//ELECTRONIC STATE K
-        {
-            for (int k=0; k!=n_occ; k++)//MOLECULAR ORBITAL k COEFF. FOR THE DYSON
-            {
-                Dyson_MO_basis_coeff[n_occ*n_states_cat*i+n_occ*j+k]=0;
-                test=0;
-                
-                for (int n=0; n!=ci_size_neut; n++)//   over configurations of the neutral
-                {
-                    for (int l=0; l!=ci_size_cat; l++)//  over configuration of the cation
-                    {
-                        test2=0;
-                        for(int m=0; m!=n_elec_neut; m++)//Over the electrons of the neutral
-                        {
-                           if (ci_vec_neut[0][(n_elec_neut+n_states_neut)*n+m]==k && !test2)
-                           {
-                              test=1;
-                              test2=1;
-                              continue;
-                           }
-                           for (int o=0; o!=n_elec_neut-1; o++)//Over the electrons of the cation
-                           {
-                              p=ci_vec_neut[0][(n_elec_neut+n_states_neut)*n+m];
-                              q=ci_vec_cat[0][(n_elec_neut-1+n_states_cat)*l+o];
-                              temp[(n_elec_neut-1)*(m-test2)+o]=overlap[n_occ*p+q]*kronecker_delta(ci_vec_neut[1][n_elec_neut*n+(m-test2)], ci_vec_cat[1][(n_elec_neut-1)*l+o]);;
-                           }
-                        }
-                        if(test2)
-                        {
-                           Dyson_MO_basis_coeff[n_occ*n_states_cat*i+n_occ*j+k]+=(ci_vec_neut[0][(n_elec_neut+n_states_neut)*n+n_elec_neut+i]*ci_vec_cat[0][(n_elec_neut-1+n_states_cat)*l+n_elec_neut-1+j]*determinant(temp,(n_elec_neut-1)));
-                        }
-                    }
-                }
-                if(!test)
-                {
-                    Dyson_MO_basis_coeff[n_occ*n_states_cat*i+n_occ*j+k]=0;
-                    std::cout<<std::endl<<"states "<<i<<"  and  "<<j<<"    "<<Dyson_MO_basis_coeff[n_occ*n_states_cat*i+n_occ*j+k]<<"   MO  "<<k<<std::endl<<"====================================="<<std::endl<<std::endl;
-                }
-                else
-                {
-                    std::cout<<std::endl<<"states "<<i<<"  and  "<<j<<"    "<<Dyson_MO_basis_coeff[n_occ*n_states_cat*i+n_occ*j+k]<<"   MO  "<<k<<std::endl<<"====================================="<<std::endl<<std::endl;
-                }
-                    
-            }
-        }
-    }
-
-
-    delete [] temp;
-
-    return 1;
-}
-*/
 
 ////////////////////////////////////////////////////////
 //
@@ -90,7 +22,8 @@ double prim_radial_ovlp(unsigned int la,unsigned int lb,unsigned int l,double ze
 {
    double m(zet_a*zet_b/(zet_a+zet_b));
 
-   return gen_I_integ(la+lb,l,1./(4.*m),r)/(pow(2*zet_a,1.5+la)*pow(2*zet_b,1.5+lb));
+
+   return (la>=0 && lb>=0) ? gen_I_integ(la+lb,l,1./(4.*m),r)/(pow(2*zet_a,1.5+la)*pow(2*zet_b,1.5+lb)):0 ;
 }
 ///////////////////////////////////////////////////////
 //
@@ -280,23 +213,11 @@ void ES_ovlp(std::vector<double> CSF_S,int n_csf_a,int n_csf_b,std::vector<doubl
    double temp2[n_states_a*n_csf_a];
 
 
-   std::cout<<"probe1"<<std::endl;
    cblas_dgemm(CblasRowMajor,CblasNoTrans,CblasNoTrans,n_csf_a,n_states_b,n_csf_b,1,O,n_csf_b,Cb,n_states_b,0,&temp[0],n_states_b);
-   std::cout<<"probe2"<<std::endl;
    cblas_dgemm(CblasRowMajor,CblasTrans,CblasNoTrans,n_states_a,n_states_b,n_csf_a,1,Ca,n_states_a,&temp[0],n_states_b,0,&res[0],n_states_b);
-//   std::cout<<"probe 1"<<std::endl;
-//    transpose(Ca, &temp2[0],n_csf_a,n_states_a);
-//   std::cout<<"probe 2 n_csf_a = "<<n_csf_a<<std::endl;
-//   int tmp(n_csf_a);
-//    matrix_product(&temp[0], O, Cb, n_csf_a, n_csf_b, n_states_b); 
-//   std::cout<<"probe 3 n_csf_a = "<<n_csf_a<<std::endl;
-//    matrix_product(&res[0], &temp2[0], &temp[0], n_states_a, tmp, n_states_b);
-//   std::cout<<"probe 4"<<std::endl;
-//    transpose(res,res, n_states_b, n_states_a);
 
     for(int i=0;i!=n_states_a*n_states_b;i++)
        ES_S->push_back(res[i]);
-   std::cout<<"probe 5"<<std::endl;
 
     std::cout<<" Exiting ES overlap routine"<<std::endl;
     return;
@@ -399,54 +320,178 @@ double gen_I_integ(unsigned int l1,unsigned int l2,double zeta,double k)
    return 0;
 
 }
-/*
-double prim_trdip(std::vector<double> ra,std::vector<double> rb,double zeta_a,double zeta_b,unsigned int la,unsigned int lb,int ma,int mb)
+//////////////////////////////////////////////////
+//
+//This computes the trtansition dipole between two primitives. The origin of the frame is determined by the coordinates of atom A and B. 
+//The function accounts for the shift of atom A with respect to the origin
+//
+//////////////////////////////////////////////////
+void prim_trdip(std::vector<double> ra,std::vector<double> rb,double zeta_a,double zeta_b,unsigned int la,unsigned int lb,int ma,int mb,std::vector<double>* trdip)
 {
+   std::vector<double> trdip_centered;
+   double Sab;
 
-   double result(0);
-   double thet;
-   double phi;
-   double temp(0);
+   prim_trdip_centered(ra,rb,zeta_a,zeta_b,la,lb,ma,mb,&trdip_centered);
+   Sab=prim_ovlp(ra,rb,zeta_a,zeta_b,la,lb,ma,mb);
 
+   trdip->clear();
+
+   trdip->push_back( trdip_centered.at(0) + ra.at(0) * Sab );
+   trdip->push_back( trdip_centered.at(1) + ra.at(1) * Sab );
+   trdip->push_back( trdip_centered.at(2) + ra.at(2) * Sab );
+
+   return;
+}
+//////////////////////////////////////////////////
+//
+//This computes the transition dipole between two primitives. The dipole is computed in the frame cenetered on atom A.
+//This exploits the same machinery and relations as the overlap.
+//Because the selection rules are affected by the dipole operator, there are a few more terms in the sum. This implementation tries
+//to deal with it in a simplistic way, but we should improve this
+//
+//////////////////////////////////////////////////
+void prim_trdip_centered(std::vector<double> ra,std::vector<double> rb,double zeta_a,double zeta_b,unsigned int la,unsigned int lb,int ma,int mb,std::vector<double>* trdip)
+{
+   double tempx,tempy,tempz;
+   double Bm1m1,Bm1p1,B0m1,B0p1,Bp1m1,Bp1p1;
+   double Rlp1, Rlm1;
+   double prefactor;
+   double thet(0);
+   double phi(0);
+   std::vector<double> B_temp;
+
+   //The primitives are not normalized from their contraction coefficients. The normalization of each primitive is imposed here.
+
+   double norma(sqrt(.5*tgamma(1.5+la)/pow(2*zeta_a,1.5+la)));
+   double normb(sqrt(.5*tgamma(1.5+lb)/pow(2*zeta_b,1.5+lb)));
+
+   //First compute the distance between both center. Zero distance means that the dipole is betweeen basis functions located on the samne atom,
+   //which leads to the simplest selection rule for the angular part
 
    double rab(sqrt(pow((ra.at(0)-rb.at(0)),2.)+pow((ra.at(1)-rb.at(1)),2.)+pow((ra.at(2)-rb.at(2)),2.)));
-   
+
+   B_coeff(la,ma,-1,&B_temp);
+   Bm1m1=B_temp.at(0);
+   Bm1p1=B_temp.at(1);
+   B_coeff(la,ma,0,&B_temp);
+   B0m1=B_temp.at(0);
+   B0p1=B_temp.at(1);
+   B_coeff(la,ma,1,&B_temp);
+   Bp1m1=B_temp.at(0);
+   Bp1p1=B_temp.at(1);
+
+
    if(rab!=0)
    {
       thet=( acos( (rb.at(2)-ra.at(2)) / rab ) );
       if( (rb.at(0)-ra.at(0)) != 0)
          phi=(atan2( rb.at(1)-ra.at(1),rb.at(0)-ra.at(0) ) );
-      else
-         phi=0;
    }
-   else
-   {
-      //Is there a rule if the two centers are located at the same place?
-      return 0.5*tgamma(1.5+la)/(pow(zeta_a+zeta_b,1.5+la))*bool(la==lb)*bool(ma==mb); 
-   }
+//   else if(zeta_a == zeta_b)
+//      return bool(la==lb)*bool(ma==mb);
+//   else
+//   {
+      //Special cases when on a single center???
+//      return 0.5*tgamma(1.5+la)/(pow(zeta_a+zeta_b,1.5+la))*bool(la==lb)*bool(ma==mb)/(norma*normb); 
+//   }
 
-   for(unsigned int l=abs(int(la-lb-1))*bool(la-lb-1>=0);l<=la+lb+1;l++)
+   //If the distance is not zero, then compute the integral in reciprocal space, by expanding the phase factor in the basis of 
+   //spherical harmonics. This leads to integrals over three spherical harmonics, and thus to selection rules.
+   //This is an analytic result that involves wigner 3j symbols and gamma functions, but  no other special function
+
+   result=0;
+   for(unsigned int l=abs(int(la-lb+1));l<=la+lb+1;l++)
    {
-      if((l+la+lb+1)%2!=0)
-         continue;
-      else
+      if((l+la+lb+1)%2==0)
       {
+         Rlm1=prim_radial_ovlp(la-1,lb,l,zeta_a,zeta_b,rab);
+         Rlp1=prim_radial_ovlp(la+1,lb,l,zeta_a,zeta_b,rab);
          // compute the factor independent of m
-         temp=4*acos(-1)*std::real(pow(std::complex<double>(0,-1),(la-lb-l)))*prim_radial_ovlp(la,lb,l,zeta_a,zeta_b,rab);
-
-         //Add the m=0 term
-         result+=temp*rYlm(l,0,thet,phi)*prefactor_rYlm(la,ma)*prefactor_rYlm(lb,mb)*prefactor_rYlm(l,0)
-               *three_azim_integ(ma,mb,0)*three_ALP_J_integral(la,lb,l,abs(ma),abs(mb),0);
-
-         //add the other terms of the sum
-         for(int m=1;m<=int(l);m++)
+         if(ma==0)
          {
-            if( (ma+mb+m)%2!=0 )
-               continue;
-            else
+            prefactor = pow(4*acos(-1)/3.,1.5) * 3 * std::real(pow(std::complex<double>(0,-1),(la-lb+l+1)))/(norma*normb);
+
+            tempx += prefactor * ( B0m1 * Rlp1 * CY_m_sum(thet,phi,la-1,lb,l,1,mb) 
+                                 + B0p1 * Rlp1 * CY_m_sum(thet,phi,la+1,lb,l,1,mb)
+                                 - ( ( 2 * la + 1) ) * ( B0m1 * Rlm1 * CY_m_sum(thet,phi,la-1,lb,l,1,mb)
+                                 );
+
+            tempy += prefactor * ( B0m1 * Rlp1 * CY_m_sum(thet,phi,la-1,lb,l,-1,mb) 
+                                 + B0p1 * Rlp1 * CY_m_sum(thet,phi,la+1,lb,l,-1,mb)
+                                 - ( ( 2 * la + 1) ) * ( B0m1 * Rlm1 * CY_m_sum(thet,phi,la-1,lb,l,-1,mb)
+                                 );
+
+            tempz += prefactor * ( B0m1 * Rlp1 * CY_m_sum(thet,phi,la-1,lb,l,0,mb) 
+                                 + B0p1 * Rlp1 * CY_m_sum(thet,phi,la+1,lb,l,0,mb) 
+                                 - ( ( 2 * la + 1) ) * ( B0m1 * Rlm1 * CY_m_sum(thet,phi,la-1,lb,l,0,mb)
+                                 );
+         }
+         else
+         {
+            prefactor = pow(4*acos(-1)/3.,1.5) * (3. / sqrt(2.) ) * std::real(pow(std::complex<double>(0,-1),(la-lb+l+1)))/(norma*normb);
+
+            tempx += prefactor * ( Bm1m1 * Rlp1 * CY_m_sum(thet,phi,la-1,lb,l,(ma/abs(ma))*(abs(ma)-1),mb) 
+                                 + Bp1m1 * Rlp1 * CY_m_sum(thet,phi,la-1,lb,l,(ma/abs(ma))*(abs(ma)+1),mb)
+                                 + Bm1p1 * Rlp1 * CY_m_sum(thet,phi,la+1,lb,l,(ma/abs(ma))*(abs(ma)-1),mb)
+                                 + Bp1p1 * Rlp1 * CY_m_sum(thet,phi,la+1,lb,l,(ma/abs(ma))*(abs(ma)+1),mb)
+                                 - ( ( 2 * la + 1 ) ) * ( Bp1m1 * Rlm1 * CY_m_sum(thet,phi,la-1,lb,l,(ma/abs(ma))*(abs(ma)+1),mb)
+                                                             + Bm1m1 * Rlm1 * CY_m_sum(thet,phi,la-1,lb,l,(ma/abs(ma))*(abs(ma)-1),mb))
+                                 );
+
+            tempy += -(ma/abs(ma)) * prefactor * ( - Bm1m1 * Rlp1 * CY_m_sum(thet,phi,la-1,lb,l,-(ma/abs(ma))*(abs(ma)-1),mb) 
+                                                 + Bp1m1 * Rlp1 * CY_m_sum(thet,phi,la-1,lb,l,-(ma/abs(ma))*(abs(ma)+1),mb)
+                                                 - Bm1p1 * Rlp1 * CY_m_sum(thet,phi,la+1,lb,l,-(ma/abs(ma))*(abs(ma)-1),mb)
+                                                 + Bp1p1 * Rlp1 * CY_m_sum(thet,phi,la+1,lb,l,-(ma/abs(ma))*(abs(ma)+1),mb)
+                                                 - ( ( 2 * la + 1 ) ) * ( Bp1m1 * Rlm1 * CY_m_sum(thet,phi,la-1,lb,l,-(ma/abs(ma))*(abs(ma)+1),mb)
+                                                                             - Bm1m1 * Rlm1 * CY_m_sum(thet,phi,la-1,lb,l,-(ma/abs(ma))*(abs(ma)-1),mb))
+                                                 );
+
+            tempz += sqrt(2) * prefactor * ( B0m1 * Rlp1 * CY_m_sum(thet,phi,la-1,lb,l,ma,mb) 
+                                           + B0p1 * Rlp1 * CY_m_sum(thet,phi,la+1,lb,l,ma,mb) 
+                                           - ( ( 2 * la + 1) ) * ( B0m1 * Rlm1 * CY_m_sum(thet,phi,la-1,lb,l,ma,mb)
+                                           );
          }
       }
    }
+
+   trdip->clear();
+   trdip->push_back(tempx);
+   trdip->push_back(tempy);
+   trdip->push_back(tempz);
+
+   return;
+
+}
+//////////////////////////////////////////////////
+//
+// This computes the partial sums that are involved in the computation of the terms in the transition dipole integrals.
+// The partial sum can be written \sum_{l=|l_a-l_b|}^{la+lb} ( Y_{l,0}C_{m_a,m_b,0}+\sum_{m=1}^{l}[Y_{l,|m|}C_{m_a,m_b,|m|}+Y_{l,-|m|}C_{m_a,m_b,-|m|}] ) 
+//
+//////////////////////////////////////////////////
+double CY_m_sum(double thet,double phi,unsigned int la,unsigned int lb,unsigned int l,int ma,int mb)
+{
+
+   double result(0);
+   double temp(0);
+
+   if( la < 0 || lb < 0 || abs(ma) > la || abs(mb) > lb )
+      return 0;
+
+   //Add the m=0 term
+   result+=rYlm(l,0,thet,phi)*prefactor_rYlm(la,ma)*prefactor_rYlm(lb,mb)*prefactor_rYlm(l,0)
+      *three_azim_integ(ma,mb,0)*three_ALP_J_integral(la,lb,l,abs(ma),abs(mb),0) * bool((ma+mb) % 2 == 0);
+
+   //add the other terms of the sum
+   for(int m=1;m<=int(l);m++)
+   {
+      if( (ma+mb+m)%2!=0 )
+         continue;
+      else
+         result+=(
+         rYlm(l,m,thet,phi)*prefactor_rYlm(la,ma)*prefactor_rYlm(lb,mb)*prefactor_rYlm(l,m)
+         *three_azim_integ(ma,mb,m)*three_ALP_J_integral(la,lb,l,abs(ma),abs(mb),m)
+         +rYlm(l,-m,thet,phi)*prefactor_rYlm(la,ma)*prefactor_rYlm(lb,mb)*prefactor_rYlm(l,-m)
+         *three_azim_integ(ma,mb,-m)*three_ALP_J_integral(la,lb,l,abs(ma),abs(mb),m));//*three_Ylm_integ(la,lb,l,ma,mb,m);
+   }
    return result;
 }
-*/

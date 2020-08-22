@@ -514,22 +514,23 @@ void B_coeff(int l,int m1,int m2,std::vector<double> *B_val)
    //This function computes the expansion coefficients of a product of a spherical harmonics with a Y_{1}^{m} spherical harmonics.
    //The expansion coefficients describe the coefficients for the expansion in a sum of spherical hamronics
    //
-//   std::cout<<"Entering B_coeff with "<<l<<","<<m1<<","<<m2<<std::endl;
 
    B_val->clear();
-   if( (l-1) >= abs(m1+m2)  && l > 0 )
+   if(l < 0)
+   {
+      B_val->push_back(0);
+      B_val->push_back(0);
+      return ;
+   }
+   else if( (l-1) >= abs(m1+m2) )
    {
       B_val->push_back(pow(-1,m1+m2)*sqrt(3.*(2.*double(l)+1.)*(2.*double(l)-1)/(4*acos(-1)))*gsl_sf_coupling_3j(2*l,2,2*(l-1),2*m1,2*m2,-2*(m1+m2))*gsl_sf_coupling_3j(2*l,2,2*(l-1),0,0,0));
 
-//      std::cout<<"+++++ term 1 : "<<sqrt(3.*(2.*double(l)+1.)*(2.*double(l)-1.)/(4*acos(-1)))<<" * "<<gsl_sf_coupling_3j(2*l,2,2*(l-1),2*m1,2*m2,-2*(m1+m2))<<" * "<<gsl_sf_coupling_3j(2*l,2,2*(l-1),0,0,0)<<std::endl;
    }
    else
       B_val->push_back(0);
 
    B_val->push_back(pow(-1,m1+m2)*sqrt(3.*(2.*double(l)+1.)*(2.*double(l)+3.)/(4*acos(-1)))*gsl_sf_coupling_3j(2*l,2,2*(l+1),2*m1,2*m2,-2*(m1+m2))*gsl_sf_coupling_3j(2*l,2,2*(l+1),0,0,0));
-//      std::cout<<"+++++ term 2 : "<<sqrt(3.*(2.*double(l)+1.)*(2.*double(l)+3.)/(4*acos(-1)))<<" * "<<gsl_sf_coupling_3j(2*l,2,2*(l+1),2*m1,2*m2,-2*(m1+m2))<<" * "<<gsl_sf_coupling_3j(2*l,2,2*(l+1),0,0,0)<<std::endl;
-
-//   std::cout<<"Leaving B_coeff with "<<B_val->at(0)<<" and "<<B_val->at(1)<<std::endl;
 
    return;
 }
