@@ -23,7 +23,8 @@ double prim_radial_ovlp(unsigned int la,unsigned int lb,unsigned int l,double ze
    double m(zet_a*zet_b/(zet_a+zet_b));
 
 
-   return (la>=0 && lb>=0) ? gen_I_integ(la+lb,l,1./(4.*m),r)/(pow(2*zet_a,1.5+la)*pow(2*zet_b,1.5+lb)):0 ;
+   return gen_I_integ(la+lb,l,1./(4.*m),r)/(pow(2*zet_a,1.5+la)*pow(2*zet_b,1.5+lb));
+   //return (la>=0 && lb>=0) ? gen_I_integ(la+lb,l,1./(4.*m),r)/(pow(2*zet_a,1.5+la)*pow(2*zet_b,1.5+lb)):0 ;
 }
 ///////////////////////////////////////////////////////
 //
@@ -399,7 +400,10 @@ void prim_trdip_centered(std::vector<double> ra,std::vector<double> rb,double ze
    //spherical harmonics. This leads to integrals over three spherical harmonics, and thus to selection rules.
    //This is an analytic result that involves wigner 3j symbols and gamma functions, but  no other special function
 
-   result=0;
+   tempx=0;
+   tempy=0;
+   tempz=0;
+
    for(unsigned int l=abs(int(la-lb+1));l<=la+lb+1;l++)
    {
       if((l+la+lb+1)%2==0)
@@ -413,17 +417,17 @@ void prim_trdip_centered(std::vector<double> ra,std::vector<double> rb,double ze
 
             tempx += prefactor * ( B0m1 * Rlp1 * CY_m_sum(thet,phi,la-1,lb,l,1,mb) 
                                  + B0p1 * Rlp1 * CY_m_sum(thet,phi,la+1,lb,l,1,mb)
-                                 - ( ( 2 * la + 1) ) * ( B0m1 * Rlm1 * CY_m_sum(thet,phi,la-1,lb,l,1,mb)
+                                 - ( ( 2 * la + 1) ) * ( B0m1 * Rlm1 * CY_m_sum(thet,phi,la-1,lb,l,1,mb) )
                                  );
 
             tempy += prefactor * ( B0m1 * Rlp1 * CY_m_sum(thet,phi,la-1,lb,l,-1,mb) 
                                  + B0p1 * Rlp1 * CY_m_sum(thet,phi,la+1,lb,l,-1,mb)
-                                 - ( ( 2 * la + 1) ) * ( B0m1 * Rlm1 * CY_m_sum(thet,phi,la-1,lb,l,-1,mb)
+                                 - ( ( 2 * la + 1) ) * ( B0m1 * Rlm1 * CY_m_sum(thet,phi,la-1,lb,l,-1,mb) )
                                  );
 
             tempz += prefactor * ( B0m1 * Rlp1 * CY_m_sum(thet,phi,la-1,lb,l,0,mb) 
                                  + B0p1 * Rlp1 * CY_m_sum(thet,phi,la+1,lb,l,0,mb) 
-                                 - ( ( 2 * la + 1) ) * ( B0m1 * Rlm1 * CY_m_sum(thet,phi,la-1,lb,l,0,mb)
+                                 - ( ( 2 * la + 1) ) * ( B0m1 * Rlm1 * CY_m_sum(thet,phi,la-1,lb,l,0,mb) )
                                  );
          }
          else
@@ -448,7 +452,7 @@ void prim_trdip_centered(std::vector<double> ra,std::vector<double> rb,double ze
 
             tempz += sqrt(2) * prefactor * ( B0m1 * Rlp1 * CY_m_sum(thet,phi,la-1,lb,l,ma,mb) 
                                            + B0p1 * Rlp1 * CY_m_sum(thet,phi,la+1,lb,l,ma,mb) 
-                                           - ( ( 2 * la + 1) ) * ( B0m1 * Rlm1 * CY_m_sum(thet,phi,la-1,lb,l,ma,mb)
+                                           - ( ( 2 * la + 1) ) * ( B0m1 * Rlm1 * CY_m_sum(thet,phi,la-1,lb,l,ma,mb) )
                                            );
          }
       }
@@ -461,37 +465,4 @@ void prim_trdip_centered(std::vector<double> ra,std::vector<double> rb,double ze
 
    return;
 
-}
-//////////////////////////////////////////////////
-//
-// This computes the partial sums that are involved in the computation of the terms in the transition dipole integrals.
-// The partial sum can be written \sum_{l=|l_a-l_b|}^{la+lb} ( Y_{l,0}C_{m_a,m_b,0}+\sum_{m=1}^{l}[Y_{l,|m|}C_{m_a,m_b,|m|}+Y_{l,-|m|}C_{m_a,m_b,-|m|}] ) 
-//
-//////////////////////////////////////////////////
-double CY_m_sum(double thet,double phi,unsigned int la,unsigned int lb,unsigned int l,int ma,int mb)
-{
-
-   double result(0);
-   double temp(0);
-
-   if( la < 0 || lb < 0 || abs(ma) > la || abs(mb) > lb )
-      return 0;
-
-   //Add the m=0 term
-   result+=rYlm(l,0,thet,phi)*prefactor_rYlm(la,ma)*prefactor_rYlm(lb,mb)*prefactor_rYlm(l,0)
-      *three_azim_integ(ma,mb,0)*three_ALP_J_integral(la,lb,l,abs(ma),abs(mb),0) * bool((ma+mb) % 2 == 0);
-
-   //add the other terms of the sum
-   for(int m=1;m<=int(l);m++)
-   {
-      if( (ma+mb+m)%2!=0 )
-         continue;
-      else
-         result+=(
-         rYlm(l,m,thet,phi)*prefactor_rYlm(la,ma)*prefactor_rYlm(lb,mb)*prefactor_rYlm(l,m)
-         *three_azim_integ(ma,mb,m)*three_ALP_J_integral(la,lb,l,abs(ma),abs(mb),m)
-         +rYlm(l,-m,thet,phi)*prefactor_rYlm(la,ma)*prefactor_rYlm(lb,mb)*prefactor_rYlm(l,-m)
-         *three_azim_integ(ma,mb,-m)*three_ALP_J_integral(la,lb,l,abs(ma),abs(mb),m));//*three_Ylm_integ(la,lb,l,ma,mb,m);
-   }
-   return result;
 }

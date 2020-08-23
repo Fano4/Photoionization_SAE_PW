@@ -37,6 +37,10 @@ void slater_ovlp(int n_elec,int n_csf_a,int n_csf_b,std::vector<int> csf_mo_a,st
 void ES_ovlp(std::vector<double> CSF_S,int n_csf_a,int n_csf_b,std::vector<double> ci_vector_a,std::vector<double> ci_vector_b,int n_states_a,int n_states_b,std::vector<double>* ES_S);
 
 
+void prim_trdip_centered(std::vector<double> ra,std::vector<double> rb,double zeta_a,double zeta_b,unsigned int la,unsigned int lb,int ma,int mb,std::vector<double>* trdip);
+double CY_m_sum(double thet,double phi,unsigned int la,unsigned int lb,unsigned int l,int ma,int mb);
+
+
 double determinant(double *A,int dim);
 void transpose(double *A,double *B, int dim1, int dim2);
 void matrix_product(double *C,double *A,double *B,const int dim1,const int dim2,const int dim3);

@@ -26,8 +26,6 @@ int main(int argc,char* argv[])
 
 //   two_file_overlap();
 //   exit(EXIT_SUCCESS);
-//   testing angular integrals
-//   test_B_coeff();
 /*
    test_fact_prime_decomposer();
    two_azim_integ_test();
@@ -59,16 +57,21 @@ int main(int argc,char* argv[])
    test_molp_lcao_parser();
    test_molp_ci_parser();
    */
+   //testing angular integrals
+   test_B_coeff();
+   test_CY_m_sum();
+
    //testing molec integrals
    
-   //test_gen_I_integ();
+   test_gen_I_integ();
    //test_prim_radial_ovlp();
    //test_prim_ovlp();
-   test_ao_ovlp();
-   test_mo_ovlp();
+   //test_ao_ovlp();
+   //test_mo_ovlp();
   // test_slater_ovlp();
-   test_es_ovlp(); 
+   //test_es_ovlp(); 
    
+   //dipole integral
    return 0;
 }
 void two_file_overlap()

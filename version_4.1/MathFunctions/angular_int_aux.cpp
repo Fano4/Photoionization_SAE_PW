@@ -4,6 +4,7 @@
 #include <vector>
 #include <gsl/gsl_sf.h>
 #include "prime.hpp"
+#include "spherical_harmonics.cpp"
 
 double azim_integ(int m)
 {
@@ -533,4 +534,37 @@ void B_coeff(int l,int m1,int m2,std::vector<double> *B_val)
    B_val->push_back(pow(-1,m1+m2)*sqrt(3.*(2.*double(l)+1.)*(2.*double(l)+3.)/(4*acos(-1)))*gsl_sf_coupling_3j(2*l,2,2*(l+1),2*m1,2*m2,-2*(m1+m2))*gsl_sf_coupling_3j(2*l,2,2*(l+1),0,0,0));
 
    return;
+}
+//////////////////////////////////////////////////
+//
+// This computes the partial sums that are involved in the computation of the terms in the transition dipole integrals.
+// The partial sum can be written \sum_{l=|l_a-l_b|}^{la+lb} ( Y_{l,0}C_{m_a,m_b,0}+\sum_{m=1}^{l}[Y_{l,|m|}C_{m_a,m_b,|m|}+Y_{l,-|m|}C_{m_a,m_b,-|m|}] ) 
+//
+//////////////////////////////////////////////////
+double CY_m_sum(double thet,double phi,unsigned int la,unsigned int lb,unsigned int l,int ma,int mb)
+{
+
+   double result(0);
+   double temp(0);
+
+   if( abs(ma) > la || abs(mb) > lb )
+      return 0;
+
+   //Add the m=0 term
+   result+=rYlm(l,0,thet,phi)*prefactor_rYlm(la,ma)*prefactor_rYlm(lb,mb)*prefactor_rYlm(l,0)
+      *three_azim_integ(ma,mb,0)*three_ALP_J_integral(la,lb,l,abs(ma),abs(mb),0) * bool((ma+mb) % 2 == 0);
+
+   //add the other terms of the sum
+   for(int m=1;m<=int(l);m++)
+   {
+      if( (ma+mb+m)%2!=0 )
+         continue;
+      else
+         result+=(
+         rYlm(l,m,thet,phi)*prefactor_rYlm(la,ma)*prefactor_rYlm(lb,mb)*prefactor_rYlm(l,m)
+         *three_azim_integ(ma,mb,m)*three_ALP_J_integral(la,lb,l,abs(ma),abs(mb),m)
+         +rYlm(l,-m,thet,phi)*prefactor_rYlm(la,ma)*prefactor_rYlm(lb,mb)*prefactor_rYlm(l,-m)
+         *three_azim_integ(ma,mb,-m)*three_ALP_J_integral(la,lb,l,abs(ma),abs(mb),m));//*three_Ylm_integ(la,lb,l,ma,mb,m);
+   }
+   return result;
 }

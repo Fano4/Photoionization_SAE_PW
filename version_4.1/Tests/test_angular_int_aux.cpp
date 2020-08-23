@@ -1454,3 +1454,69 @@ bool test_B_coeff()
       return 0;
    }
 }
+//////////////////////////////////////////
+//
+//
+//////////////////////////////////////////
+bool test_CY_m_sum()
+{
+   //Here, we test the expansion of a product of two spherical harmonics into a combination of spherical harmomics
+   bool test1(1);
+   double thresh(1e-5);
+   std::cout<<"Testing CY_m_sum_coeff"<<std::endl;
+   unsigned int l1,l2,l;
+   int m1,m2;
+   double thet,phi;
+   double Cm_sum_val;
+
+   //Initialize random variable generation
+   srand (time(0));
+
+   //Test 1 : The integral yields good results
+   std::cout<<"1..."<<std::endl;
+   for(int j=0;j!=100;j++)
+   {
+      std::complex<double> check;
+      //generate a random set of values
+       l1=(rand() % 10);
+       l2=(rand() % 10);
+       m1=( rand() % ( 2 * l1 + 1 ) ) - l1;
+       m2=( rand() % ( 2 * l2 + 1 ) ) - l2;
+       thet=( rand() % (1000) * acos(-1) / 1000 );
+       phi=( rand() % (1000) * 2 * acos(-1) / 1000 );
+
+       Cm_sum_val=0;
+       //Send the parameters for computing the special cases
+       for(l=abs(l1-l2);l!=l1+l2+1;l++)
+          Cm_sum_val+=CY_m_sum(thet,phi,l1,l2,l,m1,m2); 
+
+      //Check is the value of the product of two spherical harmonics
+      check=rYlm(l1,m1,thet,phi)*rYlm(l2,m2,thet,phi);
+
+       //Check if the relation holds
+
+       if( abs(check-Cm_sum_val)<=thresh)
+       {
+          test1*=1;
+       }
+       else
+       {
+          std::cout<<l1<<","<<l2<<" - "<<m1<<","<<m2<<" ----- ";
+          std::cout<<check<<"====="<<Cm_sum_val<<std::endl;
+          test1*=0;
+       }
+   }
+   if(test1)
+   {
+      std::cout<<"...passed"<<std::endl;
+      return 1;
+   }
+   else
+   {
+      std::cout<<"...FAILED...";
+      if(!test1)
+         std::cout<<"Error 1...";
+      std::cout<<std::endl;
+      return 0;
+   }
+}
