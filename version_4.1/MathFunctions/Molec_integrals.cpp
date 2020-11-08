@@ -303,7 +303,8 @@ double determinant(double *A,int dim)
 double gen_I_integ(unsigned int l1,unsigned int l2,double zeta,double k)
 {
    //This function compute the radial integral int_0^{inf} dr r^{2+l1}*exp(-d r^2)*j_{l2}(r * k)
-
+   //For all practical purposes in this code, this function can only handle cases where l1+l2 is even
+   //
    //error handling
    if(k*k/(4.*zeta) > 708.4)
       std::cout<<"Warning ! Risk of underflow in evaluating exponential function. x = "<<-k*k/(4.*zeta)<<" for "<<zeta<<" and "<<k<<std::endl;
@@ -314,6 +315,9 @@ double gen_I_integ(unsigned int l1,unsigned int l2,double zeta,double k)
 
    else if( abs(int(l1-l2)) % 2 == 0 && l1 > l2)
       return ((2*l2+3)/k)*gen_I_integ(l1-1,l2+1,zeta,k)-gen_I_integ(l1,l2+2,zeta,k);
+
+   else if( abs(int(l1-l2)) % 2 == 0 && l1 < l2)
+      return ((l1+l2+1)/k)*gen_I_integ(l1-1,l2-1,zeta,k)-(2*zeta/k)*gen_I_integ(l1+1,l2-1,zeta,k);
 
    else //if( abs(l1-l2) % 2 == 0 && l1 < l2)
       err_bad_indices_gen_I_integ(l1,l2);
@@ -353,6 +357,12 @@ void prim_trdip(std::vector<double> ra,std::vector<double> rb,double zeta_a,doub
 //////////////////////////////////////////////////
 void prim_trdip_centered(std::vector<double> ra,std::vector<double> rb,double zeta_a,double zeta_b,unsigned int la,unsigned int lb,int ma,int mb,std::vector<double>* trdip)
 {
+
+   std::cout<<"Entering prim_trdip_centered with parameters ra=("<<ra.at(0)<<","<<ra.at(1)<<","<<ra.at(2)
+      <<") ; rb=("<<ra.at(0)<<","<<ra.at(1)<<","<<ra.at(2)<<") ; "
+      <<", zeta_a = "<<zeta_a<<" , zeta_b = "<<zeta_b
+      <<", la = "<<la<<" , lb = "<<lb
+      <<", ma = "<<ma<<" , mb = "<<mb<<std::endl;
    double tempx,tempy,tempz;
    double Bm1m1,Bm1p1,B0m1,B0p1,Bp1m1,Bp1p1;
    double Rlp1, Rlm1;
@@ -406,6 +416,7 @@ void prim_trdip_centered(std::vector<double> ra,std::vector<double> rb,double ze
 
    for(unsigned int l=abs(int(la-lb+1));l<=la+lb+1;l++)
    {
+      std::cout<<" l = "<<l<<std::endl;
       if((l+la+lb+1)%2==0)
       {
          Rlm1=prim_radial_ovlp(la-1,lb,l,zeta_a,zeta_b,rab);
@@ -415,9 +426,9 @@ void prim_trdip_centered(std::vector<double> ra,std::vector<double> rb,double ze
          {
             prefactor = pow(4*acos(-1)/3.,1.5) * 3 * std::real(pow(std::complex<double>(0,-1),(la-lb+l+1)))/(norma*normb);
 
-            tempx += prefactor * ( B0m1 * Rlp1 * CY_m_sum(thet,phi,la-1,lb,l,1,mb) 
-                                 + B0p1 * Rlp1 * CY_m_sum(thet,phi,la+1,lb,l,1,mb)
-                                 - ( ( 2 * la + 1) ) * ( B0m1 * Rlm1 * CY_m_sum(thet,phi,la-1,lb,l,1,mb) )
+            tempx += prefactor * ( B0m1 * Rlp1 * CY_m_sum(thet,phi,la-1,lb,l,1,mb) //0 if la+lb+l+1 is odd
+                                 + B0p1 * Rlp1 * CY_m_sum(thet,phi,la+1,lb,l,1,mb) //0 if la+lb+l+1 is odd
+                                 - ( ( 2 * la + 1) ) * ( B0m1 * Rlm1 * CY_m_sum(thet,phi,la-1,lb,l,1,mb) ) //0 if la+lb+l+1 is odd
                                  );
 
             tempy += prefactor * ( B0m1 * Rlp1 * CY_m_sum(thet,phi,la-1,lb,l,-1,mb) 

@@ -64,6 +64,7 @@ int main(int argc,char* argv[])
    //testing molec integrals
    
    test_gen_I_integ();
+   test_prim_trdip_centered();
    //test_prim_radial_ovlp();
    //test_prim_ovlp();
    //test_ao_ovlp();

@@ -15,51 +15,54 @@ double azim_integ(int m)
 }
 double two_azim_integ(int m1,int m2)
 {
-   if( m1 == 0 && m2 == 0 )
+   //This function always returns 0 if (m1+m2)%2!=0
+   //
+   if( m1 == 0 && m2 == 0 ) // m1+m2 even
       return 2*acos(-1);
 
-   else if ( ( m1 == 0 && m2 != 0 ) || ( m1 != 0 && m2 == 0 ) )
+   else if ( ( m1 == 0 && m2 != 0 ) || ( m1 != 0 && m2 == 0 ) ) // integ !=0 iff m1+m2 is even
       return azim_integ(m1+m2);
 
-   else if( m1 == m2 )
+   else if( m1 == m2 ) // m1+m2 even
       return acos(-1);
    
-   else if(m1 == -m2 )
+   else if(m1 == -m2 ) //m1+m2 even .. 
       return 0;
 
    else if( m1 > 0 && m2 > 0 )
-      return 0.5*(azim_integ(m1+m2)+azim_integ(abs(m1-m2)));
+      return 0.5*(azim_integ(m1+m2)+azim_integ(abs(m1-m2))); //// integ !=0 iff m1+m2 is even
 
    else if( m1 > 0 && m2 < 0 )
-      return 0.5*( azim_integ(-abs(m1+m2)) +pow(-1,bool(m1+m2<0))*azim_integ(-abs(m1-m2)));
+      return 0.5*( azim_integ(-abs(m1+m2)) +pow(-1,bool(m1+m2<0))*azim_integ(-abs(m1-m2))); //// integ !=0 iff m1+m2 is even
 
    else if( m1 < 0 && m2 > 0 )
-      return 0.5*( azim_integ(-abs(m1+m2)) + pow(-1,bool(m1+m2<0))*azim_integ(-abs(m1-m2)));
+      return 0.5*( azim_integ(-abs(m1+m2)) + pow(-1,bool(m1+m2<0))*azim_integ(-abs(m1-m2))); // integ !=0 iff m1+m2 is even
    else 
-      return 0.5*( azim_integ(abs(m1-m2)) - azim_integ(abs(m1+m2))) ;
+      return 0.5*( azim_integ(abs(m1-m2)) - azim_integ(abs(m1+m2))) ; // integ !=0 iff m1+m2 is even
 }
 double three_azim_integ(int m1,int m2,int m3)
 {
+   //This function always returns 0 if (m1+m2+m3)%2!=0
    if( m1 == 0 && m2 == 0 )
-      return azim_integ(m3);
+      return azim_integ(m3); // returns 0 if m3 !=0
 
    else if (m3 == 0)
-      return two_azim_integ(m1,m2);
+      return two_azim_integ(m1,m2); //returns 0 if (m1+m2)%2!=0 
 
    else if ( ( m1 == 0 && m2 != 0 ) || ( m1 != 0 && m2 == 0 ) )
-      return two_azim_integ(m1+m2,m3);
+      return two_azim_integ(m1+m2,m3); //integ !=0 if (m1+m2+m3) is even
 
    else if( m1 > 0 && m2 > 0 )
-      return 0.5*(two_azim_integ(m1+m2,m3)+two_azim_integ(abs(m1-m2),m3));
+      return 0.5*(two_azim_integ(m1+m2,m3)+two_azim_integ(abs(m1-m2),m3)); ///integ !=0 if (m1+m2+m3) is even
 
    else if( m1 > 0 && m2 < 0 )
-      return -0.5*( pow(-1,bool(m1+m2<0))*two_azim_integ(-abs(m1+m2),m3) - pow(-1,bool(m1-m2<0))*two_azim_integ(-abs(m1-m2),m3));
+      return -0.5*( pow(-1,bool(m1+m2<0))*two_azim_integ(-abs(m1+m2),m3) - pow(-1,bool(m1-m2<0))*two_azim_integ(-abs(m1-m2),m3)); //integ !=0 if (m1+m2+m3) is even
 
    else if( m1 < 0 && m2 > 0 )
-      return -0.5*( pow(-1,bool(m1+m2<0))*two_azim_integ(-abs(m1+m2),m3) + pow(-1,bool(m1-m2<0))*two_azim_integ(-abs(m1-m2),m3));
+      return -0.5*( pow(-1,bool(m1+m2<0))*two_azim_integ(-abs(m1+m2),m3) + pow(-1,bool(m1-m2<0))*two_azim_integ(-abs(m1-m2),m3));//integ !=0 if (m1+m2+m3) is even
 
    else 
-      return 0.5*( two_azim_integ(abs(m1-m2),m3) - two_azim_integ(abs(m1+m2),m3)) ;
+      return 0.5*( two_azim_integ(abs(m1-m2),m3) - two_azim_integ(abs(m1+m2),m3)) ;//integ !=0 if (m1+m2+m3) is even
 }
 void Jint_sort_indices(int* l1,int* l2,int* l3,int* m1,int* m2,int* m3)
 {
@@ -544,6 +547,8 @@ void B_coeff(int l,int m1,int m2,std::vector<double> *B_val)
 double CY_m_sum(double thet,double phi,unsigned int la,unsigned int lb,unsigned int l,int ma,int mb)
 {
 
+   //in all the terms of this sum, the value is zero if m1+m2+m is odd.
+   //Because three_ALP_J_integral is zero whenever (l1+l2+l + m1+m2+m) is odd, l1+l2+l must be even for the integrals not be zero
    double result(0);
    double temp(0);
 

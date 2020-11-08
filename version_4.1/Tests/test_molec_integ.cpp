@@ -735,3 +735,125 @@ bool test_gen_I_integ()
    }
 
 }
+bool test_prim_trdip_centered()
+{
+
+   using namespace std; 
+
+   bool test1(0);
+   double thresh(1e-8);
+   srand (time(0));
+
+   cout<<"testing prim_trdip_centered...";
+
+   //set up the environment to compute the transition dipole. Computing the ao_basis overlap requires the geometry and the basis data
+
+   double zeta_a;
+   double zeta_b;
+   unsigned int la;
+   unsigned int lb;
+   int ma,mb;
+   std::vector<double> trdip;
+   std::vector<double> ra,rb;
+   std::vector<double>* r;
+   double* dr;
+
+   //Test 1 : The integral yields same result as numerical integral for orbitals centered on the same nucleus
+
+   std::cout<<"1..."<<std::endl;
+
+   //Set up the position of nuclei on which the primitives are cenetered. We first test the case where both functions are centered on one nucleus
+   //The nuclear positions should be given in cartesian coordinates. The functions should be centered on the A atom.
+   
+   ra.push_back(0);
+   ra.push_back(0);
+   ra.push_back(0);
+   rb.push_back(0);
+   rb.push_back(0);
+   rb.push_back(0);
+
+   //set up vector to represent the first moment of a product of two primitives in real space
+
+   int nr=1000000;
+   r=new std::vector<double> [nr];
+   dr=new double [nr];
+
+   double rrmin=0.01;
+   double rrmax=10;
+
+   for(int i=0;i!=nr;i++)
+   {
+      r[i].push_back( rrmin + ( rand() % nr ) * ( rrmax - rrmin ) / nr );
+      r[i].push_back( ( rand() % nr ) * acos( -1 ) / nr );
+      r[i].push_back( ( rand() % nr ) * 2 * acos( -1 ) / nr );
+      dr[i] = pow(r[i].at(0),2) * sin(r[i].at(1)) * (rrmax-rrmin) * ( 2 * acos(-1) ) / nr;
+   }
+
+   for(int i=0;i!=25;i++)
+   {
+      double val(10);
+      double a,b;
+      double checkx,checky,checkz;
+      double phi_a,phi_b;
+
+      la = (rand() % 6);
+      lb = (rand() % 6);
+      ma = -la + ( rand() % (2 * la + 1) );
+      mb = -lb + ( rand() % (2 * lb + 1) );
+
+      zeta_a = 0.001 + 10. * double ( rand() % 1000 ) / 1000.;
+      zeta_b = 0.001 + 10. * double ( rand() % 1000 ) / 1000.;
+      //Send the parameters for computing 
+      prim_trdip_centered(ra,rb,zeta_a,zeta_b,la,lb,ma,mb,&trdip);
+
+      //Compute using independent functions
+      checkx=0;
+      checky=0;
+      checkz=0;
+      for(int xx=0;xx!=nr;xx++)
+      {
+         phi_a = pow( r[xx].at(0) , la ) * exp( - zeta_a * r[xx].at(0) * r[xx].at(0) ) * rYlm(la,ma,r[xx].at(1),r[xx].at(2));
+         phi_b = pow( r[xx].at(0) , lb ) * exp( - zeta_b * r[xx].at(0) * r[xx].at(0) ) * rYlm(lb,mb,r[xx].at(1),r[xx].at(2));
+         checkx+=dr[xx] * r[xx].at(0) * sin(r[xx].at(1) ) * cos( r[xx].at(2) ) * phi_a * phi_b ;
+         checky+=dr[xx] * r[xx].at(0) * sin(r[xx].at(1) ) * sin( r[xx].at(2) ) * phi_a * phi_b ;
+         checkz+=dr[xx] * r[xx].at(0) * cos(r[xx].at(1) ) * phi_a * phi_b ;
+      }
+
+       //Check if the normalization constant is correct
+
+      std::cout<<" dipole x : val :"<<trdip.at(0)<<" ; check "<<checkx<<std::endl;
+      std::cout<<" dipole y : val :"<<trdip.at(1)<<" ; check "<<checky<<std::endl;
+      std::cout<<" dipole z : val :"<<trdip.at(2)<<" ; check "<<checkz<<std::endl;
+       /*
+       if( fabs(val - check) / (check + bool(check <= thresh)) <=thresh)
+       {
+//          std::cout<<la<<","<<lb<<","<<l<<","<<zeta_a<<","<<zeta_b<<","<<r<<"+++++"<<val<<" ----- ";
+//          std::cout<<check<<"   PASSED"<<std::endl;
+          test1*=1;
+       }
+       else
+       {
+          std::cout<<la<<","<<lb<<","<<l<<","<<zeta_a<<","<<zeta_b<<","<<r<<"+++++"<<val<<" ----- ";
+          std::cout<<check<<"   FAILED : relative error of "<<fabs(val - check) / (check + bool(check <= thresh))<<std::endl;
+          test1*=0;
+       }
+       */
+   }
+
+   if(test1)
+   {
+      std::cout<<"...passed"<<std::endl;
+      return 1;
+   }
+   else
+   {
+      std::cout<<"...FAILED...";
+      if(!test1)
+      {
+         std::cout<<"Error 1...";
+      }
+      std::cout<<std::endl;
+      return 0;
+   }
+
+}
